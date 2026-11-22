@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import SectionHead from './SectionHead'
-import { ArrowLeft, Bars, ChevronLeft, ChevronRight, Flag, Star, Users } from './Icons'
+import { ArrowLeft, Bars, ChevronLeft, ChevronRight, Flag, Star, Users, Leaf } from './Icons'
 import { fa, faMoney } from '../lib/fa'
 import { useAutoplay, useReveal } from '../lib/hooks'
 
@@ -30,6 +30,7 @@ export default function Classes() {
   return (
     <section id="classes" className="section" ref={ref}>
       <div className="bg-shape shape-circle-navy" />
+      <Leaf className="leaf leaf-classes" />
       <div className="container">
         <SectionHead tag="کلاس‌های آنلاین فرتاش" title="کلاس‌های زبان در فرتاش" text="کلاس‌های زنده و تعاملی زبان انگلیسی، آلمانی و فرانسوی با همراهی اساتید مجرب." />
 

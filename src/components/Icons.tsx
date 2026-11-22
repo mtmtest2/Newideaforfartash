@@ -1,3 +1,4 @@
+import Sprig from './Sprig'
 import type { SVGProps } from 'react'
 type P = SVGProps<SVGSVGElement>
 const base = (p: P) => ({ width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true, ...p })
@@ -28,13 +29,7 @@ export const Chat = (p: P) => <svg {...base(p)}><path d="M4 5h16v11H9l-5 4z" /><
 export const Trophy = (p: P) => <svg {...base(p)}><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8M9 18h6" /></svg>
 export const Teacher = (p: P) => <svg {...base(p)}><circle cx="12" cy="7" r="3.500" /><path d="M5 21c0-4 3-6.500 7-6.500s7 2.500 7 6.500zM16.500 11l4 1.500" /></svg>
 
-export const Leaf = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 160 220" aria-hidden="true" fill="currentColor">
-    <path d="M80 218C78 150 80 80 84 4 40 40 20 90 30 150c8 40 30 56 50 68z" opacity=".95" />
-    <path d="M84 120c30-30 62-36 74-34-2 40-28 74-70 80z" opacity=".75" />
-    <path d="M78 150c-26-22-52-26-66-22 4 34 30 56 62 58z" opacity=".6" />
-  </svg>
-)
+export const Leaf = ({ className }: { className?: string }) => <Sprig className={className} />
 
 export const Spark = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round">

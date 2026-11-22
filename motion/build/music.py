@@ -51,12 +51,15 @@ R = np.concatenate([np.zeros(dl), pad[:-dl]]) + bass + arp * np.where((np.arange
 ec = int(beat * .75 * SR)
 L[ec:] += .22 * arp[:-ec]; R[ec:] += .22 * arp[:-ec]
 music = np.stack([L, R], 1); music /= np.max(np.abs(music)) + 1e-9
-# ducking from voice envelope
-env = np.abs(voice); win = int(.25 * SR)
+# ducking: hold the duck through short pauses between sentences so the bed never "pumps"
+env = np.abs(voice); win = int(.05 * SR)
 env = np.convolve(env, np.ones(win) / win, 'same')
-on = (env > .02).astype(float)
-k = int(.35 * SR); on = np.convolve(on, np.ones(k) / k, 'same')
-gain = .30 - .19 * np.clip(on * 1.5, 0, 1)
+on = (env > .01).astype(np.float32)
+hold = int(1.6 * SR)                       # pauses shorter than ~1.6 s stay ducked
+on = np.convolve(on, np.ones(hold), 'same') > 0
+ramp = int(1.2 * SR)                       # slow 1.2 s fades between levels
+on = np.convolve(on.astype(np.float32), np.ones(ramp) / ramp, 'same')
+gain = .26 - .12 * on                      # .14 under voice, .26 in long gaps (only ~5 dB swing)
 fade = np.minimum(1, t / 1.5) * np.clip((T - t) / 3.0, 0, 1)
 music *= (gain * fade)[:, None]
 mix = music + voice[:, None] * .95

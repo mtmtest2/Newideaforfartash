@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import SectionHead from './SectionHead'
-import { ChevronLeft, ChevronRight, Star } from './Icons'
+import { ChevronLeft, ChevronRight, Star, Leaf } from './Icons'
 import { useAutoplay, useReveal } from '../lib/hooks'
 
 const ITEMS = [
@@ -19,6 +19,7 @@ export default function Testimonials() {
   return (
     <section className="section testi" ref={ref}>
       <div className="bg-shape shape-circle-navy shape-end" />
+      <Leaf className="leaf leaf-testi" />
       <div className="container">
         <div className="testi-top rv">
           <SectionHead tag="نظرات زبان‌آموزان" title="داستان موفقیت زبان‌آموزان فرتاش" text="نظر شما برای ما مهم است. چون می‌خواهیم اطمینان داشته باشیم از وقتی که صرف می‌کنید بهترین نتیجه را می‌گیرید." />

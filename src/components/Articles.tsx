@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import SectionHead from './SectionHead'
-import { ArrowLeft, ChevronLeft, ChevronRight, Clock } from './Icons'
+import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Leaf } from './Icons'
 import { fa } from '../lib/fa'
 import { useAutoplay, useReveal } from '../lib/hooks'
 
@@ -21,6 +21,7 @@ export default function Articles() {
   return (
     <section id="blog" className="section" ref={ref}>
       <div className="bg-shape shape-circle-green" />
+      <Leaf className="leaf leaf-blog" />
       <div className="container">
         <SectionHead tag="مجلهٔ آموزشی" title="آخرین مقالات بلاگ" text="مطالب کاربردی و به‌روز برای یادگیری بهتر زبان." />
         <div className="cf rv" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocusCapture={() => setHover(true)} onBlurCapture={() => setHover(false)}>

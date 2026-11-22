@@ -1,4 +1,4 @@
-node_modules
 dist
-motion/build/*.wav
 motion/build/*.bak
+motion/build/*.wav
+node_modules
