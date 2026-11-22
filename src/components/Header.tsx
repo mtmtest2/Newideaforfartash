@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Close, Menu, Moon, Sun, User } from './Icons'
+import { Link } from 'react-router-dom'
+import { Moon, Sun, User } from './Icons'
 import { useTheme } from '../lib/hooks'
 
 const NAV = [
   { href: '/#home', label: 'خانه' },
-  { href: '/#classes', label: 'کلاس‌ها' },
   { href: '/#steps', label: 'مسیر یادگیری' },
+  { href: '/#classes', label: 'کلاس‌ها' },
   { href: '/#blog', label: 'مقالات' },
   { href: '/#contact', label: 'تماس با ما' },
 ]
@@ -39,9 +39,7 @@ export function ThemeToggle() {
 }
 
 export default function Header() {
-  const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const { pathname } = useLocation()
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 12)
@@ -49,20 +47,14 @@ export default function Header() {
     window.addEventListener('scroll', on, { passive: true })
     return () => window.removeEventListener('scroll', on)
   }, [])
-  useEffect(() => setOpen(false), [pathname])
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
 
   return (
     <header className={`header${scrolled ? ' is-scrolled' : ''}`}>
       <div className="container header-in">
         <Logo />
-        <nav className={`nav${open ? ' open' : ''}`} aria-label="منوی اصلی">
+        <nav className="nav" aria-label="منوی اصلی">
           {NAV.map((n, i) => (
-            <a key={n.href} href={n.href} className={i === 0 ? 'active' : ''} onClick={() => setOpen(false)}>
+            <a key={n.href} href={n.href} className={i === 0 ? 'active' : ''}>
               {n.label}
             </a>
           ))}
@@ -73,9 +65,6 @@ export default function Header() {
             <span>ورود / عضویت</span>
           </Link>
           <ThemeToggle />
-          <button type="button" className="icon-btn menu-btn" aria-label={open ? 'بستن منو' : 'باز کردن منو'} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-            {open ? <Close /> : <Menu />}
-          </button>
         </div>
       </div>
     </header>

@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<title>موشن‌گرافی کلاس آنلاین فرتاش</title>
+<style>
+@font-face { font-family: 'Vazirmatn'; src: url('vazirmatn.woff2') format('woff2'); font-weight: 100 900; }
+:root {
+  --cream: #f8f1e7; --cream-2: #efe5d4; --navy: #1d2a4d; --navy-2: #26365f; --lime: #a9c46c; --lime-d: #7f9c3f; --lime-l: #c9e08f;
+  --ink-soft: #4c5775; --ease: cubic-bezier(.22,1,.36,1); --back: cubic-bezier(.34,1.56,.64,1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+body { font-family: 'Vazirmatn', sans-serif; letter-spacing: 0; color: var(--navy); }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--cream); }
+
+/* ---------- generic helpers ---------- */
+.scene { position: absolute; inset: 0; opacity: 0; animation: vis var(--len) linear var(--s) both; }
+@keyframes vis { 0% { opacity: 0 } 5% { opacity: 1 } 93% { opacity: 1 } 100% { opacity: 0 } }
+.a { animation-fill-mode: both; animation-timing-function: var(--ease); animation-duration: .9s; animation-delay: calc(var(--s) + var(--d, 0s)); }
+.up { animation-name: up } @keyframes up { from { opacity: 0; transform: translateY(60px) } to { opacity: 1; transform: none } }
+.fromR { animation-name: fromR } @keyframes fromR { from { opacity: 0; transform: translateX(120px) } to { opacity: 1; transform: none } }
+.fromL { animation-name: fromL } @keyframes fromL { from { opacity: 0; transform: translateX(-120px) } to { opacity: 1; transform: none } }
+.pop { animation-name: pop; animation-timing-function: var(--back); animation-duration: .7s } @keyframes pop { from { opacity: 0; transform: scale(.4) } to { opacity: 1; transform: none } }
+.fade { animation-name: fade } @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+.pill { display: inline-block; padding: 6px 30px; border-radius: 999px; background: var(--lime); color: var(--navy); font-weight: 800; font-size: 30px; }
+h2.big { font-size: 84px; font-weight: 900; line-height: 1.3; }
+.sub { font-size: 36px; color: var(--ink-soft); font-weight: 500; line-height: 1.7; }
+.card { background: #fdf9f3; border-radius: 34px; box-shadow: 0 40px 80px -40px rgba(29,42,77,.45), 0 4px 14px rgba(29,42,77,.08); border: 2px solid rgba(29,42,77,.08); }
+.spark { position: absolute; width: 70px; color: var(--lime); }
+svg.i { width: 56px; height: 56px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- persistent background ---------- */
+.blob { position: absolute; border-radius: 50%; }
+.b1 { width: 760px; height: 760px; background: var(--lime); opacity: .28; top: -380px; left: -260px; animation: drift 14s ease-in-out infinite alternate; }
+.b2 { width: 520px; height: 520px; background: var(--navy); bottom: -300px; right: -160px; animation: drift 11s ease-in-out infinite alternate-reverse; }
+.ring { position: absolute; width: 900px; height: 900px; border: 3px solid var(--lime); border-radius: 50%; right: -520px; top: 80px; opacity: .6; animation: drift 16s ease-in-out infinite alternate; }
+@keyframes drift { to { transform: translate(60px, 40px) rotate(8deg) } }
+.leaf { position: absolute; color: var(--lime); transform-origin: bottom center; animation: sway 4s ease-in-out infinite alternate; }
+@keyframes sway { from { rotate: -6deg } to { rotate: 6deg } }
+
+/* ---------- S1 intro ---------- */
+.s1 .copy { position: absolute; right: 170px; top: 270px; width: 960px; }
+.s1 h1 { font-size: 118px; font-weight: 900; line-height: 1.25; margin: 34px 0 26px; }
+.s1 h1 .hl { color: var(--lime-d); }
+.s1 .arch { position: absolute; left: 230px; bottom: 0; width: 600px; height: 820px; background: var(--lime); border-radius: 300px 300px 0 0; transform-origin: bottom; animation-name: grow; animation-duration: 1.2s; }
+@keyframes grow { from { transform: scaleY(0) } to { transform: none } }
+.s1 .arch2 { position: absolute; left: 140px; bottom: 0; width: 220px; height: 340px; background: var(--navy); border-radius: 110px 110px 0 0; transform-origin: bottom; animation-name: grow; animation-duration: 1.2s; }
+.s1 .person { position: absolute; left: 250px; bottom: 0; height: 900px; animation-name: up; animation-duration: 1.2s; filter: drop-shadow(0 30px 30px rgba(29,42,77,.25)); }
+.s1 .chip { position: absolute; left: 720px; top: 330px; display: flex; gap: 18px; align-items: center; padding: 22px 32px; font-size: 28px; font-weight: 800; }
+.s1 .chip .dot { width: 18px; height: 18px; border-radius: 50%; background: #e5484d; box-shadow: 0 0 0 0 rgba(229,72,77,.6); animation: pulse 1.2s ease-out infinite; }
+@keyframes pulse { to { box-shadow: 0 0 0 22px rgba(229,72,77,0) } }
+
+/* ---------- S2 live class ---------- */
+.s2 .head { position: absolute; right: 150px; top: 170px; width: 560px; }
+.s2 .head h2 { margin: 26px 0 20px; }
+.s2 ul { list-style: none; margin-top: 30px; display: grid; gap: 22px; }
+.s2 li { display: flex; align-items: center; gap: 18px; font-size: 34px; font-weight: 700; }
+.s2 li b { width: 50px; height: 50px; flex: none; border-radius: 50%; background: var(--navy); color: var(--lime); display: grid; place-items: center; font-size: 26px; }
+.win { position: absolute; left: 120px; top: 150px; width: 1060px; height: 780px; padding: 26px; display: grid; grid-template-rows: auto 1fr auto; gap: 20px; animation-name: winIn; animation-duration: 1.1s; }
+@keyframes winIn { from { opacity: 0; transform: perspective(1600px) rotateY(18deg) translateX(-160px) scale(.9) } to { opacity: 1; transform: none } }
+.win .bar { display: flex; align-items: center; gap: 16px; font-size: 24px; font-weight: 700; color: var(--ink-soft); }
+.win .live { display: inline-flex; align-items: center; gap: 10px; background: #e5484d; color: #fff; padding: 4px 18px; border-radius: 999px; font-size: 22px; }
+.win .live i { width: 10px; height: 10px; border-radius: 50%; background: #fff; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2 } }
+.win .timer { margin-inline-start: auto; direction: ltr; font-variant-numeric: tabular-nums; }
+.win .grid { display: grid; grid-template-columns: 1fr 250px; gap: 20px; min-height: 0; }
+.win .main { position: relative; border-radius: 24px; overflow: hidden; background: var(--lime); }
+.win .main img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+.win .name { position: absolute; bottom: 18px; right: 18px; background: rgba(29,42,77,.85); color: #fff; padding: 6px 18px; border-radius: 14px; font-size: 22px; font-weight: 700; }
+.win .speak { position: absolute; inset: 0; border: 6px solid var(--lime); border-radius: 24px; animation: speak 1.4s ease-in-out infinite; }
+@keyframes speak { 50% { border-color: rgba(169,196,108,.2) } }
+.win .side { display: grid; gap: 16px; }
+.win .tile { position: relative; border-radius: 20px; overflow: hidden; background: var(--navy-2); }
+.win .tile img { width: 100%; height: 100%; object-fit: cover; }
+.win .ctrl { display: flex; justify-content: center; gap: 18px; }
+.win .ctrl span { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--cream-2); color: var(--navy); }
+.win .ctrl span.end { background: #e5484d; color: #fff; width: 110px; border-radius: 40px; }
+.win .ctrl svg.i { width: 34px; height: 34px; }
+.bubble { position: absolute; padding: 16px 28px; border-radius: 28px 28px 28px 8px; background: var(--navy); color: #fff; font-size: 28px; font-weight: 600; box-shadow: 0 20px 40px -20px rgba(29,42,77,.6); transform-origin: bottom left; }
+.bubble.g { background: var(--lime); color: var(--navy); border-radius: 28px 28px 8px 28px; transform-origin: bottom right; }
+.hand { position: absolute; font-size: 54px; }
+
+/* ---------- S3 teachers ---------- */
+.s3 .title { position: absolute; top: 110px; width: 100%; text-align: center; }
+.s3 .title h2 { margin-top: 20px; }
+.s3 .row { position: absolute; top: 400px; left: 0; right: 0; display: flex; justify-content: center; gap: 54px; }
+.tcard { width: 480px; padding: 22px; animation-name: cardIn; animation-duration: 1s; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(160px) rotate(-6deg) } to { opacity: 1; transform: none } }
+.tcard .ph { height: 300px; border-radius: 24px; overflow: hidden; }
+.tcard .ph img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.tcard h3 { font-size: 36px; font-weight: 900; margin: 20px 6px 4px; display: flex; align-items: center; gap: 14px; }
+.tcard p { font-size: 25px; color: var(--ink-soft); margin: 0 6px; }
+.tcard .meta { display: flex; justify-content: space-between; align-items: center; margin: 16px 6px 0; font-size: 26px; font-weight: 800; }
+.stars { color: #f2b83d; letter-spacing: 2px; font-size: 28px; }
+.flag { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: inline-block; flex: none; }
+
+/* ---------- S4 progress ---------- */
+.s4 .head { position: absolute; right: 150px; top: 250px; width: 620px; }
+.s4 .head h2 { margin: 26px 0 20px; }
+.dash { position: absolute; left: 130px; top: 170px; width: 1000px; height: 740px; padding: 44px; display: grid; grid-template-columns: 1fr 330px; gap: 40px; animation-name: fromL; animation-duration: 1s; }
+.dash h4 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+.dash small { font-size: 24px; color: var(--ink-soft); }
+.chart { display: flex; align-items: flex-end; gap: 26px; height: 420px; margin-top: 40px; padding-bottom: 54px; position: relative; border-bottom: 2px dashed rgba(29,42,77,.15); }
+.chart .bar { flex: 1; border-radius: 16px 16px 6px 6px; background: var(--lime); position: relative; transform-origin: bottom; animation-name: grow; animation-duration: .9s; }
+.chart .bar.n { background: var(--navy); }
+.chart .bar span { position: absolute; bottom: -50px; left: 50%; translate: -50% 0; font-size: 22px; color: var(--ink-soft); white-space: nowrap; }
+.ringbox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+.ringbox svg { width: 280px; height: 280px; rotate: -90deg; }
+.ringbox circle { fill: none; stroke-width: 26; }
+.ringbox .bg { stroke: var(--cream-2); }
+.ringbox .fg { stroke: var(--lime-d); stroke-linecap: round; stroke-dasharray: 691; stroke-dashoffset: 691; animation: ring 1.8s var(--ease) both; animation-delay: calc(var(--s) + .9s); }
+@keyframes ring { to { stroke-dashoffset: 124 } }
+.ringbox .pct { position: absolute; font-size: 72px; font-weight: 900; }
+.ringwrap { position: relative; display: grid; place-items: center; }
+.badge { display: flex; align-items: center; gap: 14px; font-size: 26px; font-weight: 800; padding: 16px 24px; }
+.badge svg.i { width: 40px; height: 40px; color: var(--lime-d); }
+
+/* ---------- S5 features ---------- */
+.s5 .title { position: absolute; top: 120px; width: 100%; text-align: center; }
+.s5 .title h2 { margin-top: 20px; }
+.feat { position: absolute; top: 420px; left: 150px; right: 150px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
+.feat .card { padding: 46px 30px 40px; text-align: center; }
+.feat .ic { width: 120px; height: 120px; margin: 0 auto 26px; border-radius: 36px; background: var(--navy); color: var(--lime); display: grid; place-items: center; }
+.feat .ic svg.i { width: 64px; height: 64px; }
+.feat h3 { font-size: 38px; font-weight: 900; }
+.feat p { font-size: 26px; color: var(--ink-soft); margin-top: 10px; line-height: 1.6; }
+
+/* ---------- S6 logo outro ---------- */
+.s6 { animation-name: visEnd; }
+@keyframes visEnd { 0% { opacity: 0 } 1% { opacity: 1 } 100% { opacity: 1 } }
+.wipe { position: absolute; left: 50%; top: 50%; width: 2400px; height: 2400px; margin: -1200px 0 0 -1200px; border-radius: 50%; background: var(--navy); animation: wipe 1.1s cubic-bezier(.7,0,.3,1) both; animation-delay: var(--s); }
+@keyframes wipe { from { transform: scale(0) } to { transform: scale(1) } }
+.wipe2 { background: var(--lime); animation-delay: calc(var(--s) - .25s); }
+.s6 .logo { position: absolute; left: 0; right: 0; top: 340px; display: flex; justify-content: center; align-items: center; gap: 70px; direction: ltr; }
+.s6 .ico { height: 300px; animation: icoIn 1.1s var(--back) both; animation-delay: calc(var(--s) + .8s); }
+@keyframes icoIn { from { opacity: 0; transform: scale(.2) rotate(-25deg) } to { opacity: 1; transform: none } }
+.s6 .div { width: 8px; height: 250px; background: var(--lime); border-radius: 4px; transform-origin: center; animation: divIn .6s var(--ease) both; animation-delay: calc(var(--s) + 1.4s); }
+@keyframes divIn { from { transform: scaleY(0) } to { transform: none } }
+.s6 .word { height: 270px; animation: wordIn 1.2s var(--ease) both; animation-delay: calc(var(--s) + 1.6s); }
+@keyframes wordIn { from { clip-path: inset(0 0 0 100%); opacity: 0; transform: translateX(40px) } to { clip-path: inset(0 0 0 0); opacity: 1; transform: none } }
+.s6 .tag { position: absolute; top: 730px; width: 100%; text-align: center; color: #f3f1ea; font-size: 46px; font-weight: 700; }
+.s6 .tag .pill { font-size: 34px; padding: 10px 40px; margin-top: 30px; }
+.s6 .shine { position: absolute; left: 0; right: 0; top: 330px; height: 320px; background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,.35) 50%, transparent 60%); mix-blend-mode: overlay; background-size: 300% 100%; animation: shine 1.4s ease-in-out both; animation-delay: calc(var(--s) + 3.1s); }
+@keyframes shine { 0% { background-position: 120% 0; opacity: 0 } 15% { opacity: 1 } 85% { opacity: 1 } 100% { background-position: -20% 0; opacity: 0 } }
+.s6 .leaf { color: #4d7a43; }
+.s6 .gring { position: absolute; width: 1200px; height: 1200px; border: 3px solid rgba(169,196,108,.35); border-radius: 50%; left: 50%; top: 50%; margin: -600px; animation: ringIn 2s var(--ease) both; animation-delay: calc(var(--s) + .6s); }
+@keyframes ringIn { from { transform: scale(.3); opacity: 0 } to { transform: none; opacity: 1 } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- persistent background -->
+  <div class="blob b1"></div><div class="ring"></div><div class="blob b2"></div>
+  <svg class="leaf" style="left:40px;bottom:-30px;width:170px" viewBox="0 0 160 220" fill="currentColor"><path d="M80 218C78 150 80 80 84 4 40 40 20 90 30 150c8 40 30 56 50 68z"/><path d="M84 120c30-30 62-36 74-34-2 40-28 74-70 80z" opacity=".75"/><path d="M78 150c-26-22-52-26-66-22 4 34 30 56 62 58z" opacity=".6"/></svg>
+
+  <!-- S1: intro -->
+  <section class="scene s1" style="--s:0s;--len:4.4s">
+    <div class="arch2 a" style="--d:.15s"></div>
+    <div class="arch a" style="--d:0s"></div>
+    <img class="person a" style="--d:.3s" src="student-woman.webp" alt="" />
+    <div class="card chip a pop" style="--d:1.3s"><span class="dot"></span>کلاس زنده در جریان است</div>
+    <div class="copy">
+      <span class="pill a up" style="--d:.4s">کلاس آنلاین فرتاش</span>
+      <h1 class="a up" style="--d:.6s">زبان را <span class="hl">زنده</span><br/>و از خانه یاد بگیر</h1>
+      <p class="sub a up" style="--d:.85s">هر جا که هستی، با بهترین اساتید و کلاس‌های تعاملی.</p>
+    </div>
+  </section>
+
+  <!-- S2: live class -->
+  <section class="scene s2" style="--s:4.2s;--len:5.6s">
+    <div class="head">
+      <span class="pill a fromR" style="--d:.2s">امکان ۱</span>
+      <h2 class="big a fromR" style="--d:.35s">کلاس زنده و تعاملی</h2>
+      <ul>
+        <li class="a fromR" style="--d:.9s"><b>✓</b>تصویر و صدای باکیفیت</li>
+        <li class="a fromR" style="--d:1.15s"><b>✓</b>گفت‌وگو و چت هم‌زمان</li>
+        <li class="a fromR" style="--d:1.4s"><b>✓</b>اشتراک صفحه و تخته</li>
+      </ul>
+    </div>
+    <div class="card win a" style="--d:0s">
+      <div class="bar"><span class="live"><i></i>زنده</span><span>کلاس مکالمهٔ انگلیسی • سطح متوسط</span><span class="timer" data-clock="4.2">00:12:40</span></div>
+      <div class="grid">
+        <div class="main"><img src="prof-en.webp" alt="" /><div class="speak"></div><span class="name">استاد آرمان کیانی</span></div>
+        <div class="side">
+          <div class="tile a pop" style="--d:.7s"><img src="av-sara.webp" alt="" /></div>
+          <div class="tile a pop" style="--d:.85s"><img src="av-man.webp" alt="" /></div>
+          <div class="tile a pop" style="--d:1s"><img src="av-woman.webp" alt="" /></div>
+        </div>
+      </div>
+      <div class="ctrl">
+        <span><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span>
+        <span><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg></span>
+        <span><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M12 13V7M9 10l3-3 3 3"/></svg></span>
+        <span><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
+        <span class="end"><svg class="i" viewBox="0 0 24 24"><path d="M3 14c5-5 13-5 18 0l-2 3-4-2v-3a10 10 0 0 0-6 0v3l-4 2z"/></svg></span>
+      </div>
+    </div>
+    <div class="bubble a pop" style="--d:1.6s;left:880px;top:560px">سلام استاد! 👋</div>
+    <div class="bubble g a pop" style="--d:2.3s;left:840px;top:660px" dir="ltr">Great job, Sara!</div>
+    <div class="bubble a pop" style="--d:3s;left:890px;top:760px">یه سؤال داشتم ✋</div>
+  </section>
+
+  <!-- S3: teachers -->
+  <section class="scene s3" style="--s:9.6s;--len:4.8s">
+    <div class="title">
+      <span class="pill a up" style="--d:.1s">امکان ۲</span>
+      <h2 class="big a up" style="--d:.25s">اساتید مجرب و دلسوز</h2>
+    </div>
+    <div class="row">
+      <div class="card tcard a" style="--d:.5s">
+        <div class="ph"><img src="prof-en.webp" alt="" /></div>
+        <h3><span class="flag"><svg viewBox="0 0 24 24" width="40" height="40"><rect width="24" height="24" fill="#2b3f8f"/><path d="M0 0l24 24M24 0L0 24" stroke="#fff" stroke-width="5"/><path d="M0 0l24 24M24 0L0 24" stroke="#d62d2d" stroke-width="2"/><path d="M12 0v24M0 12h24" stroke="#fff" stroke-width="8"/><path d="M12 0v24M0 12h24" stroke="#d62d2d" stroke-width="4.5"/></svg></span>زبان انگلیسی</h3>
+        <p>استاد آرمان کیانی</p>
+        <div class="meta"><span class="stars">★★★★★</span><span>+۳۷۰ زبان‌آموز</span></div>
+      </div>
+      <div class="card tcard a" style="--d:.7s">
+        <div class="ph"><img src="prof-de.webp" alt="" /></div>
+        <h3><span class="flag"><svg viewBox="0 0 24 24" width="40" height="40"><rect width="24" height="8" fill="#222"/><rect y="8" width="24" height="8" fill="#d62d2d"/><rect y="16" width="24" height="8" fill="#f5c62e"/></svg></span>زبان آلمانی</h3>
+        <p>استاد مهسا فرهادی</p>
+        <div class="meta"><span class="stars">★★★★★</span><span>+۵۲۰ زبان‌آموز</span></div>
+      </div>
+      <div class="card tcard a" style="--d:.9s">
+        <div class="ph"><img src="prof-fr.webp" alt="" /></div>
+        <h3><span class="flag"><svg viewBox="0 0 24 24" width="40" height="40"><rect width="8" height="24" fill="#2f4fa8"/><rect x="8" width="8" height="24" fill="#f4f4f4"/><rect x="16" width="8" height="24" fill="#d62d2d"/></svg></span>زبان فرانسوی</h3>
+        <p>استاد سینا رضایی</p>
+        <div class="meta"><span class="stars">★★★★★</span><span>+۹۵۰ زبان‌آموز</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S4: progress -->
+  <section class="scene s4" style="--s:14.2s;--len:4.8s">
+    <div class="head">
+      <span class="pill a fromR" style="--d:.2s">امکان ۳</span>
+      <h2 class="big a fromR" style="--d:.35s">تمرین هدفمند،<br/>پیشرفت قابل‌دیدن</h2>
+      <p class="sub a fromR" style="--d:.6s">تکلیف، آزمونک و گزارش هفتگی؛ همه در پنل شما.</p>
+    </div>
+    <div class="card dash a" style="--d:0s">
+      <div>
+        <h4>ساعت تمرین این هفته</h4><small>میانگین ۴۵ دقیقه در روز</small>
+        <div class="chart">
+          <div class="bar a" style="--d:.5s;height:38%"><span>ش</span></div>
+          <div class="bar n a" style="--d:.58s;height:55%"><span>ی</span></div>
+          <div class="bar a" style="--d:.66s;height:46%"><span>د</span></div>
+          <div class="bar n a" style="--d:.74s;height:72%"><span>س</span></div>
+          <div class="bar a" style="--d:.82s;height:64%"><span>چ</span></div>
+          <div class="bar n a" style="--d:.9s;height:88%"><span>پ</span></div>
+          <div class="bar a" style="--d:.98s;height:30%"><span>ج</span></div>
+        </div>
+      </div>
+      <div class="ringbox">
+        <h4>پیشرفت دوره</h4>
+        <div class="ringwrap">
+          <svg viewBox="0 0 260 260"><circle class="bg" cx="130" cy="130" r="110"/><circle class="fg" cx="130" cy="130" r="110"/></svg>
+          <span class="pct" data-count="0,82,0.9,1.8">۰٪</span>
+        </div>
+        <div class="card badge a pop" style="--d:2.2s"><svg class="i" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8"/></svg>سطح B1 کامل شد</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S5: features -->
+  <section class="scene s5" style="--s:18.8s;--len:4.2s">
+    <div class="title">
+      <span class="pill a up" style="--d:.1s">و البته…</span>
+      <h2 class="big a up" style="--d:.25s">هر چیزی که برای یادگیری لازم داری</h2>
+    </div>
+    <div class="feat">
+      <div class="card a pop" style="--d:.6s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/></svg></div><h3>ضبط جلسات</h3><p>هر کلاس را دوباره ببین</p></div>
+      <div class="card a pop" style="--d:.8s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.8.6 3 2.2 3.5 5.2"/></svg></div><h3>کلاس‌های کوچک</h3><p>حداکثر ۸ نفر در هر کلاس</p></div>
+      <div class="card a pop" style="--d:1s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/></svg></div><h3>پشتیبانی هر روزه</h3><p>همیشه پاسخگوی شما</p></div>
+      <div class="card a pop" style="--d:1.2s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M10 13l-1 7 3-2 3 2-1-7"/></svg></div><h3>گواهی پایان دوره</h3><p>مدرک معتبر برای رزومه</p></div>
+    </div>
+  </section>
+
+  <!-- S6: logo outro -->
+  <section class="scene s6" style="--s:22.8s;--len:5.2s">
+    <div class="wipe wipe2"></div>
+    <div class="wipe"></div>
+    <div class="gring"></div>
+    <svg class="leaf a fade" style="--d:1s;right:60px;bottom:-30px;width:200px" viewBox="0 0 160 220" fill="currentColor"><path d="M80 218C78 150 80 80 84 4 40 40 20 90 30 150c8 40 30 56 50 68z"/><path d="M84 120c30-30 62-36 74-34-2 40-28 74-70 80z" opacity=".75"/></svg>
+    <svg class="leaf a fade" style="--d:1.2s;left:60px;top:-40px;width:160px;rotate:180deg" viewBox="0 0 160 220" fill="currentColor"><path d="M80 218C78 150 80 80 84 4 40 40 20 90 30 150c8 40 30 56 50 68z"/><path d="M84 120c30-30 62-36 74-34-2 40-28 74-70 80z" opacity=".75"/></svg>
+    <div class="logo">
+      <img class="ico" src="logo-icon.png" alt="" />
+      <span class="div"></span>
+      <img class="word" src="logo-word.png" alt="فرتاش" />
+    </div>
+    <div class="shine"></div>
+    <div class="tag">
+      <p class="a up" style="--d:2.6s">آموزشگاه آنلاین زبان فرتاش</p>
+      <span class="pill a pop" style="--d:3.1s">همین امروز ثبت‌نام کن</span>
+    </div>
+  </section>
+</div>
+
+<script>
+// Deterministic timeline: everything is CSS animation; __seek(t) freezes the frame at t seconds.
+const DUR = 28
+const fa = (n) => String(n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d])
+const ease = (x) => 1 - Math.pow(1 - x, 3)
+function extras(t) {
+  document.querySelectorAll('[data-count]').forEach((el) => {
+    const s = el.closest('.scene'); const s0 = parseFloat(getComputedStyle(s).getPropertyValue('--s'))
+    const [from, to, delay, dur] = el.dataset.count.split(',').map(Number)
+    const p = Math.min(1, Math.max(0, (t - s0 - delay) / dur))
+    el.textContent = fa(Math.round(from + (to - from) * ease(p))) + '٪'
+  })
+  document.querySelectorAll('[data-clock]').forEach((el) => {
+    const sec = 12 * 60 + 40 + Math.max(0, Math.floor(t - parseFloat(el.dataset.clock)))
+    el.textContent = fa(`00:${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`)
+  })
+}
+window.__seek = (t) => {
+  for (const a of document.getAnimations()) { a.pause(); a.currentTime = t * 1000 }
+  extras(t)
+}
+window.__DUR = DUR
+// live preview when opened normally
+if (!/render/.test(location.search)) {
+  const start = performance.now()
+  const loop = () => { const t = ((performance.now() - start) / 1000) % DUR; window.__seek(t); requestAnimationFrame(loop) }
+  document.fonts.ready.then(() => requestAnimationFrame(loop))
+}
+</script>
+</body>
+</html>

@@ -7,6 +7,8 @@ import Steps from './components/Steps'
 import Articles from './components/Articles'
 import Testimonials from './components/Testimonials'
 import Faq from './components/Faq'
+import IntroVideo from './components/IntroVideo'
+import BottomNav from './components/BottomNav'
 import Footer, { Cta } from './components/Footer'
 import Login from './pages/Login'
 import { useReveal } from './lib/hooks'
@@ -23,14 +25,16 @@ function Home() {
       <Header />
       <main ref={ref}>
         <Hero />
-        <Classes />
         <Steps />
+        <IntroVideo />
+        <Classes />
         <Articles />
         <Testimonials />
         <Faq />
         <Cta />
       </main>
       <Footer />
+      <BottomNav />
     </>
   )
 }
