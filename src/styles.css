@@ -463,6 +463,15 @@ main { overflow-x: clip; }
 .video-btn:hover { transform: scale(1.06); }
 @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(169,196,108,.55); } 100% { box-shadow: 0 0 0 26px rgba(169,196,108,0); } }
 
+/* sound toggle */
+.sound-btn {
+  position: absolute; inset-inline-end: 18px; top: 18px; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 999px; background: rgba(20, 30, 58, .78); color: #fff; font-weight: 700; font-size: 14px;
+  backdrop-filter: blur(8px); transition: background-color .25s, transform .25s var(--ease);
+}
+.sound-btn:hover { transform: translateY(-2px); }
+.sound-btn[aria-pressed='true'] { background: var(--lime); color: var(--navy); }
+
 /* ---------- Bottom tab bar (phones) ---------- */
 .bottom-nav { display: none; }
 @media (max-width: 900px) {
@@ -488,5 +497,7 @@ main { overflow-x: clip; }
 }
 @media (max-width: 640px) {
   .video-card { border-radius: 20px; }
+  .sound-btn span { display: none; }
+  .sound-btn { padding: 10px; inset-inline-end: 10px; top: 10px; }
   .video-btn:not(.is-playing) { width: 70px; height: 70px; }
 }

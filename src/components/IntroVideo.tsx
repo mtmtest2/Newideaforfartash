@@ -7,6 +7,7 @@ export default function IntroVideo() {
   const ref = useReveal<HTMLElement>()
   const video = useRef<HTMLVideoElement>(null)
   const [playing, setPlaying] = useState(false)
+  const [muted, setMuted] = useState(true)
 
   // Play muted while on screen, pause when scrolled away (saves battery and data).
   useEffect(() => {
@@ -18,7 +19,15 @@ export default function IntroVideo() {
       else v.pause()
     }, { threshold: 0.45 })
     io.observe(v)
-    return () => io.disconnect()
+    const toggleSound = () => {
+    const v = video.current
+    if (!v) return
+    v.muted = !v.muted
+    setMuted(v.muted)
+    if (!v.muted && v.paused) v.play().catch(() => {})
+  }
+
+  return () => io.disconnect()
   }, [])
 
   const toggle = () => {
@@ -28,24 +37,32 @@ export default function IntroVideo() {
     else v.pause()
   }
 
+  const toggleSound = () => {
+    const v = video.current
+    if (!v) return
+    v.muted = !v.muted
+    setMuted(v.muted)
+    if (!v.muted && v.paused) v.play().catch(() => {})
+  }
+
   return (
     <section id="intro" className="section" ref={ref}>
       <Leaf className="leaf leaf-video" />
       <div className="container">
-        <SectionHead tag="معرفی کلاس آنلاین" title="کلاس آنلاین فرتاش در یک نگاه" text="کلاس زنده، اساتید مجرب، تمرین هدفمند و پیگیری پیشرفت؛ همه در یک ویدیوی کوتاه." />
+        <SectionHead tag="معرفی دوره‌ها" title="دوره‌های آنلاین و آفلاین فرتاش" text="تفاوت کلاس‌های زندهٔ آنلاین با دوره‌های ضبط‌شدهٔ آفلاین و مزایای هر کدام، در کمتر از دو دقیقه." />
         <div className="video-card rv">
           <video
             ref={video}
             src="/video/fartash-intro.mp4"
             poster="/video/fartash-intro-poster.jpg"
-            muted
+            muted={muted}
             loop
             playsInline
             preload="metadata"
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             onClick={toggle}
-            aria-label="موشن‌گرافی معرفی امکانات کلاس آنلاین فرتاش"
+            aria-label="موشن‌گرافی معرفی دوره‌های آنلاین و آفلاین فرتاش"
           />
           <button type="button" className={`video-btn${playing ? ' is-playing' : ''}`} onClick={toggle} aria-label={playing ? 'توقف ویدیو' : 'پخش ویدیو'}>
             {playing ? (
@@ -53,6 +70,14 @@ export default function IntroVideo() {
             ) : (
               <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
             )}
+          </button>
+          <button type="button" className="sound-btn" onClick={toggleSound} aria-label={muted ? 'روشن کردن صدا' : 'بی‌صدا کردن'} aria-pressed={!muted}>
+            {muted ? (
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4zM22 9l-6 6M16 9l6 6" /></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" /></svg>
+            )}
+            <span>{muted ? 'پخش با صدا' : 'صدا روشن است'}</span>
           </button>
         </div>
       </div>

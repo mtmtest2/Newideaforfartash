@@ -2,11 +2,11 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8" />
-<title>موشن‌گرافی کلاس آنلاین فرتاش</title>
+<title>موشن‌گرافی دوره‌های آنلاین و آفلاین فرتاش</title>
 <style>
 @font-face { font-family: 'Vazirmatn'; src: url('vazirmatn.woff2') format('woff2'); font-weight: 100 900; }
 :root {
-  --cream: #f8f1e7; --cream-2: #efe5d4; --navy: #1d2a4d; --navy-2: #26365f; --lime: #a9c46c; --lime-d: #7f9c3f; --lime-l: #c9e08f;
+  --cream: #f8f1e7; --cream-2: #efe5d4; --paper: #fdf9f3; --navy: #1d2a4d; --navy-2: #26365f; --lime: #a9c46c; --lime-d: #7f9c3f;
   --ink-soft: #4c5775; --ease: cubic-bezier(.22,1,.36,1); --back: cubic-bezier(.34,1.56,.64,1);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,23 +14,29 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; 
 body { font-family: 'Vazirmatn', sans-serif; letter-spacing: 0; color: var(--navy); }
 #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--cream); }
 
-/* ---------- generic helpers ---------- */
+/* timing: every scene gets --s (start) and --len from timing.js; children use --d (seconds) or --f (fraction of scene) */
 .scene { position: absolute; inset: 0; opacity: 0; animation: vis var(--len) linear var(--s) both; }
-@keyframes vis { 0% { opacity: 0 } 5% { opacity: 1 } 93% { opacity: 1 } 100% { opacity: 0 } }
-.a { animation-fill-mode: both; animation-timing-function: var(--ease); animation-duration: .9s; animation-delay: calc(var(--s) + var(--d, 0s)); }
+@keyframes vis { 0% { opacity: 0 } 4% { opacity: 1 } 95% { opacity: 1 } 100% { opacity: 0 } }
+.a { animation-fill-mode: both; animation-timing-function: var(--ease); animation-duration: .9s; animation-delay: calc(var(--s) + var(--d, 0s) + var(--len) * var(--f, 0)); }
 .up { animation-name: up } @keyframes up { from { opacity: 0; transform: translateY(60px) } to { opacity: 1; transform: none } }
 .fromR { animation-name: fromR } @keyframes fromR { from { opacity: 0; transform: translateX(120px) } to { opacity: 1; transform: none } }
 .fromL { animation-name: fromL } @keyframes fromL { from { opacity: 0; transform: translateX(-120px) } to { opacity: 1; transform: none } }
 .pop { animation-name: pop; animation-timing-function: var(--back); animation-duration: .7s } @keyframes pop { from { opacity: 0; transform: scale(.4) } to { opacity: 1; transform: none } }
 .fade { animation-name: fade } @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
-.pill { display: inline-block; padding: 6px 30px; border-radius: 999px; background: var(--lime); color: var(--navy); font-weight: 800; font-size: 30px; }
-h2.big { font-size: 84px; font-weight: 900; line-height: 1.3; }
-.sub { font-size: 36px; color: var(--ink-soft); font-weight: 500; line-height: 1.7; }
-.card { background: #fdf9f3; border-radius: 34px; box-shadow: 0 40px 80px -40px rgba(29,42,77,.45), 0 4px 14px rgba(29,42,77,.08); border: 2px solid rgba(29,42,77,.08); }
-.spark { position: absolute; width: 70px; color: var(--lime); }
-svg.i { width: 56px; height: 56px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.growY { animation-name: growY; transform-origin: bottom } @keyframes growY { from { transform: scaleY(0) } to { transform: none } }
 
-/* ---------- persistent background ---------- */
+.pill { display: inline-block; padding: 6px 30px; border-radius: 999px; background: var(--lime); color: var(--navy); font-weight: 800; font-size: 30px; }
+.pill.n { background: var(--navy); color: var(--lime); }
+h2.big { font-size: 76px; font-weight: 900; line-height: 1.3; }
+.sub { font-size: 34px; color: var(--ink-soft); font-weight: 500; line-height: 1.7; }
+.card { background: var(--paper); border-radius: 34px; box-shadow: 0 40px 80px -40px rgba(29,42,77,.45), 0 4px 14px rgba(29,42,77,.08); border: 2px solid rgba(29,42,77,.08); }
+svg.i { width: 56px; height: 56px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.title { position: absolute; top: 90px; width: 100%; text-align: center; }
+.title h2 { margin-top: 16px; }
+.head { position: absolute; right: 140px; top: 170px; width: 600px; }
+.head h2 { margin: 24px 0 18px; }
+
+/* background */
 .blob { position: absolute; border-radius: 50%; }
 .b1 { width: 760px; height: 760px; background: var(--lime); opacity: .28; top: -380px; left: -260px; animation: drift 14s ease-in-out infinite alternate; }
 .b2 { width: 520px; height: 520px; background: var(--navy); bottom: -300px; right: -160px; animation: drift 11s ease-in-out infinite alternate-reverse; }
@@ -39,31 +45,37 @@ svg.i { width: 56px; height: 56px; fill: none; stroke: currentColor; stroke-widt
 .leaf { position: absolute; color: var(--lime); transform-origin: bottom center; animation: sway 4s ease-in-out infinite alternate; }
 @keyframes sway { from { rotate: -6deg } to { rotate: 6deg } }
 
-/* ---------- S1 intro ---------- */
-.s1 .copy { position: absolute; right: 170px; top: 270px; width: 960px; }
-.s1 h1 { font-size: 118px; font-weight: 900; line-height: 1.25; margin: 34px 0 26px; }
-.s1 h1 .hl { color: var(--lime-d); }
-.s1 .arch { position: absolute; left: 230px; bottom: 0; width: 600px; height: 820px; background: var(--lime); border-radius: 300px 300px 0 0; transform-origin: bottom; animation-name: grow; animation-duration: 1.2s; }
-@keyframes grow { from { transform: scaleY(0) } to { transform: none } }
-.s1 .arch2 { position: absolute; left: 140px; bottom: 0; width: 220px; height: 340px; background: var(--navy); border-radius: 110px 110px 0 0; transform-origin: bottom; animation-name: grow; animation-duration: 1.2s; }
-.s1 .person { position: absolute; left: 250px; bottom: 0; height: 900px; animation-name: up; animation-duration: 1.2s; filter: drop-shadow(0 30px 30px rgba(29,42,77,.25)); }
-.s1 .chip { position: absolute; left: 720px; top: 330px; display: flex; gap: 18px; align-items: center; padding: 22px 32px; font-size: 28px; font-weight: 800; }
-.s1 .chip .dot { width: 18px; height: 18px; border-radius: 50%; background: #e5484d; box-shadow: 0 0 0 0 rgba(229,72,77,.6); animation: pulse 1.2s ease-out infinite; }
-@keyframes pulse { to { box-shadow: 0 0 0 22px rgba(229,72,77,0) } }
+/* captions */
+#cap { position: absolute; z-index: 50; left: 50%; bottom: 40px; translate: -50% 0; width: max-content; max-width: 1560px; padding: 12px 40px; border-radius: 22px;
+  background: rgba(20, 30, 58, .84); color: #fff; font-size: 32px; font-weight: 600; line-height: 1.6; text-align: center; }
+#cap:empty { display: none; }
 
-/* ---------- S2 live class ---------- */
-.s2 .head { position: absolute; right: 150px; top: 170px; width: 560px; }
-.s2 .head h2 { margin: 26px 0 20px; }
-.s2 ul { list-style: none; margin-top: 30px; display: grid; gap: 22px; }
-.s2 li { display: flex; align-items: center; gap: 18px; font-size: 34px; font-weight: 700; }
-.s2 li b { width: 50px; height: 50px; flex: none; border-radius: 50%; background: var(--navy); color: var(--lime); display: grid; place-items: center; font-size: 26px; }
-.win { position: absolute; left: 120px; top: 150px; width: 1060px; height: 780px; padding: 26px; display: grid; grid-template-rows: auto 1fr auto; gap: 20px; animation-name: winIn; animation-duration: 1.1s; }
+/* intro */
+.s-intro .copy { position: absolute; right: 170px; top: 230px; width: 980px; }
+.s-intro h1 { font-size: 112px; font-weight: 900; line-height: 1.25; margin: 34px 0 26px; }
+.s-intro h1 .hl { color: var(--lime-d); }
+.s-intro .arch { position: absolute; left: 230px; bottom: 0; width: 600px; height: 820px; background: var(--lime); border-radius: 300px 300px 0 0; transform-origin: bottom; animation-name: growY; animation-duration: 1.2s; }
+.s-intro .arch2 { position: absolute; left: 140px; bottom: 0; width: 220px; height: 340px; background: var(--navy); border-radius: 110px 110px 0 0; transform-origin: bottom; animation-name: growY; animation-duration: 1.2s; }
+.s-intro .person { position: absolute; left: 250px; bottom: 0; height: 900px; animation-name: up; animation-duration: 1.2s; filter: drop-shadow(0 30px 30px rgba(29,42,77,.25)); }
+.paths { display: flex; gap: 26px; margin-top: 40px; }
+.paths .card { display: flex; align-items: center; gap: 18px; padding: 20px 32px; font-size: 34px; font-weight: 800; }
+.paths .card i { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; background: var(--lime); color: var(--navy); font-style: normal; }
+.paths .card.n i { background: var(--navy); color: var(--lime); }
+.paths svg.i { width: 38px; height: 38px; }
+
+/* online */
+.s-online ul { list-style: none; margin-top: 26px; display: grid; gap: 20px; }
+.s-online li { display: flex; align-items: center; gap: 18px; font-size: 32px; font-weight: 700; }
+.s-online li b { width: 50px; height: 50px; flex: none; border-radius: 50%; background: var(--navy); color: var(--lime); display: grid; place-items: center; font-size: 26px; }
+.sched { display: inline-flex; align-items: center; gap: 14px; padding: 14px 26px; font-size: 30px; font-weight: 800; margin-top: 8px; }
+.sched svg.i { width: 36px; height: 36px; color: var(--lime-d); }
+.win { position: absolute; left: 110px; top: 130px; width: 1080px; height: 750px; padding: 26px; display: grid; grid-template-rows: auto 1fr auto; gap: 20px; animation-name: winIn; animation-duration: 1.1s; }
 @keyframes winIn { from { opacity: 0; transform: perspective(1600px) rotateY(18deg) translateX(-160px) scale(.9) } to { opacity: 1; transform: none } }
 .win .bar { display: flex; align-items: center; gap: 16px; font-size: 24px; font-weight: 700; color: var(--ink-soft); }
 .win .live { display: inline-flex; align-items: center; gap: 10px; background: #e5484d; color: #fff; padding: 4px 18px; border-radius: 999px; font-size: 22px; }
 .win .live i { width: 10px; height: 10px; border-radius: 50%; background: #fff; animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .2 } }
-.win .timer { margin-inline-start: auto; direction: ltr; font-variant-numeric: tabular-nums; }
+.win .timer { margin-inline-start: auto; direction: ltr; }
 .win .grid { display: grid; grid-template-columns: 1fr 250px; gap: 20px; min-height: 0; }
 .win .main { position: relative; border-radius: 24px; overflow: hidden; background: var(--lime); }
 .win .main img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
@@ -79,107 +91,161 @@ svg.i { width: 56px; height: 56px; fill: none; stroke: currentColor; stroke-widt
 .win .ctrl svg.i { width: 34px; height: 34px; }
 .bubble { position: absolute; padding: 16px 28px; border-radius: 28px 28px 28px 8px; background: var(--navy); color: #fff; font-size: 28px; font-weight: 600; box-shadow: 0 20px 40px -20px rgba(29,42,77,.6); transform-origin: bottom left; }
 .bubble.g { background: var(--lime); color: var(--navy); border-radius: 28px 28px 8px 28px; transform-origin: bottom right; }
-.hand { position: absolute; font-size: 54px; }
 
-/* ---------- S3 teachers ---------- */
-.s3 .title { position: absolute; top: 110px; width: 100%; text-align: center; }
-.s3 .title h2 { margin-top: 20px; }
-.s3 .row { position: absolute; top: 400px; left: 0; right: 0; display: flex; justify-content: center; gap: 54px; }
-.tcard { width: 480px; padding: 22px; animation-name: cardIn; animation-duration: 1s; }
-@keyframes cardIn { from { opacity: 0; transform: translateY(160px) rotate(-6deg) } to { opacity: 1; transform: none } }
-.tcard .ph { height: 300px; border-radius: 24px; overflow: hidden; }
-.tcard .ph img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-.tcard h3 { font-size: 36px; font-weight: 900; margin: 20px 6px 4px; display: flex; align-items: center; gap: 14px; }
-.tcard p { font-size: 25px; color: var(--ink-soft); margin: 0 6px; }
-.tcard .meta { display: flex; justify-content: space-between; align-items: center; margin: 16px 6px 0; font-size: 26px; font-weight: 800; }
-.stars { color: #f2b83d; letter-spacing: 2px; font-size: 28px; }
-.flag { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: inline-block; flex: none; }
+/* online tech */
+.tech { position: absolute; top: 330px; left: 110px; right: 110px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+.tech .card { padding: 34px; height: 520px; display: flex; flex-direction: column; }
+.tech h3 { font-size: 38px; font-weight: 900; }
+.tech .k { font-size: 26px; color: var(--ink-soft); margin-top: 4px; }
+.seats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: auto; }
+.seat { aspect-ratio: 1; border-radius: 50%; border: 3px dashed rgba(29,42,77,.25); overflow: hidden; position: relative; }
+.seat img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.seat.t { border: 4px solid var(--lime); }
+.cefr { display: flex; align-items: flex-end; gap: 14px; height: 260px; margin-top: auto; }
+.cefr div { flex: 1; border-radius: 14px 14px 6px 6px; background: var(--lime); position: relative; display: flex; justify-content: center; }
+.cefr div:nth-child(n+3) { background: var(--navy-2); }
+.cefr div:nth-child(n+5) { background: var(--navy); }
+.cefr b { position: absolute; top: -44px; font-size: 26px; direction: ltr; }
+.cefr-l { display: flex; justify-content: space-between; font-size: 22px; color: var(--ink-soft); margin-top: 12px; }
+.rooms { display: grid; gap: 16px; margin-top: auto; }
+.room { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 20px; background: var(--cream-2); font-size: 26px; font-weight: 800; }
+.room .av { display: flex; margin-inline-start: auto; }
+.room .av img { width: 54px; height: 54px; border-radius: 50%; border: 3px solid var(--paper); margin-inline-start: -14px; object-fit: cover; }
+.room .wave { width: 12px; height: 12px; border-radius: 50%; background: #3fb26b; animation: blink 1.2s infinite; }
 
-/* ---------- S4 progress ---------- */
-.s4 .head { position: absolute; right: 150px; top: 250px; width: 620px; }
-.s4 .head h2 { margin: 26px 0 20px; }
-.dash { position: absolute; left: 130px; top: 170px; width: 1000px; height: 740px; padding: 44px; display: grid; grid-template-columns: 1fr 330px; gap: 40px; animation-name: fromL; animation-duration: 1s; }
-.dash h4 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
-.dash small { font-size: 24px; color: var(--ink-soft); }
-.chart { display: flex; align-items: flex-end; gap: 26px; height: 420px; margin-top: 40px; padding-bottom: 54px; position: relative; border-bottom: 2px dashed rgba(29,42,77,.15); }
-.chart .bar { flex: 1; border-radius: 16px 16px 6px 6px; background: var(--lime); position: relative; transform-origin: bottom; animation-name: grow; animation-duration: .9s; }
-.chart .bar.n { background: var(--navy); }
-.chart .bar span { position: absolute; bottom: -50px; left: 50%; translate: -50% 0; font-size: 22px; color: var(--ink-soft); white-space: nowrap; }
-.ringbox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
-.ringbox svg { width: 280px; height: 280px; rotate: -90deg; }
-.ringbox circle { fill: none; stroke-width: 26; }
-.ringbox .bg { stroke: var(--cream-2); }
-.ringbox .fg { stroke: var(--lime-d); stroke-linecap: round; stroke-dasharray: 691; stroke-dashoffset: 691; animation: ring 1.8s var(--ease) both; animation-delay: calc(var(--s) + .9s); }
-@keyframes ring { to { stroke-dashoffset: 124 } }
-.ringbox .pct { position: absolute; font-size: 72px; font-weight: 900; }
-.ringwrap { position: relative; display: grid; place-items: center; }
-.badge { display: flex; align-items: center; gap: 14px; font-size: 26px; font-weight: 800; padding: 16px 24px; }
-.badge svg.i { width: 40px; height: 40px; color: var(--lime-d); }
+/* advantages */
+.pros { position: absolute; top: 370px; left: 120px; right: 120px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 34px; }
+.pros .card { padding: 44px 28px 38px; text-align: center; }
+.pros .ic { width: 116px; height: 116px; margin: 0 auto 24px; border-radius: 34px; display: grid; place-items: center; background: var(--lime); color: var(--navy); }
+.pros.off .ic { background: var(--navy); color: var(--lime); }
+.pros .ic svg.i { width: 62px; height: 62px; }
+.pros h3 { font-size: 36px; font-weight: 900; line-height: 1.45; }
+.pros p { font-size: 25px; color: var(--ink-soft); margin-top: 10px; line-height: 1.6; }
 
-/* ---------- S5 features ---------- */
-.s5 .title { position: absolute; top: 120px; width: 100%; text-align: center; }
-.s5 .title h2 { margin-top: 20px; }
-.feat { position: absolute; top: 420px; left: 150px; right: 150px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
-.feat .card { padding: 46px 30px 40px; text-align: center; }
-.feat .ic { width: 120px; height: 120px; margin: 0 auto 26px; border-radius: 36px; background: var(--navy); color: var(--lime); display: grid; place-items: center; }
-.feat .ic svg.i { width: 64px; height: 64px; }
-.feat h3 { font-size: 38px; font-weight: 900; }
-.feat p { font-size: 26px; color: var(--ink-soft); margin-top: 10px; line-height: 1.6; }
+/* offline */
+.player { position: absolute; left: 110px; top: 140px; width: 1100px; height: 740px; padding: 26px; display: grid; grid-template-columns: 1fr 330px; gap: 24px; animation-name: winIn; animation-duration: 1.1s; }
+.screen { position: relative; border-radius: 24px; overflow: hidden; background: linear-gradient(135deg, #243561, #1d2a4d); display: flex; flex-direction: column; }
+.screen .slide { flex: 1; padding: 50px 56px; color: #fff; direction: ltr; text-align: left; }
+.screen .slide small { color: var(--lime); font-size: 26px; font-weight: 700; }
+.screen .slide h4 { font-size: 60px; font-weight: 800; margin-top: 12px; line-height: 1.3; }
+.screen .slide p { font-size: 30px; opacity: .85; margin-top: 18px; line-height: 1.6; }
+.screen .slide p b { color: var(--lime); }
+.screen .pbar { margin: 0 26px 20px; display: flex; align-items: center; gap: 18px; color: #fff; font-size: 22px; direction: ltr; }
+.screen .track { flex: 1; height: 10px; border-radius: 5px; background: rgba(255,255,255,.2); overflow: hidden; }
+.screen .track i { display: block; height: 100%; width: 100%; background: var(--lime); transform-origin: left; animation: prog linear both; animation-duration: var(--len); animation-delay: var(--s); }
+@keyframes prog { from { transform: scaleX(.17) } to { transform: scaleX(.42) } }
+.speed { padding: 4px 14px; border-radius: 10px; background: rgba(255,255,255,.15); font-weight: 700; }
+.lessons { display: flex; flex-direction: column; gap: 12px; }
+.lessons h5 { font-size: 26px; font-weight: 900; margin-bottom: 6px; }
+.lesson { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 18px; background: var(--cream-2); font-size: 23px; font-weight: 700; }
+.lesson span:last-child { margin-inline-start: auto; font-size: 20px; color: var(--ink-soft); font-weight: 600; }
+.lesson .st { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--lime); color: var(--navy); font-size: 18px; flex: none; }
+.lesson.cur { background: var(--navy); color: #fff; }
+.lesson.cur span:last-child { color: var(--lime); }
+.lesson.cur .st { background: #fff; }
+.lesson.lock .st { background: transparent; border: 2px solid rgba(29,42,77,.25); }
 
-/* ---------- S6 logo outro ---------- */
-.s6 { animation-name: visEnd; }
-@keyframes visEnd { 0% { opacity: 0 } 1% { opacity: 1 } 100% { opacity: 1 } }
-.wipe { position: absolute; left: 50%; top: 50%; width: 2400px; height: 2400px; margin: -1200px 0 0 -1200px; border-radius: 50%; background: var(--navy); animation: wipe 1.1s cubic-bezier(.7,0,.3,1) both; animation-delay: var(--s); }
+/* offline tech */
+.kit { position: absolute; right: 120px; top: 320px; width: 880px; display: grid; gap: 22px; }
+.kit .card { display: flex; align-items: center; gap: 26px; padding: 22px 30px; }
+.kit .ic { width: 84px; height: 84px; border-radius: 24px; background: var(--navy); color: var(--lime); display: grid; place-items: center; flex: none; }
+.kit .ic svg.i { width: 46px; height: 46px; }
+.kit h3 { font-size: 34px; font-weight: 900; }
+.kit p { font-size: 24px; color: var(--ink-soft); }
+.kit .n { margin-inline-start: auto; font-size: 54px; font-weight: 900; color: var(--lime-d); }
+.support { position: absolute; left: 110px; top: 320px; width: 760px; padding: 30px; display: grid; gap: 20px; }
+.support h4 { font-size: 30px; font-weight: 900; display: flex; align-items: center; gap: 12px; }
+.support h4 i { width: 14px; height: 14px; border-radius: 50%; background: #3fb26b; }
+.msg { max-width: 84%; padding: 18px 24px; border-radius: 26px; font-size: 26px; line-height: 1.6; font-weight: 600; }
+.msg.me { background: var(--cream-2); border-start-start-radius: 8px; justify-self: start; }
+.msg.sp { background: var(--navy); color: #fff; border-start-end-radius: 8px; justify-self: end; }
+.msg .file { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 8px 14px; border-radius: 12px; background: #fff; color: var(--navy); font-size: 22px; }
+.typing { justify-self: end; display: flex; gap: 8px; padding: 18px 24px; border-radius: 26px; background: var(--navy); }
+.typing i { width: 12px; height: 12px; border-radius: 50%; background: #fff; animation: tdot 1s ease-in-out infinite; }
+.typing i:nth-child(2) { animation-delay: .15s } .typing i:nth-child(3) { animation-delay: .3s }
+@keyframes tdot { 50% { transform: translateY(-8px); opacity: .5 } }
+.typing.gone { animation: typingOut .2s linear both; animation-delay: calc(var(--s) + var(--len) * .73); }
+@keyframes typingOut { to { opacity: 0; height: 0; padding: 0; } }
+.score { display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; border-radius: 14px; background: var(--lime); color: var(--navy); font-weight: 900; margin-top: 10px; }
+
+/* compare */
+.table { position: absolute; top: 250px; left: 230px; right: 230px; padding: 16px 30px 20px; }
+.trow { display: grid; grid-template-columns: 1.05fr 1fr 1fr; align-items: center; min-height: 70px; border-bottom: 2px solid rgba(29,42,77,.07); font-size: 29px; }
+.trow:last-child { border-bottom: 0; }
+.trow > :first-child { font-weight: 900; }
+.trow > :not(:first-child) { text-align: center; color: var(--ink-soft); font-weight: 600; }
+.thead { min-height: 86px; }
+.thead span { justify-self: center; padding: 8px 40px; border-radius: 999px; font-weight: 900 !important; font-size: 32px; }
+.thead .on { background: var(--lime); color: var(--navy) !important; }
+.thead .off { background: var(--navy); color: var(--lime) !important; }
+.hl-on, .hl-off { font-weight: 800 !important; color: var(--navy) !important; }
+.reco { position: absolute; top: 838px; left: 0; right: 0; display: flex; justify-content: center; }
+.reco .card { display: flex; align-items: center; gap: 20px; padding: 16px 34px; font-size: 32px; font-weight: 800; }
+.reco .card .arrow { color: var(--lime-d); font-size: 40px; }
+.reco .tag { padding: 4px 22px; border-radius: 999px; background: var(--lime); }
+.reco .tag.n { background: var(--navy); color: var(--lime); }
+.reco1 { animation: recoSwap .5s var(--ease) both; animation-delay: calc(var(--s) + var(--len) * .70); }
+@keyframes recoSwap { to { opacity: 0; transform: translateY(-30px) } }
+
+/* outro */
+.common { position: absolute; top: 370px; left: 260px; right: 260px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+.common .card { padding: 40px 30px; text-align: center; }
+.common .ic { width: 110px; height: 110px; margin: 0 auto 22px; border-radius: 50%; background: var(--lime); color: var(--navy); display: grid; place-items: center; }
+.common .ic svg.i { width: 58px; height: 58px; }
+.common h3 { font-size: 36px; font-weight: 900; }
+.wipe { position: absolute; left: 50%; top: 50%; width: 2400px; height: 2400px; margin: -1200px 0 0 -1200px; border-radius: 50%; background: var(--navy); animation: wipe 1.1s cubic-bezier(.7,0,.3,1) both; animation-delay: calc(var(--s) + var(--len) * var(--f) + var(--d, 0s)); }
 @keyframes wipe { from { transform: scale(0) } to { transform: scale(1) } }
-.wipe2 { background: var(--lime); animation-delay: calc(var(--s) - .25s); }
-.s6 .logo { position: absolute; left: 0; right: 0; top: 340px; display: flex; justify-content: center; align-items: center; gap: 70px; direction: ltr; }
-.s6 .ico { height: 300px; animation: icoIn 1.1s var(--back) both; animation-delay: calc(var(--s) + .8s); }
+.wipe2 { background: var(--lime); }
+.logo { position: absolute; left: 0; right: 0; top: 290px; display: flex; justify-content: center; align-items: center; gap: 70px; direction: ltr; }
+.logo .ico { height: 300px; animation: icoIn 1.1s var(--back) both; animation-delay: calc(var(--s) + var(--len) * var(--f) + .8s); }
 @keyframes icoIn { from { opacity: 0; transform: scale(.2) rotate(-25deg) } to { opacity: 1; transform: none } }
-.s6 .div { width: 8px; height: 250px; background: var(--lime); border-radius: 4px; transform-origin: center; animation: divIn .6s var(--ease) both; animation-delay: calc(var(--s) + 1.4s); }
+.logo .div { width: 8px; height: 250px; background: var(--lime); border-radius: 4px; animation: divIn .6s var(--ease) both; animation-delay: calc(var(--s) + var(--len) * var(--f) + 1.4s); }
 @keyframes divIn { from { transform: scaleY(0) } to { transform: none } }
-.s6 .word { height: 270px; animation: wordIn 1.2s var(--ease) both; animation-delay: calc(var(--s) + 1.6s); }
+.logo .word { height: 270px; animation: wordIn 1.2s var(--ease) both; animation-delay: calc(var(--s) + var(--len) * var(--f) + 1.6s); }
 @keyframes wordIn { from { clip-path: inset(0 0 0 100%); opacity: 0; transform: translateX(40px) } to { clip-path: inset(0 0 0 0); opacity: 1; transform: none } }
-.s6 .tag { position: absolute; top: 730px; width: 100%; text-align: center; color: #f3f1ea; font-size: 46px; font-weight: 700; }
-.s6 .tag .pill { font-size: 34px; padding: 10px 40px; margin-top: 30px; }
-.s6 .shine { position: absolute; left: 0; right: 0; top: 330px; height: 320px; background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,.35) 50%, transparent 60%); mix-blend-mode: overlay; background-size: 300% 100%; animation: shine 1.4s ease-in-out both; animation-delay: calc(var(--s) + 3.1s); }
-@keyframes shine { 0% { background-position: 120% 0; opacity: 0 } 15% { opacity: 1 } 85% { opacity: 1 } 100% { background-position: -20% 0; opacity: 0 } }
-.s6 .leaf { color: #4d7a43; }
-.s6 .gring { position: absolute; width: 1200px; height: 1200px; border: 3px solid rgba(169,196,108,.35); border-radius: 50%; left: 50%; top: 50%; margin: -600px; animation: ringIn 2s var(--ease) both; animation-delay: calc(var(--s) + .6s); }
+.tagline { position: absolute; top: 660px; width: 100%; text-align: center; color: #f3f1ea; font-size: 46px; font-weight: 700; }
+.tagline .pill { font-size: 34px; padding: 10px 40px; margin-top: 26px; }
+.gring { position: absolute; width: 1200px; height: 1200px; border: 3px solid rgba(169,196,108,.35); border-radius: 50%; left: 50%; top: 50%; margin: -600px; animation: ringIn 2s var(--ease) both; animation-delay: calc(var(--s) + var(--len) * var(--f) + .6s); }
 @keyframes ringIn { from { transform: scale(.3); opacity: 0 } to { transform: none; opacity: 1 } }
+.s-outro.scene { animation-name: visOut; } @keyframes visOut { 0% { opacity: 0 } 3% { opacity: 1 } 100% { opacity: 1 } }
+.s-outro .leaf { color: #4d7a43; }
 </style>
+<script src="timing.js"></script>
 </head>
 <body>
 <div id="stage">
-  <!-- persistent background -->
   <div class="blob b1"></div><div class="ring"></div><div class="blob b2"></div>
   <svg class="leaf" style="left:40px;bottom:-30px;width:170px" viewBox="0 0 160 220" fill="currentColor"><path d="M80 218C78 150 80 80 84 4 40 40 20 90 30 150c8 40 30 56 50 68z"/><path d="M84 120c30-30 62-36 74-34-2 40-28 74-70 80z" opacity=".75"/><path d="M78 150c-26-22-52-26-66-22 4 34 30 56 62 58z" opacity=".6"/></svg>
 
-  <!-- S1: intro -->
-  <section class="scene s1" style="--s:0s;--len:4.4s">
+  <!-- 1 intro -->
+  <section class="scene s-intro" data-id="intro">
     <div class="arch2 a" style="--d:.15s"></div>
-    <div class="arch a" style="--d:0s"></div>
+    <div class="arch a"></div>
     <img class="person a" style="--d:.3s" src="student-woman.webp" alt="" />
-    <div class="card chip a pop" style="--d:1.3s"><span class="dot"></span>کلاس زنده در جریان است</div>
     <div class="copy">
-      <span class="pill a up" style="--d:.4s">کلاس آنلاین فرتاش</span>
-      <h1 class="a up" style="--d:.6s">زبان را <span class="hl">زنده</span><br/>و از خانه یاد بگیر</h1>
-      <p class="sub a up" style="--d:.85s">هر جا که هستی، با بهترین اساتید و کلاس‌های تعاملی.</p>
+      <span class="pill a up" style="--d:.4s">آموزشگاه آنلاین زبان فرتاش</span>
+      <h1 class="a up" style="--d:.6s">زبان را <span class="hl">به سبک خودت</span><br/>یاد بگیر</h1>
+      <div class="paths">
+        <div class="card a pop" style="--f:.42"><i><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg></i>دوره‌های آنلاین زنده</div>
+        <div class="card n a pop" style="--f:.72"><i><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z" fill="currentColor"/></svg></i>دوره‌های آفلاین</div>
+      </div>
     </div>
   </section>
 
-  <!-- S2: live class -->
-  <section class="scene s2" style="--s:4.2s;--len:5.6s">
+  <!-- 2 online -->
+  <section class="scene s-online" data-id="online">
     <div class="head">
-      <span class="pill a fromR" style="--d:.2s">امکان ۱</span>
-      <h2 class="big a fromR" style="--d:.35s">کلاس زنده و تعاملی</h2>
+      <span class="pill a fromR" style="--d:.2s">دوره‌های آنلاین</span>
+      <h2 class="big a fromR" style="--d:.35s">کلاس زنده،<br/>در زمان مشخص</h2>
+      <div class="card sched a pop" style="--d:1s"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>شنبه و دوشنبه • ساعت ۱۸:۰۰</div>
       <ul>
-        <li class="a fromR" style="--d:.9s"><b>✓</b>تصویر و صدای باکیفیت</li>
-        <li class="a fromR" style="--d:1.15s"><b>✓</b>گفت‌وگو و چت هم‌زمان</li>
-        <li class="a fromR" style="--d:1.4s"><b>✓</b>اشتراک صفحه و تخته</li>
+        <li class="a fromR" style="--f:.45"><b>✓</b>حضور هم‌زمان استاد و زبان‌آموز</li>
+        <li class="a fromR" style="--f:.6"><b>✓</b>گفت‌وگوی زنده در کلاس</li>
+        <li class="a fromR" style="--f:.75"><b>✓</b>بازخورد فوری استاد</li>
       </ul>
     </div>
-    <div class="card win a" style="--d:0s">
-      <div class="bar"><span class="live"><i></i>زنده</span><span>کلاس مکالمهٔ انگلیسی • سطح متوسط</span><span class="timer" data-clock="4.2">00:12:40</span></div>
+    <div class="card win a">
+      <div class="bar"><span class="live"><i></i>زنده</span><span>کلاس مکالمهٔ انگلیسی • سطح B1</span><span class="timer" data-clock="online">۰۰:۱۲:۴۰</span></div>
       <div class="grid">
         <div class="main"><img src="prof-en.webp" alt="" /><div class="speak"></div><span class="name">استاد آرمان کیانی</span></div>
         <div class="side">
@@ -196,130 +262,201 @@ svg.i { width: 56px; height: 56px; fill: none; stroke: currentColor; stroke-widt
         <span class="end"><svg class="i" viewBox="0 0 24 24"><path d="M3 14c5-5 13-5 18 0l-2 3-4-2v-3a10 10 0 0 0-6 0v3l-4 2z"/></svg></span>
       </div>
     </div>
-    <div class="bubble a pop" style="--d:1.6s;left:880px;top:560px">سلام استاد! 👋</div>
-    <div class="bubble g a pop" style="--d:2.3s;left:840px;top:660px" dir="ltr">Great job, Sara!</div>
-    <div class="bubble a pop" style="--d:3s;left:890px;top:760px">یه سؤال داشتم ✋</div>
+    <div class="bubble a pop" style="--f:.5;left:870px;top:500px">سلام استاد! 👋</div>
+    <div class="bubble g a pop" style="--f:.62;left:820px;top:600px" dir="ltr">Great answer, Sara!</div>
+    <div class="bubble a pop" style="--f:.76;left:880px;top:700px">یه سؤال داشتم ✋</div>
   </section>
 
-  <!-- S3: teachers -->
-  <section class="scene s3" style="--s:9.6s;--len:4.8s">
+  <!-- 3 online tech -->
+  <section class="scene" data-id="online-tech">
     <div class="title">
-      <span class="pill a up" style="--d:.1s">امکان ۲</span>
-      <h2 class="big a up" style="--d:.25s">اساتید مجرب و دلسوز</h2>
+      <span class="pill a up" style="--d:.1s">دوره‌های آنلاین • جزئیات</span>
+      <h2 class="big a up" style="--d:.25s">کلاس‌ها چطور برگزار می‌شوند؟</h2>
     </div>
-    <div class="row">
-      <div class="card tcard a" style="--d:.5s">
-        <div class="ph"><img src="prof-en.webp" alt="" /></div>
-        <h3><span class="flag"><svg viewBox="0 0 24 24" width="40" height="40"><rect width="24" height="24" fill="#2b3f8f"/><path d="M0 0l24 24M24 0L0 24" stroke="#fff" stroke-width="5"/><path d="M0 0l24 24M24 0L0 24" stroke="#d62d2d" stroke-width="2"/><path d="M12 0v24M0 12h24" stroke="#fff" stroke-width="8"/><path d="M12 0v24M0 12h24" stroke="#d62d2d" stroke-width="4.5"/></svg></span>زبان انگلیسی</h3>
-        <p>استاد آرمان کیانی</p>
-        <div class="meta"><span class="stars">★★★★★</span><span>+۳۷۰ زبان‌آموز</span></div>
-      </div>
-      <div class="card tcard a" style="--d:.7s">
-        <div class="ph"><img src="prof-de.webp" alt="" /></div>
-        <h3><span class="flag"><svg viewBox="0 0 24 24" width="40" height="40"><rect width="24" height="8" fill="#222"/><rect y="8" width="24" height="8" fill="#d62d2d"/><rect y="16" width="24" height="8" fill="#f5c62e"/></svg></span>زبان آلمانی</h3>
-        <p>استاد مهسا فرهادی</p>
-        <div class="meta"><span class="stars">★★★★★</span><span>+۵۲۰ زبان‌آموز</span></div>
-      </div>
-      <div class="card tcard a" style="--d:.9s">
-        <div class="ph"><img src="prof-fr.webp" alt="" /></div>
-        <h3><span class="flag"><svg viewBox="0 0 24 24" width="40" height="40"><rect width="8" height="24" fill="#2f4fa8"/><rect x="8" width="8" height="24" fill="#f4f4f4"/><rect x="16" width="8" height="24" fill="#d62d2d"/></svg></span>زبان فرانسوی</h3>
-        <p>استاد سینا رضایی</p>
-        <div class="meta"><span class="stars">★★★★★</span><span>+۹۵۰ زبان‌آموز</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- S4: progress -->
-  <section class="scene s4" style="--s:14.2s;--len:4.8s">
-    <div class="head">
-      <span class="pill a fromR" style="--d:.2s">امکان ۳</span>
-      <h2 class="big a fromR" style="--d:.35s">تمرین هدفمند،<br/>پیشرفت قابل‌دیدن</h2>
-      <p class="sub a fromR" style="--d:.6s">تکلیف، آزمونک و گزارش هفتگی؛ همه در پنل شما.</p>
-    </div>
-    <div class="card dash a" style="--d:0s">
-      <div>
-        <h4>ساعت تمرین این هفته</h4><small>میانگین ۴۵ دقیقه در روز</small>
-        <div class="chart">
-          <div class="bar a" style="--d:.5s;height:38%"><span>ش</span></div>
-          <div class="bar n a" style="--d:.58s;height:55%"><span>ی</span></div>
-          <div class="bar a" style="--d:.66s;height:46%"><span>د</span></div>
-          <div class="bar n a" style="--d:.74s;height:72%"><span>س</span></div>
-          <div class="bar a" style="--d:.82s;height:64%"><span>چ</span></div>
-          <div class="bar n a" style="--d:.9s;height:88%"><span>پ</span></div>
-          <div class="bar a" style="--d:.98s;height:30%"><span>ج</span></div>
+    <div class="tech">
+      <div class="card a up" style="--d:.5s">
+        <h3>حداکثر ۸ نفر</h3><p class="k">فرصت صحبت برای همه</p>
+        <div class="seats">
+          <div class="seat t a pop" style="--d:.8s"><img src="prof-en.webp" alt="" /></div>
+          <div class="seat a pop" style="--d:1s"><img src="av-sara.webp" alt="" /></div>
+          <div class="seat a pop" style="--d:1.15s"><img src="av-man.webp" alt="" /></div>
+          <div class="seat a pop" style="--d:1.3s"><img src="av-woman.webp" alt="" /></div>
+          <div class="seat a pop" style="--d:1.45s"><img src="av-amir.webp" alt="" /></div>
+          <div class="seat a pop" style="--d:1.6s"><img src="prof-fr.webp" alt="" /></div>
+          <div class="seat a pop" style="--d:1.75s"><img src="prof-de.webp" alt="" /></div>
+          <div class="seat a pop" style="--d:1.9s"></div>
         </div>
       </div>
-      <div class="ringbox">
-        <h4>پیشرفت دوره</h4>
-        <div class="ringwrap">
-          <svg viewBox="0 0 260 260"><circle class="bg" cx="130" cy="130" r="110"/><circle class="fg" cx="130" cy="130" r="110"/></svg>
-          <span class="pct" data-count="0,82,0.9,1.8">۰٪</span>
+      <div class="card a up" style="--f:.3">
+        <h3>تعیین سطح اروپایی</h3><p class="k">چارچوب CEFR، از A1 تا C2</p>
+        <div class="cefr">
+          <div class="a growY" style="--f:.34;height:22%"><b>A1</b></div>
+          <div class="a growY" style="--f:.36;height:36%"><b>A2</b></div>
+          <div class="a growY" style="--f:.38;height:50%"><b>B1</b></div>
+          <div class="a growY" style="--f:.40;height:64%"><b>B2</b></div>
+          <div class="a growY" style="--f:.42;height:80%"><b>C1</b></div>
+          <div class="a growY" style="--f:.44;height:94%"><b>C2</b></div>
         </div>
-        <div class="card badge a pop" style="--d:2.2s"><svg class="i" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8"/></svg>سطح B1 کامل شد</div>
+        <div class="cefr-l"><span>مقدماتی</span><span>متوسط</span><span>پیشرفته</span></div>
+      </div>
+      <div class="card a up" style="--f:.62">
+        <h3>تمرین در گروه کوچک</h3><p class="k">اتاق‌های گفت‌وگوی ۲ تا ۳ نفره</p>
+        <div class="rooms">
+          <div class="room a fromR" style="--f:.66"><span class="wave"></span>اتاق ۱<span class="av"><img src="av-sara.webp" alt=""/><img src="av-man.webp" alt=""/></span></div>
+          <div class="room a fromR" style="--f:.70"><span class="wave"></span>اتاق ۲<span class="av"><img src="av-woman.webp" alt=""/><img src="av-amir.webp" alt=""/><img src="prof-fr.webp" alt=""/></span></div>
+          <div class="room a fromR" style="--f:.74"><span class="wave"></span>اتاق ۳<span class="av"><img src="prof-de.webp" alt=""/><img src="av-sara.webp" alt=""/></span></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- S5: features -->
-  <section class="scene s5" style="--s:18.8s;--len:4.2s">
+  <!-- 4 online pros -->
+  <section class="scene" data-id="online-pros">
     <div class="title">
-      <span class="pill a up" style="--d:.1s">و البته…</span>
-      <h2 class="big a up" style="--d:.25s">هر چیزی که برای یادگیری لازم داری</h2>
+      <span class="pill a up" style="--d:.1s">مزایای دورهٔ آنلاین</span>
+      <h2 class="big a up" style="--d:.25s">چرا کلاس زنده؟</h2>
     </div>
-    <div class="feat">
-      <div class="card a pop" style="--d:.6s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/></svg></div><h3>ضبط جلسات</h3><p>هر کلاس را دوباره ببین</p></div>
-      <div class="card a pop" style="--d:.8s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.8.6 3 2.2 3.5 5.2"/></svg></div><h3>کلاس‌های کوچک</h3><p>حداکثر ۸ نفر در هر کلاس</p></div>
-      <div class="card a pop" style="--d:1s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/></svg></div><h3>پشتیبانی هر روزه</h3><p>همیشه پاسخگوی شما</p></div>
-      <div class="card a pop" style="--d:1.2s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M10 13l-1 7 3-2 3 2-1-7"/></svg></div><h3>گواهی پایان دوره</h3><p>مدرک معتبر برای رزومه</p></div>
+    <div class="pros">
+      <div class="card a pop" style="--f:.22"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M15 9l2 2 4-4"/></svg></div><h3>تعامل مستقیم با استاد</h3><p>پرسش و پاسخ همان لحظه</p></div>
+      <div class="card a pop" style="--f:.38"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div><h3>اصلاح فوری تلفظ</h3><p>اشتباه، همان‌جا درست می‌شود</p></div>
+      <div class="card a pop" style="--f:.56"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 15l2 2 4-4"/></svg></div><h3>برنامهٔ منظم</h3><p>ساعت ثابت، پیشرفت پیوسته</p></div>
+      <div class="card a pop" style="--f:.72"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></div><h3>انگیزهٔ گروهی</h3><p>یادگیری کنار هم‌کلاسی‌ها</p></div>
     </div>
   </section>
 
-  <!-- S6: logo outro -->
-  <section class="scene s6" style="--s:22.8s;--len:5.2s">
-    <div class="wipe wipe2"></div>
-    <div class="wipe"></div>
-    <div class="gring"></div>
-    <svg class="leaf a fade" style="--d:1s;right:60px;bottom:-30px;width:200px" viewBox="0 0 160 220" fill="currentColor"><path d="M80 218C78 150 80 80 84 4 40 40 20 90 30 150c8 40 30 56 50 68z"/><path d="M84 120c30-30 62-36 74-34-2 40-28 74-70 80z" opacity=".75"/></svg>
-    <svg class="leaf a fade" style="--d:1.2s;left:60px;top:-40px;width:160px;rotate:180deg" viewBox="0 0 160 220" fill="currentColor"><path d="M80 218C78 150 80 80 84 4 40 40 20 90 30 150c8 40 30 56 50 68z"/><path d="M84 120c30-30 62-36 74-34-2 40-28 74-70 80z" opacity=".75"/></svg>
-    <div class="logo">
+  <!-- 5 offline -->
+  <section class="scene" data-id="offline">
+    <div class="head" style="width:560px">
+      <span class="pill n a fromR" style="--d:.2s">دوره‌های آفلاین</span>
+      <h2 class="big a fromR" style="--d:.35s">ویدیوی ضبط‌شده،<br/>هر زمان و هر جا</h2>
+      <p class="sub a fromR" style="--f:.55">جلسه‌بندی‌شده، با سرعت دلخواه شما.</p>
+    </div>
+    <div class="card player a">
+      <div class="screen">
+        <div class="slide"><small>Lesson 4 • Present Perfect</small><h4>I have lived in<br/>Tehran for 5 years.</h4><p><b>have + past participle</b><br/>for experiences &amp; unfinished time</p></div>
+        <div class="pbar"><svg class="i" viewBox="0 0 24 24" style="width:30px;height:30px"><path d="M7 5v14l11-7z" fill="currentColor"/></svg><span data-clock="offline-v">03:12</span><span class="track"><i></i></span><span>18:40</span><span class="speed">1.25×</span></div>
+      </div>
+      <div class="lessons">
+        <h5>سرفصل‌های دوره</h5>
+        <div class="lesson a fromL" style="--d:.6s"><span class="st">✓</span>جلسهٔ ۱<span>۱۶ دقیقه</span></div>
+        <div class="lesson a fromL" style="--d:.7s"><span class="st">✓</span>جلسهٔ ۲<span>۱۹ دقیقه</span></div>
+        <div class="lesson a fromL" style="--d:.8s"><span class="st">✓</span>جلسهٔ ۳<span>۱۷ دقیقه</span></div>
+        <div class="lesson cur a fromL" style="--d:.9s"><span class="st">▶</span>جلسهٔ ۴<span>در حال پخش</span></div>
+        <div class="lesson lock a fromL" style="--d:1s"><span class="st"></span>جلسهٔ ۵<span>۲۱ دقیقه</span></div>
+        <div class="lesson lock a fromL" style="--d:1.1s"><span class="st"></span>جلسهٔ ۶<span>۱۸ دقیقه</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 offline tech -->
+  <section class="scene" data-id="offline-tech">
+    <div class="title">
+      <span class="pill n a up" style="--d:.1s">دوره‌های آفلاین • جزئیات</span>
+      <h2 class="big a up" style="--d:.25s">هر جلسه شامل چه چیزی است؟</h2>
+    </div>
+    <div class="kit">
+      <div class="card a fromR" style="--f:.06"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg></div><div><h3>ویدیوی آموزشی</h3><p>تدریس کامل و جلسه‌بندی‌شده</p></div><span class="n">۱</span></div>
+      <div class="card a fromR" style="--f:.15"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg></div><div><h3>جزوهٔ PDF</h3><p>خلاصهٔ قواعد و واژگان</p></div><span class="n">۲</span></div>
+      <div class="card a fromR" style="--f:.24"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h4M7 13h10M7 17h6M15 8l1.5 1.5L19 7"/></svg></div><div><h3>تمرین تعاملی</h3><p>تصحیح خودکار، همان لحظه</p></div><span class="n">۳</span></div>
+      <div class="card a fromR" style="--f:.33"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8"/></svg></div><div><h3>آزمونک پایان فصل</h3><p>سنجش یادگیری هر فصل</p></div><span class="n">۴</span></div>
+    </div>
+    <div class="card support a fromL" style="--f:.5">
+      <h4><i></i>پشتیبان آموزشی</h4>
+      <div class="msg me a pop" style="--f:.55">تکلیف جلسهٔ ۴ را فرستادم.<br/><span class="file">📎 homework-4.pdf</span></div>
+      <div class="typing gone a fade" style="--f:.62"><i></i><i></i><i></i></div>
+      <div class="msg sp a pop" style="--f:.74">بررسی شد، عالی بود! فقط زمان فعل جملهٔ ۳ را دوباره ببینید.<br/><span class="score">نمره: ۱۸ از ۲۰</span></div>
+    </div>
+  </section>
+
+  <!-- 7 offline pros -->
+  <section class="scene" data-id="offline-pros">
+    <div class="title">
+      <span class="pill n a up" style="--d:.1s">مزایای دورهٔ آفلاین</span>
+      <h2 class="big a up" style="--d:.25s">چرا دورهٔ ضبط‌شده؟</h2>
+    </div>
+    <div class="pros off">
+      <div class="card a pop" style="--f:.22"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>انعطاف کامل در زمان</h3><p>هر ساعتی که بخواهید</p></div>
+      <div class="card a pop" style="--f:.38"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4"/></svg></div><h3>مرور نامحدود</h3><p>هر جلسه را بارها ببینید</p></div>
+      <div class="card a pop" style="--f:.54"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div><h3>هزینهٔ کمتر</h3><p>اقتصادی‌ترین مسیر یادگیری</p></div>
+      <div class="card a pop" style="--f:.68"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg></div><h3>مناسب افراد پرمشغله</h3><p>کنار کار و دانشگاه</p></div>
+    </div>
+  </section>
+
+  <!-- 8 compare -->
+  <section class="scene" data-id="compare">
+    <div class="title" style="top:60px">
+      <span class="pill a up" style="--d:.1s">مقایسه</span>
+      <h2 class="big a up" style="--d:.25s">آنلاین یا آفلاین؟</h2>
+    </div>
+    <div class="card table a up" style="--d:.5s">
+      <div class="trow thead"><span></span><span class="on">آنلاین زنده</span><span class="off">آفلاین</span></div>
+      <div class="trow a fromR" style="--d:.8s"><span>زمان کلاس</span><span>ثابت، طبق برنامه</span><span class="hl-off">آزاد و منعطف</span></div>
+      <div class="trow a fromR" style="--d:.95s"><span>ارتباط با استاد</span><span class="hl-on">مستقیم و هم‌زمان</span><span>از طریق پشتیبان</span></div>
+      <div class="trow a fromR" style="--d:1.1s"><span>تمرین مکالمه</span><span class="hl-on">زنده و گروهی</span><span>تمرین فردی</span></div>
+      <div class="trow a fromR" style="--d:1.25s"><span>سرعت پیشرفت</span><span>هماهنگ با کلاس</span><span class="hl-off">به انتخاب شما</span></div>
+      <div class="trow a fromR" style="--d:1.4s"><span>هزینه</span><span>استاندارد</span><span class="hl-off">کمتر</span></div>
+    </div>
+    <div class="reco"><div class="reco1"><div class="card a pop" style="--f:.4">مکالمه، تعامل و برنامهٔ منظم<span class="arrow">←</span><span class="tag">آنلاین</span></div></div></div>
+    <div class="reco"><div class="card a pop" style="--f:.72">زمان منعطف و یادگیری مستقل<span class="arrow">←</span><span class="tag n">آفلاین</span></div></div>
+  </section>
+
+  <!-- 9 outro -->
+  <section class="scene s-outro" data-id="outro">
+    <div class="title">
+      <span class="pill a up" style="--d:.1s">در هر دو مسیر</span>
+      <h2 class="big a up" style="--d:.25s">همیشه همراه شما هستیم</h2>
+    </div>
+    <div class="common">
+      <div class="card a pop" style="--d:.6s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.5"/><path d="M5 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5zM16.5 11l4 1.5"/></svg></div><h3>اساتید مجرب</h3></div>
+      <div class="card a pop" style="--f:.14"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/></svg></div><h3>پشتیبانی هر روزه</h3></div>
+      <div class="card a pop" style="--f:.27"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M10 13l-1 7 3-2 3 2-1-7"/></svg></div><h3>گواهی پایان دوره</h3></div>
+    </div>
+    <div class="wipe wipe2" style="--f:.45;--d:-.25s"></div>
+    <div class="wipe" style="--f:.45"></div>
+    <div class="gring" style="--f:.45"></div>
+    <div class="logo" style="--f:.45">
       <img class="ico" src="logo-icon.png" alt="" />
       <span class="div"></span>
       <img class="word" src="logo-word.png" alt="فرتاش" />
     </div>
-    <div class="shine"></div>
-    <div class="tag">
-      <p class="a up" style="--d:2.6s">آموزشگاه آنلاین زبان فرتاش</p>
-      <span class="pill a pop" style="--d:3.1s">همین امروز ثبت‌نام کن</span>
+    <div class="tagline">
+      <p class="a up" style="--f:.45;--d:2.6s">یادگیری زبان، به سبک خودتان</p>
+      <span class="pill a pop" style="--f:.45;--d:3.1s">همین امروز ثبت‌نام کن</span>
     </div>
   </section>
+
+  <div id="cap"></div>
 </div>
 
 <script>
-// Deterministic timeline: everything is CSS animation; __seek(t) freezes the frame at t seconds.
-const DUR = 28
+const T = window.TIMING
 const fa = (n) => String(n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d])
-const ease = (x) => 1 - Math.pow(1 - x, 3)
+const sceneStart = {}
+for (const sc of T.scenes) {
+  const el = document.querySelector(`[data-id="${sc.id}"]`)
+  if (!el) continue
+  el.style.setProperty('--s', sc.s + 's'); el.style.setProperty('--len', sc.len + 's')
+  sceneStart[sc.id] = sc.s
+}
+// outro runs to the very end of the video
+const outro = T.scenes.find((s) => s.id === 'outro')
+document.querySelector('[data-id="outro"]').style.setProperty('--len', (T.total - outro.s) + 's')
+const cap = document.getElementById('cap')
+const mmss = (sec) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(Math.floor(sec % 60)).padStart(2, '0')}`
 function extras(t) {
-  document.querySelectorAll('[data-count]').forEach((el) => {
-    const s = el.closest('.scene'); const s0 = parseFloat(getComputedStyle(s).getPropertyValue('--s'))
-    const [from, to, delay, dur] = el.dataset.count.split(',').map(Number)
-    const p = Math.min(1, Math.max(0, (t - s0 - delay) / dur))
-    el.textContent = fa(Math.round(from + (to - from) * ease(p))) + '٪'
-  })
-  document.querySelectorAll('[data-clock]').forEach((el) => {
-    const sec = 12 * 60 + 40 + Math.max(0, Math.floor(t - parseFloat(el.dataset.clock)))
-    el.textContent = fa(`00:${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`)
-  })
+  const c = T.captions.find(([s, e]) => t >= s - 0.05 && t <= e + 0.35)
+  const txt = c ? c[2] : ''
+  if (cap.textContent !== txt) cap.textContent = txt
+  const on = document.querySelector('[data-clock="online"]')
+  if (on) on.textContent = fa('00:' + mmss(12 * 60 + 40 + Math.max(0, t - sceneStart.online)))
+  const ov = document.querySelector('[data-clock="offline-v"]')
+  if (ov) ov.textContent = mmss(192 + Math.max(0, t - sceneStart.offline) * 1.25)
 }
-window.__seek = (t) => {
-  for (const a of document.getAnimations()) { a.pause(); a.currentTime = t * 1000 }
-  extras(t)
-}
-window.__DUR = DUR
-// live preview when opened normally
+window.__DUR = T.total
+window.__seek = (t) => { for (const a of document.getAnimations()) { a.pause(); a.currentTime = t * 1000 } extras(t) }
 if (!/render/.test(location.search)) {
   const start = performance.now()
-  const loop = () => { const t = ((performance.now() - start) / 1000) % DUR; window.__seek(t); requestAnimationFrame(loop) }
+  const loop = () => { const t = ((performance.now() - start) / 1000) % T.total; window.__seek(t); requestAnimationFrame(loop) }
   document.fonts.ready.then(() => requestAnimationFrame(loop))
 }
 </script>

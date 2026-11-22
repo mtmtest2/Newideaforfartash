@@ -1,2 +1,4 @@
 node_modules
 dist
+motion/build/*.wav
+motion/build/*.bak
