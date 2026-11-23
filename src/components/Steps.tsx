@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import SectionHead from './SectionHead'
 import { ArrowLeft, Chart, Chat, Clipboard, Screen, Teacher, Trophy, Leaf } from './Icons'
 import { fa } from '../lib/fa'
@@ -30,7 +31,7 @@ export default function Steps() {
             </li>
           ))}
         </ol>
-        <div className="center rv"><a href="#contact" className="btn btn-primary">همین حالا شروع کنید <ArrowLeft /></a></div>
+        <div className="center rv"><Link to="/placement" className="btn btn-primary">تعیین سطح رایگان <ArrowLeft /></Link></div>
       </div>
     </section>
   )

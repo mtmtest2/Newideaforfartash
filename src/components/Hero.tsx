@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { ArrowLeft, Bars, Chart, Headset, Mentors, Play, Spark, Leaf } from './Icons'
 import { fa } from '../lib/fa'
 import { useReveal } from '../lib/hooks'
@@ -19,16 +20,17 @@ export default function Hero() {
             <Spark className="spark" /> همراه آنلاین یادگیری شما
           </p>
           <h1 className="hero-in" style={{ '--d': '120ms' } as React.CSSProperties}>
-            یاد بگیر، رشد کن و با <span className="hl">راهنمایی متخصصان</span> به هدفت برس
+            بیا <span className="hl">یک جور دیگه</span>
+            <br />
+            حرف بزنیم
           </h1>
           <p className="lead hero-in" style={{ '--d': '240ms' } as React.CSSProperties}>
             هر زمان و هر جا به کلاس‌های باکیفیت دسترسی داشته باش و مسیر یادگیری‌ات را راحت و با اطمینان پیش ببر.
           </p>
           <div className="hero-cta hero-in" style={{ '--d': '360ms' } as React.CSSProperties}>
-            <a href="#classes" className="btn btn-primary btn-lg">
-              همین حالا شروع کن <ArrowLeft />
-            </a>
-            <a href="#steps" className="btn btn-ghost btn-lg">مسیر یادگیری</a>
+            <Link to="/placement" className="btn btn-primary btn-lg">
+              تعیین سطح رایگان <ArrowLeft />
+            </Link>
           </div>
         </div>
 
@@ -37,7 +39,13 @@ export default function Hero() {
           <svg className="orbit orbit-b" viewBox="0 0 400 300" aria-hidden="true"><path d="M10 270C120 220 260 200 390 130" /></svg>
           <div className="arch arch-green" />
           <div className="arch arch-navy" />
-          <img className="hero-person" src="/img/student-man.webp" alt="دانشجوی خندان با کوله‌پشتی و کتاب در دست" width={733} height={1200} fetchPriority="high" />
+          {/* Day: the boy, night: the girl. The swap is pure CSS keyed on [data-theme], so it animates on toggle. */}
+          <div className="hero-swap swap-day">
+            <img className="hero-person" src="/img/student-man.webp" alt="" width={733} height={1200} fetchPriority="high" />
+          </div>
+          <div className="hero-swap swap-night">
+            <img className="hero-person" src="/img/student-woman.webp" alt="" width={797} height={1200} />
+          </div>
           <div className="stat-chip">
             <Bars className="stat-ico" width={30} height={30} />
             <div>

@@ -11,15 +11,23 @@ import IntroVideo from './components/IntroVideo'
 import BottomNav from './components/BottomNav'
 import Footer, { Cta } from './components/Footer'
 import Login from './pages/Login'
+import Teachers from './pages/Teachers'
+import Blog from './pages/Blog'
+import Placement from './pages/Placement'
 import { useReveal } from './lib/hooks'
 
 function Home() {
   const ref = useReveal<HTMLDivElement>()
-  const { hash } = useLocation()
+  const { hash, key } = useLocation()
+  // Scroll to the section named in the hash. Keep the effect body in braces: window.scrollTo returns a
+  // Promise in recent Chrome, and returning it from an effect makes React call it as a cleanup and crash.
   useEffect(() => {
-    if (!hash) return window.scrollTo(0, 0)
-    document.getElementById(hash.slice(1))?.scrollIntoView()
-  }, [hash])
+    if (!hash || hash === '#home') {
+      window.scrollTo({ top: 0 })
+    } else {
+      document.getElementById(hash.slice(1))?.scrollIntoView()
+    }
+  }, [hash, key])
   return (
     <>
       <Header />
@@ -43,6 +51,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/teachers" element={<Teachers />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/placement" element={<Placement />} />
       <Route path="*" element={<Home />} />
     </Routes>
   )

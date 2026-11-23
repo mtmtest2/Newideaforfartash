@@ -37,8 +37,10 @@ export const Spark = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const Flag = ({ code }: { code: 'uk' | 'de' | 'fr' | 'it' }) => {
+export const Flag = ({ code }: { code: 'uk' | 'de' | 'fr' | 'it' | 'sa' | 'tr' }) => {
   const s = { width: 24, height: 24 }
+  if (code === 'tr') return <svg {...s} viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#e30a17" /><circle cx="10" cy="12" r="5.2" fill="#fff" /><circle cx="11.3" cy="12" r="4.2" fill="#e30a17" /><path d="M15.6 12l2.9-1-1.8 2.5v-3l1.8 2.5z" fill="#fff" /></svg>
+  if (code === 'sa') return <svg {...s} viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1a7f45" /><path d="M6 10.5h12M7 13.5h9" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" /><path d="M8 16.5h8" stroke="#fff" strokeWidth="1" /></svg>
   if (code === 'de') return <svg {...s} viewBox="0 0 24 24" aria-hidden="true"><clipPath id="c-de"><circle cx="12" cy="12" r="12" /></clipPath><g clipPath="url(#c-de)"><rect width="24" height="8" fill="#222" /><rect y="8" width="24" height="8" fill="#d62d2d" /><rect y="16" width="24" height="8" fill="#f5c62e" /></g></svg>
   if (code === 'fr') return <svg {...s} viewBox="0 0 24 24" aria-hidden="true"><clipPath id="c-fr"><circle cx="12" cy="12" r="12" /></clipPath><g clipPath="url(#c-fr)"><rect width="8" height="24" fill="#2f4fa8" /><rect x="8" width="8" height="24" fill="#f4f4f4" /><rect x="16" width="8" height="24" fill="#d62d2d" /></g></svg>
   if (code === 'it') return <svg {...s} viewBox="0 0 24 24" aria-hidden="true"><clipPath id="c-it"><circle cx="12" cy="12" r="12" /></clipPath><g clipPath="url(#c-it)"><rect width="8" height="24" fill="#2e9b57" /><rect x="8" width="8" height="24" fill="#f4f4f4" /><rect x="16" width="8" height="24" fill="#d62d2d" /></g></svg>

@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Moon, Sun, User } from './Icons'
 import { useTheme } from '../lib/hooks'
 
 const NAV = [
   { href: '/#home', label: 'خانه' },
   { href: '/#steps', label: 'مسیر یادگیری' },
-  { href: '/#classes', label: 'کلاس‌ها' },
-  { href: '/#blog', label: 'مقالات' },
+  { href: '/teachers', label: 'اساتید' },
+  { href: '/blog', label: 'مقالات' },
   { href: '/#contact', label: 'تماس با ما' },
 ]
 
-export function Logo({ height = 44 }: { height?: number }) {
+export function Logo({ small = false }: { small?: boolean }) {
   return (
-    <Link to="/" className="logo" aria-label="فرتاش، صفحهٔ اصلی">
-      <img className="logo-day" src="/img/logo-day.png" alt="فرتاش" style={{ height }} />
-      <img className="logo-night" src="/img/logo-night.png" alt="" aria-hidden="true" style={{ height }} />
+    <Link to="/" className={`logo${small ? ' logo-sm' : ''}`} aria-label="فرتاش، صفحهٔ اصلی">
+      <img className="logo-day" src="/img/logo-day.png" alt="فرتاش" />
+      <img className="logo-night" src="/img/logo-night.png" alt="" aria-hidden="true" />
     </Link>
   )
 }
@@ -40,6 +40,8 @@ export function ThemeToggle() {
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
+  const { pathname, hash } = useLocation()
+  const current = pathname === '/' ? `/${hash || '#home'}` : pathname
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 12)
@@ -53,10 +55,10 @@ export default function Header() {
       <div className="container header-in">
         <Logo />
         <nav className="nav" aria-label="منوی اصلی">
-          {NAV.map((n, i) => (
-            <a key={n.href} href={n.href} className={i === 0 ? 'active' : ''}>
+          {NAV.map((n) => (
+            <Link key={n.href} to={n.href} className={n.href === current ? 'active' : ''}>
               {n.label}
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="header-actions">

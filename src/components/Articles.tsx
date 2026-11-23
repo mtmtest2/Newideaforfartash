@@ -1,22 +1,17 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import SectionHead from './SectionHead'
-import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Leaf } from './Icons'
+import { ArrowLeft, ChevronLeft, ChevronRight, Leaf } from './Icons'
+import { PostCard } from './Cards'
+import { POSTS } from '../data'
 import { fa } from '../lib/fa'
 import { useAutoplay, useReveal } from '../lib/hooks'
-
-const POSTS = [
-  { title: 'چگونه مهارت مکالمهٔ انگلیسی را تقویت کنیم؟', text: '۵ راهکار کاربردی برای صحبت روان‌تر و با اعتماد به نفس بیشتر.', min: 8, img: '/img/blog-english.webp', tag: 'محتوای آموزشی' },
-  { title: 'اشتباهات رایج در یادگیری آلمانی', text: 'از این اشتباهات پرهیز کنید!', min: 6, img: '/img/blog-writing.webp', tag: 'زبان آلمانی' },
-  { title: 'عبارات پرکاربرد در زبان فرانسه', text: 'عباراتی که در سفر و مکالمه به کارتان می‌آیند.', min: 7, img: '/img/blog-paris.webp', tag: 'زبان فرانسه' },
-  { title: 'عادت‌های روزانه برای یادگیری سریع‌تر', text: 'با ده دقیقه تمرین هر روز، نتیجهٔ چشمگیری بگیرید.', min: 5, img: '/img/blog-book.webp', tag: 'یادگیری' },
-  { title: 'بهترین ابزارهای آنلاین برای تمرین شنیداری', text: 'گوش‌دادن فعال را با این ابزارها تمرین کنید.', min: 6, img: '/img/blog-laptop.webp', tag: 'ابزار' },
-]
 
 export default function Articles() {
   const ref = useReveal<HTMLElement>()
   const [hover, setHover] = useState(false)
-  const { index, go, next, prev } = useAutoplay(POSTS.length, 4500, hover)
   const N = POSTS.length
+  const { index, go, next, prev } = useAutoplay(N, 4500, hover)
 
   return (
     <section id="blog" className="section" ref={ref}>
@@ -33,25 +28,15 @@ export default function Articles() {
               if (off > N / 2) off -= N
               const vis = Math.abs(off) <= 1
               return (
-                <article
+                <PostCard
                   key={p.title}
-                  className="card post"
+                  p={p}
+                  linkable={off === 0}
                   data-off={off}
                   style={{ '--o': off, opacity: vis ? 1 : 0, pointerEvents: vis ? 'auto' : 'none', zIndex: 10 - Math.abs(off) } as React.CSSProperties}
                   aria-hidden={!vis}
                   onClick={() => off !== 0 && go(i)}
-                >
-                  <div className="post-img">
-                    <img src={p.img} alt="" loading="lazy" />
-                    <span className="pill pill-sm">{p.tag}</span>
-                  </div>
-                  <h3>{p.title}</h3>
-                  <p>{p.text}</p>
-                  <div className="post-foot">
-                    <span><Clock width={16} height={16} /> {fa(p.min)} دقیقه مطالعه</span>
-                    <a href="#blog" tabIndex={off === 0 ? 0 : -1}>مطالعهٔ مقاله <ArrowLeft width={15} height={15} /></a>
-                  </div>
-                </article>
+                />
               )
             })}
           </div>
@@ -59,7 +44,7 @@ export default function Articles() {
             {POSTS.map((p, i) => <button key={p.title} role="tab" aria-selected={i === index} aria-label={`مقالهٔ ${fa(i + 1)}`} className={i === index ? 'on' : ''} onClick={() => go(i)} />)}
           </div>
         </div>
-        <div className="center rv"><a href="#blog" className="btn btn-dark">مشاهدهٔ همهٔ مقالات <ArrowLeft /></a></div>
+        <div className="center rv"><Link to="/blog" className="btn btn-dark">مشاهدهٔ همهٔ مقالات <ArrowLeft /></Link></div>
       </div>
     </section>
   )
