@@ -21,7 +21,7 @@ export function ProfCard({ p, className = '', ...rest }: { p: Prof } & ArticlePr
         </ul>
         <p className="desc">{p.text}</p>
       </div>
-      <div className="prof-photo"><img src={p.img} alt={`${p.teacher}، ${p.role}`} loading="lazy" /></div>
+      <div className="prof-photo"><img src={p.img} alt={`${p.teacher}، ${p.role}`} width={p.imgW} height={p.imgH} loading="lazy" decoding="async" /></div>
     </article>
   )
 }
@@ -30,7 +30,7 @@ export function PostCard({ p, linkable = true, className = '', ...rest }: { p: P
   return (
     <article className={`card post ${className}`} {...rest}>
       <div className="post-img">
-        <img src={p.img} alt="" loading="lazy" />
+        <img src={p.img} alt="" width={p.imgW} height={p.imgH} loading="lazy" decoding="async" />
         <span className="pill pill-sm">{p.tag}</span>
       </div>
       <h3>{p.title}</h3>

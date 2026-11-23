@@ -2,33 +2,46 @@ import { useEffect, useRef, useState } from 'react'
 import SectionHead from './SectionHead'
 import { Leaf } from './Icons'
 import { useReveal } from '../lib/hooks'
+import { INTRO_VIDEO } from '../assets'
+
+type Sources = { src: string; poster: string }
 
 export default function IntroVideo() {
   const ref = useReveal<HTMLElement>()
+  const card = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
   const [playing, setPlaying] = useState(false)
   const [muted, setMuted] = useState(true)
+  const [sources, setSources] = useState<Sources | null>(null)
+
+  // The video is far below the fold: attach its source and poster only when the section is about one
+  // screen away, and pick 720p for phone-sized viewports (or Data Saver) and 1080p otherwise.
+  useEffect(() => {
+    const el = card.current
+    if (!el) return
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return
+      io.disconnect()
+      const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData
+      const small = saveData || window.innerWidth <= 900
+      setSources(small ? { src: INTRO_VIDEO.small, poster: INTRO_VIDEO.posterSmall } : { src: INTRO_VIDEO.large, poster: INTRO_VIDEO.posterLarge })
+    }, { rootMargin: '100% 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   // Play muted while on screen, pause when scrolled away (saves battery and data).
   useEffect(() => {
     const v = video.current
-    if (!v) return
+    if (!v || !sources) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const io = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) v.play().catch(() => {})
       else v.pause()
     }, { threshold: 0.45 })
     io.observe(v)
-    const toggleSound = () => {
-    const v = video.current
-    if (!v) return
-    v.muted = !v.muted
-    setMuted(v.muted)
-    if (!v.muted && v.paused) v.play().catch(() => {})
-  }
-
-  return () => io.disconnect()
-  }, [])
+    return () => io.disconnect()
+  }, [sources])
 
   const toggle = () => {
     const v = video.current
@@ -50,11 +63,11 @@ export default function IntroVideo() {
       <Leaf className="leaf leaf-video" />
       <div className="container">
         <SectionHead tag="معرفی دوره‌ها" title="دوره‌های آنلاین و آفلاین فرتاش" text="تفاوت کلاس‌های زندهٔ آنلاین با دوره‌های ضبط‌شدهٔ آفلاین و مزایای هر کدام، در کمتر از دو دقیقه." />
-        <div className="video-card rv">
+        <div className="video-card rv" ref={card}>
           <video
             ref={video}
-            src="/video/fartash-intro.mp4"
-            poster="/video/fartash-intro-poster.jpg"
+            src={sources?.src}
+            poster={sources?.poster}
             muted={muted}
             loop
             playsInline

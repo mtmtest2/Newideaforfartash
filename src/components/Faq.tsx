@@ -3,6 +3,7 @@ import SectionHead from './SectionHead'
 import { ArrowLeft, Mail, Phone, Plus, User, Leaf } from './Icons'
 import { isIranMobile } from '../lib/fa'
 import { useReveal } from '../lib/hooks'
+import consultImg from '../assets/img/consult.webp'
 
 const FAQ = [
   { q: 'آیا برای شرکت در دوره‌های فرتاش نیاز به سطح خاصی از زبان انگلیسی داریم؟', a: 'نه. پیش از شروع، آزمون تعیین سطح رایگان برگزار می‌شود و شما را در کلاسی هم‌سطح خودتان قرار می‌دهیم؛ از صفر تا پیشرفته.' },
@@ -64,7 +65,7 @@ export default function Faq() {
                 </>
               )}
             </form>
-            <div className="consult-photo"><img src="/img/consult.webp" alt="مشاور آکادمی فرتاش با هدفون" loading="lazy" /></div>
+            <div className="consult-photo"><img src={consultImg} alt="مشاور آکادمی فرتاش با هدفون" width={608} height={660} loading="lazy" decoding="async" /></div>
           </div>
         </div>
       </div>

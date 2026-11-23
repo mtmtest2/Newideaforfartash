@@ -47,8 +47,8 @@ def person(im, src, crop_frac, x_center, top):
     im.paste((40, 50, 30), (x + 6 * S, top + 10 * S), shadow)
     im.paste(p, (x, top), p)
 
-for name, draw, src, frac in (('prof-ar', mosque, 'public/img/student-woman.webp', .52), ('prof-tr', galata, 'public/img/student-man.webp', .5)):
+for name, draw, src, frac in (('prof-ar', mosque, 'assets-src/student-woman.webp', .52), ('prof-tr', galata, 'assets-src/student-man.webp', .5)):
     im, d = base(); draw(d, 70 * S, 60 * S)
     person(im, src, frac, 330 * S, 22 * S)
-    im.resize((504, 350), Image.LANCZOS).save(f'public/img/{name}.webp', quality=90)
+    im.resize((504, 350), Image.LANCZOS).save(f'src/assets/img/{name}.webp', quality=90)
     print(name)

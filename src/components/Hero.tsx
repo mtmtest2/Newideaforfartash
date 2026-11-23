@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { HERO, LOGO } from '../assets'
 import { ArrowLeft, Bars, Chart, Headset, Mentors, Play, Spark, Leaf } from './Icons'
 import { fa } from '../lib/fa'
 import { useReveal } from '../lib/hooks'
@@ -10,8 +12,25 @@ const FEATURES = [
   { icon: <Headset width={44} height={44} />, title: 'پشتیبانی هر روزه', text: 'همیشه کنار شما هستیم.' },
 ]
 
+/** After the page has loaded, fetch the other theme's hero + logo in idle time so toggling is instant. */
+function usePrefetchOtherTheme() {
+  useEffect(() => {
+    const run = () => {
+      const other = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
+      const img = new Image()
+      img.sizes = HERO[other].sizes
+      img.srcset = HERO[other].srcSet
+      new Image().src = LOGO[other]
+    }
+    const idle = (cb: () => void) => (typeof window.requestIdleCallback === 'function' ? window.requestIdleCallback(cb, { timeout: 4000 }) : setTimeout(cb, 2500))
+    if (document.readyState === 'complete') idle(run)
+    else window.addEventListener('load', () => idle(run), { once: true })
+  }, [])
+}
+
 export default function Hero() {
   const ref = useReveal<HTMLElement>()
+  usePrefetchOtherTheme()
   return (
     <section id="home" className="hero" ref={ref}>
       <div className="container hero-grid">
@@ -39,12 +58,14 @@ export default function Hero() {
           <svg className="orbit orbit-b" viewBox="0 0 400 300" aria-hidden="true"><path d="M10 270C120 220 260 200 390 130" /></svg>
           <div className="arch arch-green" />
           <div className="arch arch-navy" />
-          {/* Day: the boy, night: the girl. The swap is pure CSS keyed on [data-theme], so it animates on toggle. */}
+          {/* Day: the boy, night: the girl, swapped by CSS on [data-theme]. The inactive one is display:none and
+              lazy, so it isn't downloaded on first load; the head script preloads the active one, and the other
+              is fetched when the page is idle so the swap animation stays instant. */}
           <div className="hero-swap swap-day">
-            <img className="hero-person" src="/img/student-man.webp" alt="" width={733} height={1200} fetchPriority="high" />
+            <img className="hero-person" srcSet={HERO.light.srcSet} sizes={HERO.light.sizes} src={HERO.light.src} width={HERO.light.width} height={HERO.light.height} loading="lazy" alt="" />
           </div>
           <div className="hero-swap swap-night">
-            <img className="hero-person" src="/img/student-woman.webp" alt="" width={797} height={1200} />
+            <img className="hero-person" srcSet={HERO.dark.srcSet} sizes={HERO.dark.sizes} src={HERO.dark.src} width={HERO.dark.width} height={HERO.dark.height} loading="lazy" alt="" />
           </div>
           <div className="stat-chip">
             <Bars className="stat-ico" width={30} height={30} />

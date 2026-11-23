@@ -182,13 +182,19 @@ main { overflow-x: clip; }
 .hero-swap {
   position: absolute; inset: 0; z-index: 2; display: grid; place-items: end center; pointer-events: none;
   transform-origin: 50% 100%;
-  transition: opacity .55s ease, transform .9s var(--ease), filter .7s ease;
+  /* display is animated discretely so the outgoing image stays visible while it sinks away */
+  transition: opacity .55s ease, transform .9s var(--ease), filter .7s ease, display .9s allow-discrete;
 }
-/* day: boy visible, girl waiting below; night: they trade places with a rise/sink and a soft blur */
-.swap-night { opacity: 0; transform: translateY(70px) scale(.92) rotate(3deg); filter: blur(6px); }
-:root[data-theme='dark'] .swap-day { opacity: 0; transform: translateY(70px) scale(.92) rotate(-3deg); filter: blur(6px); }
-:root[data-theme='dark'] .swap-night { opacity: 1; transform: none; filter: none; transition-delay: .18s; }
+/* day: boy visible; night: girl visible. The inactive one is display:none so its (lazy) image isn't fetched. */
+.swap-night { display: none; opacity: 0; transform: translateY(70px) scale(.92) rotate(3deg); filter: blur(6px); }
+:root[data-theme='dark'] .swap-day { display: none; opacity: 0; transform: translateY(70px) scale(.92) rotate(-3deg); filter: blur(6px); }
+:root[data-theme='dark'] .swap-night { display: grid; opacity: 1; transform: none; filter: none; transition-delay: .18s; }
 :root:not([data-theme='dark']) .swap-day { transition-delay: .18s; }
+/* when a toggle reveals the incoming image, start it from below (only during a toggle, not on page load) */
+@starting-style {
+  html.theme-anim:not([data-theme='dark']) .swap-day { opacity: 0; transform: translateY(70px) scale(.92) rotate(-3deg); filter: blur(6px); }
+  html.theme-anim[data-theme='dark'] .swap-night { opacity: 0; transform: translateY(70px) scale(.92) rotate(3deg); filter: blur(6px); }
+}
 .hero-person { position: relative; z-index: 2; height: min(560px, 76vw); width: auto; object-fit: contain; filter: drop-shadow(0 24px 24px rgba(20, 28, 60, .22)); animation: personIn 1s var(--ease) .3s both, bob 7s ease-in-out 1.4s infinite; }
 @keyframes personIn { from { opacity: 0; transform: translateY(40px) scale(.97); } to { opacity: 1; transform: none; } }
 @keyframes bob { 50% { transform: translateY(-8px); } }
