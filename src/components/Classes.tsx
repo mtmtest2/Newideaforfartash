@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import SectionHead from './SectionHead'
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Leaf } from './Icons'
@@ -12,6 +12,16 @@ export default function Classes() {
   const ref = useReveal<HTMLElement>()
   const [hover, setHover] = useState(false)
   const { index, go, next, prev } = useAutoplay(PROFS.length, SECS * 1000, hover)
+  const tabsRef = useRef<HTMLDivElement>(null)
+
+  // On phones the tabs are a swipeable row: keep the active one centred (scrolls the row only, not the page).
+  useEffect(() => {
+    const row = tabsRef.current
+    const tab = row?.children[index] as HTMLElement | undefined
+    if (!row || !tab || row.scrollWidth <= row.clientWidth) return
+    const r = row.getBoundingClientRect(), t = tab.getBoundingClientRect()
+    row.scrollBy({ left: t.left + t.width / 2 - (r.left + r.width / 2), behavior: 'smooth' })
+  }, [index])
 
   return (
     <section id="classes" className="section" ref={ref}>
@@ -27,8 +37,8 @@ export default function Classes() {
           onFocusCapture={() => setHover(true)}
           onBlurCapture={() => setHover(false)}
         >
-          <button className="icon-btn nav-arrow nav-prev" onClick={next} aria-label="استاد بعدی"><ChevronLeft /></button>
-          <button className="icon-btn nav-arrow nav-next" onClick={prev} aria-label="استاد قبلی"><ChevronRight /></button>
+          <button className="icon-btn nav-arrow nav-prev" onClick={prev} aria-label="استاد قبلی"><ChevronRight /></button>
+          <button className="icon-btn nav-arrow nav-next" onClick={next} aria-label="استاد بعدی"><ChevronLeft /></button>
 
           <div className="prof-stage" role="group" aria-roledescription="کاروسل">
             {PROFS.map((p, i) => {
@@ -38,7 +48,7 @@ export default function Classes() {
             })}
           </div>
 
-          <div className="prof-tabs" role="tablist" aria-label="انتخاب استاد">
+          <div className="prof-tabs" role="tablist" aria-label="انتخاب استاد" ref={tabsRef}>
             {PROFS.map((p, i) => (
               <button key={p.lang} role="tab" aria-selected={i === index} className="prof-tab" onClick={() => go(i)}>
                 <Flag code={p.flag} />

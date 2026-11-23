@@ -20,8 +20,8 @@ export default function Articles() {
       <div className="container">
         <SectionHead tag="مجلهٔ آموزشی" title="آخرین مقالات بلاگ" text="مطالب کاربردی و به‌روز برای یادگیری بهتر زبان." />
         <div className="cf rv" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocusCapture={() => setHover(true)} onBlurCapture={() => setHover(false)}>
-          <button className="icon-btn nav-arrow nav-prev" onClick={next} aria-label="مقالهٔ بعدی"><ChevronLeft /></button>
-          <button className="icon-btn nav-arrow nav-next" onClick={prev} aria-label="مقالهٔ قبلی"><ChevronRight /></button>
+          <button className="icon-btn nav-arrow nav-prev" onClick={prev} aria-label="مقالهٔ قبلی"><ChevronRight /></button>
+          <button className="icon-btn nav-arrow nav-next" onClick={next} aria-label="مقالهٔ بعدی"><ChevronLeft /></button>
           <div className="cf-stage">
             {POSTS.map((p, i) => {
               let off = (i - index + N) % N
