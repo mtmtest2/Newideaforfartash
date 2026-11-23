@@ -5,13 +5,14 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Leaf } from './Icons'
 import { PostCard } from './Cards'
 import { POSTS } from '../data'
 import { fa } from '../lib/fa'
-import { useAutoplay, useReveal } from '../lib/hooks'
+import { useAutoplay, useNearViewport, useReveal } from '../lib/hooks'
 
 export default function Articles() {
   const ref = useReveal<HTMLElement>()
   const [hover, setHover] = useState(false)
   const N = POSTS.length
   const { index, go, next, prev } = useAutoplay(N, 4500, hover)
+  const [cfRef, near] = useNearViewport<HTMLDivElement>()
 
   return (
     <section id="blog" className="section" ref={ref}>
@@ -19,7 +20,7 @@ export default function Articles() {
       <Leaf className="leaf leaf-blog" />
       <div className="container">
         <SectionHead tag="مجلهٔ آموزشی" title="آخرین مقالات بلاگ" text="مطالب کاربردی و به‌روز برای یادگیری بهتر زبان." />
-        <div className="cf rv" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocusCapture={() => setHover(true)} onBlurCapture={() => setHover(false)}>
+        <div ref={cfRef} className="cf rv" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocusCapture={() => setHover(true)} onBlurCapture={() => setHover(false)}>
           <button className="icon-btn nav-arrow nav-prev" onClick={prev} aria-label="مقالهٔ قبلی"><ChevronRight /></button>
           <button className="icon-btn nav-arrow nav-next" onClick={next} aria-label="مقالهٔ بعدی"><ChevronLeft /></button>
           <div className="cf-stage">
@@ -32,6 +33,7 @@ export default function Articles() {
                   key={p.title}
                   p={p}
                   linkable={off === 0}
+                  load={near}
                   data-off={off}
                   style={{ '--o': off, opacity: vis ? 1 : 0, pointerEvents: vis ? 'auto' : 'none', zIndex: 10 - Math.abs(off) } as React.CSSProperties}
                   aria-hidden={!vis}

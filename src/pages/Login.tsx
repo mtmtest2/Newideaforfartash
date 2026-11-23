@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ChevronRight, Leaf, Phone, User } from '../components/Icons'
 import { Logo, ThemeToggle } from '../components/Header'
@@ -11,6 +11,9 @@ export default function Login() {
   const [step, setStep] = useState<'phone' | 'code' | 'done'>('phone')
   const [phone, setPhone] = useState('')
   const [err, setErr] = useState('')
+  useEffect(() => {
+    document.title = 'ورود / عضویت | فرتاش'
+  }, [])
 
   const onPhone = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()

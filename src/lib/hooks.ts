@@ -1,20 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 export type Theme = 'light' | 'dark'
 
+// The theme lives on <html data-theme> (set by the inline script in index.html before first paint).
+// Reading it through useSyncExternalStore keeps prerendering safe (server snapshot = light) and keeps
+// every toggle on the page in sync.
+const subscribeTheme = (cb: () => void) => {
+  const mo = new MutationObserver(cb)
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  return () => mo.disconnect()
+}
+const getTheme = (): Theme => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
+const getServerTheme = (): Theme => 'light'
+
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() =>
-    (document.documentElement.dataset.theme as Theme) === 'dark' ? 'dark' : 'light',
-  )
+  const theme = useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
   const toggle = useCallback(() => {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark'
+    const next: Theme = getTheme() === 'dark' ? 'light' : 'dark'
     const root = document.documentElement
     root.classList.add('theme-anim')
     root.dataset.theme = next
-    setTheme(next)
     try { localStorage.setItem('fartash-theme', next) } catch { /* private mode */ }
     window.setTimeout(() => root.classList.remove('theme-anim'), 500)
-  }, [theme])
+  }, [])
   return { theme, toggle }
 }
 
@@ -52,4 +60,24 @@ export function useReveal<T extends HTMLElement>() {
     return () => io.disconnect()
   }, [])
   return ref
+}
+
+/**
+ * True once the element is within `margin` of the viewport (then stays true). Used to attach media for
+ * below-the-fold carousels/video: on slow connections Chrome widens its native lazy-load distance to
+ * ~2500-3000px, which pulled these images into the initial page load.
+ */
+export function useNearViewport<T extends HTMLElement>(margin = '100% 0px') {
+  const ref = useRef<T>(null)
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || near) return
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setNear(true); io.disconnect() }
+    }, { rootMargin: margin })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [margin, near])
+  return [ref, near] as const
 }

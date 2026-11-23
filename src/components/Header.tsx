@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Moon, Sun, User } from './Icons'
 import { useTheme } from '../lib/hooks'
+import { LOGO } from '../assets'
 
 const NAV = [
   { href: '/#home', label: 'خانه' },
@@ -14,8 +15,10 @@ const NAV = [
 export function Logo({ small = false }: { small?: boolean }) {
   return (
     <Link to="/" className={`logo${small ? ' logo-sm' : ''}`} aria-label="فرتاش، صفحهٔ اصلی">
-      <img className="logo-day" src="/img/logo-day.png" alt="فرتاش" />
-      <img className="logo-night" src="/img/logo-night.png" alt="" aria-hidden="true" />
+      {/* Only the active theme's logo is rendered (the other is display:none), and lazy images that aren't
+          rendered are never fetched. The inline head script preloads the active one at high priority. */}
+      <img className="logo-day" src={LOGO.light} width={LOGO.width} height={LOGO.height} loading="lazy" alt="فرتاش" />
+      <img className="logo-night" src={LOGO.dark} width={LOGO.width} height={LOGO.height} loading="lazy" alt="فرتاش" />
     </Link>
   )
 }
@@ -62,7 +65,7 @@ export default function Header() {
           ))}
         </nav>
         <div className="header-actions">
-          <Link to="/login" className="btn btn-primary btn-sm login-btn">
+          <Link to="/login" className="btn btn-primary btn-sm login-btn" aria-label="ورود / عضویت">
             <User width={18} height={18} />
             <span>ورود / عضویت</span>
           </Link>

@@ -7,7 +7,7 @@ import type { Post, Prof } from '../data'
 type ArticleProps = HTMLAttributes<HTMLElement> & { inert?: boolean; [k: `data-${string}`]: unknown }
 
 /** Professor card (same layout on the home carousel and the /teachers page). */
-export function ProfCard({ p, className = '', ...rest }: { p: Prof } & ArticleProps) {
+export function ProfCard({ p, load = true, className = '', ...rest }: { p: Prof; load?: boolean } & ArticleProps) {
   return (
     <article className={`card prof-card ${className}`} {...rest}>
       <div className="prof-info">
@@ -21,16 +21,16 @@ export function ProfCard({ p, className = '', ...rest }: { p: Prof } & ArticlePr
         </ul>
         <p className="desc">{p.text}</p>
       </div>
-      <div className="prof-photo"><img src={p.img} alt={`${p.teacher}، ${p.role}`} loading="lazy" /></div>
+      <div className="prof-photo"><img src={load ? p.img : undefined} alt={`${p.teacher}، ${p.role}`} width={p.imgW} height={p.imgH} loading="lazy" decoding="async" /></div>
     </article>
   )
 }
 
-export function PostCard({ p, linkable = true, className = '', ...rest }: { p: Post; linkable?: boolean } & ArticleProps) {
+export function PostCard({ p, linkable = true, load = true, className = '', ...rest }: { p: Post; linkable?: boolean; load?: boolean } & ArticleProps) {
   return (
     <article className={`card post ${className}`} {...rest}>
       <div className="post-img">
-        <img src={p.img} alt="" loading="lazy" />
+        <img src={load ? p.img : undefined} alt="" width={p.imgW} height={p.imgH} loading="lazy" decoding="async" />
         <span className="pill pill-sm">{p.tag}</span>
       </div>
       <h3>{p.title}</h3>
