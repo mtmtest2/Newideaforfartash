@@ -4,7 +4,7 @@ import SectionHead from './SectionHead'
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Leaf } from './Icons'
 import { ProfCard } from './Cards'
 import { PROFS } from '../data'
-import { useAutoplay, useReveal } from '../lib/hooks'
+import { useAutoplay, useNearViewport, useReveal } from '../lib/hooks'
 
 const SECS = 5
 
@@ -13,6 +13,7 @@ export default function Classes() {
   const [hover, setHover] = useState(false)
   const { index, go, next, prev } = useAutoplay(PROFS.length, SECS * 1000, hover)
   const tabsRef = useRef<HTMLDivElement>(null)
+  const [wrapRef, near] = useNearViewport<HTMLDivElement>()
 
   // On phones the tabs are a swipeable row: keep the active one centred (scrolls the row only, not the page).
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function Classes() {
         <SectionHead tag="کلاس‌های آنلاین فرتاش" title="اساتید و کلاس‌های زبان" text="کلاس‌های زنده و تعاملی انگلیسی، آلمانی، فرانسوی، عربی و ترکی استانبولی با همراهی اساتید مجرب." />
 
         <div
+          ref={wrapRef}
           className="prof-wrap rv"
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
@@ -44,7 +46,7 @@ export default function Classes() {
             {PROFS.map((p, i) => {
               const off = (i - index + PROFS.length) % PROFS.length
               const state = off === 0 ? 'active' : off === PROFS.length - 1 ? 'past' : 'future'
-              return <ProfCard key={p.lang} p={p} data-state={state} aria-hidden={state !== 'active'} inert={state !== 'active'} />
+              return <ProfCard key={p.lang} p={p} load={near} data-state={state} aria-hidden={state !== 'active'} inert={state !== 'active'} />
             })}
           </div>
 

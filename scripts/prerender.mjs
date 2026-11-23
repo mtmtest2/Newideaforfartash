@@ -3,6 +3,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
+import Beasties from 'beasties'
 
 const SITE = (process.env.SITE_URL || 'https://mrmdev.xyz').replace(/\/$/, '')
 const dist = path.resolve('dist')
@@ -24,6 +25,38 @@ const preloadJs = (isHome) => `var P=${JSON.stringify({ logo: THEME_PRELOADS.log
   `if(typeof o==='string'){l.href=o}else{l.setAttribute('imagesrcset',o.srcset);l.setAttribute('imagesizes',o.sizes)}document.head.appendChild(l)};` +
   `pl(P.logo[t]);if(P.hero)pl(P.hero[t]);`
 
+// Preload the Vazirmatn subsets so they download alongside the CSS instead of after CSS + layout
+// (HTML -> CSS -> font chain).
+// Both subsets are needed for first paint: the Arabic-script subset has no space or basic punctuation, which
+// come from the Latin subset. (latin-ext is only used for rare characters and stays on-demand.)
+const assetFiles = fs.readdirSync(path.join(dist, 'assets'))
+const fontFiles = ['arabic', 'latin'].map((sub) => assetFiles.find((f) => new RegExp(`^vazirmatn-${sub}-wght-normal-.*\\.woff2$`).test(f)))
+if (fontFiles.some((f) => !f)) throw new Error('Vazirmatn woff2 files not found in dist/assets')
+const fontPreload = fontFiles.map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`).join('\n    ')
+
+// The font family is applied through var(--font), which beasties can't trace, so it would leave every
+// @font-face in the async stylesheet and the first paint would use a fallback font. Inline them (unicode-range
+// still makes the browser fetch only the subsets a page uses).
+const cssFile = fs.readdirSync(path.join(dist, 'assets')).find((f) => /^index-.*\.css$/.test(f))
+const fontFaces = (fs.readFileSync(path.join(dist, 'assets', cssFile), 'utf8').match(/@font-face\{[^}]*\}/g) || [])
+  .map((r) => r.replace(/url\((['"]?)(?:\.\/|\/assets\/|assets\/)?([^)'"]+\.woff2)\1\)/g, 'url(/assets/$2)'))
+  .join('')
+if (!fontFaces.includes('vazirmatn-arabic')) throw new Error('could not extract @font-face rules')
+
+// Critical CSS: inline the rules each prerendered page needs for first paint and load the full stylesheet
+// without blocking render. Theme rules are always kept because data-theme is set at runtime.
+const beasties = new Beasties({
+  path: dist,
+  publicPath: '/',
+  preload: 'swap',
+  noscriptFallback: true,
+  inlineFonts: true,
+  preloadFonts: false,
+  keyframes: 'critical',
+  allowRules: [/data-theme/, /theme-anim/, /prefers-reduced-motion/],
+  logLevel: 'warn',
+})
+
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
 for (const r of ROUTES) {
@@ -42,6 +75,7 @@ for (const r of ROUTES) {
     `<meta property="og:title" content="${esc(r.title)}" />`,
     `<meta property="og:description" content="${esc(r.description)}" />`,
     `<meta property="og:url" content="${canonical}" />`,
+    fontPreload,
   ].filter(Boolean).join('\n    ')
   let html = template
     .replace(/<title>[\s\S]*?<\/title>\s*/, '')
@@ -50,6 +84,10 @@ for (const r of ROUTES) {
     .replace('/*__THEME_PRELOADS__*/', preloadJs(r.url === '/'))
     .replace('<div id="root"></div>', `<div id="root" data-route="${r.url}">${app}</div>`)
   if (!html.includes(app)) throw new Error('root placeholder not found in dist/index.html')
+  html = await beasties.process(html)
+  // Added after beasties so it isn't merged with the critical <style> (noscript content is ignored with JS on).
+  html = html.replace('</head>', `<style>${fontFaces}</style>\n</head>`)
+  html = html.replace('</head>', '<noscript><style>.rv{opacity:1!important;transform:none!important}</style></noscript>\n</head>')
   const out = r.url === '/' ? path.join(dist, 'index.html') : path.join(dist, r.url.slice(1), 'index.html')
   fs.mkdirSync(path.dirname(out), { recursive: true })
   fs.writeFileSync(out, html)

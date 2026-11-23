@@ -613,3 +613,6 @@ svg.flag { border-radius: 50%; flex: none; box-shadow: 0 0 0 1px rgba(0, 0, 0, .
   .hero-cta { margin-bottom: 28px; }
   .features { margin-top: 4px; }
 }
+
+/* carousel photos attach their src when the carousel nears the viewport; hide the empty img (alt text) until then */
+.prof-photo img:not([src]), .post-img img:not([src]) { visibility: hidden; }

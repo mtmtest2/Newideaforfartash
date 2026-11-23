@@ -61,3 +61,23 @@ export function useReveal<T extends HTMLElement>() {
   }, [])
   return ref
 }
+
+/**
+ * True once the element is within `margin` of the viewport (then stays true). Used to attach media for
+ * below-the-fold carousels/video: on slow connections Chrome widens its native lazy-load distance to
+ * ~2500-3000px, which pulled these images into the initial page load.
+ */
+export function useNearViewport<T extends HTMLElement>(margin = '100% 0px') {
+  const ref = useRef<T>(null)
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || near) return
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setNear(true); io.disconnect() }
+    }, { rootMargin: margin })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [margin, near])
+  return [ref, near] as const
+}
