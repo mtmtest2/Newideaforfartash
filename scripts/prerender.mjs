@@ -93,4 +93,12 @@ for (const r of ROUTES) {
   fs.writeFileSync(out, html)
   console.log(`prerendered ${r.url} -> ${path.relative(dist, out)} (${Math.round(html.length / 1024)} KiB)`)
 }
+// robots.txt + sitemap.xml (without them the server's SPA fallback answered /robots.txt with HTML,
+// which crawlers and Lighthouse reported as an invalid robots.txt)
+const today = new Date().toISOString().slice(0, 10)
+fs.writeFileSync(path.join(dist, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`)
+fs.writeFileSync(path.join(dist, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+  ROUTES.filter((r) => !r.noindex).map((r) => `  <url><loc>${SITE}${r.url}</loc><lastmod>${today}</lastmod></url>`).join('\n') + '\n</urlset>\n')
+console.log('wrote robots.txt, sitemap.xml')
+
 fs.rmSync('dist-server', { recursive: true, force: true })

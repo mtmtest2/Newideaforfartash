@@ -65,7 +65,7 @@ export default function Header() {
           ))}
         </nav>
         <div className="header-actions">
-          <Link to="/login" className="btn btn-primary btn-sm login-btn">
+          <Link to="/login" className="btn btn-primary btn-sm login-btn" aria-label="ورود / عضویت">
             <User width={18} height={18} />
             <span>ورود / عضویت</span>
           </Link>

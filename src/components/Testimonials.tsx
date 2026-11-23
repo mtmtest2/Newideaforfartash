@@ -36,7 +36,7 @@ export default function Testimonials() {
           {pair.map((t, k) => (
             <figure key={`${index}-${k}`} className="card quote" style={{ '--d': `${k * 90}ms` } as React.CSSProperties}>
               <div className="quote-top">
-                <span className="stars" aria-label="امتیاز ۵ از ۵">{Array.from({ length: 5 }, (_, s) => <Star key={s} width={20} height={20} />)}</span>
+                <span className="stars" role="img" aria-label="امتیاز ۵ از ۵">{Array.from({ length: 5 }, (_, s) => <Star key={s} width={20} height={20} />)}</span>
                 <span className="qmark" aria-hidden="true">”</span>
               </div>
               <blockquote>{t.text}</blockquote>
