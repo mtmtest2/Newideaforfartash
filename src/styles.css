@@ -198,7 +198,7 @@ main { overflow-x: clip; }
 .orbit-b { inset-inline-end: -4%; bottom: 8%; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 .stat-chip {
-  position: absolute; z-index: 3; inset-inline-start: 0; top: 24%; display: flex; align-items: center; gap: 12px;
+  position: absolute; z-index: 3; inset-inline-end: 0; top: 14%; display: flex; align-items: center; gap: 12px;
   padding: 12px 20px; border-radius: 20px; background: color-mix(in srgb, var(--surface) 88%, transparent);
   backdrop-filter: blur(10px); border: 1px solid var(--line); box-shadow: var(--shadow); animation: heroIn .9s var(--ease) .9s both, float 6s ease-in-out 2s infinite;
 }
@@ -469,7 +469,11 @@ main { overflow-x: clip; }
   .post { width: 82%; --o: 0; }
   .post[data-off='-1'], .post[data-off='1'] { opacity: 0 !important; }
   .cf .nav-arrow { top: auto; bottom: -4px; }
-  .stat-chip { top: 6%; }
+  /* phones: compact, bottom-left corner, clear of the face */
+  .stat-chip { z-index: 4; top: auto; bottom: 7%; inset-inline-end: 4px; padding: 8px 14px; gap: 8px; border-radius: 16px; }
+  .stat-chip strong { font-size: 19px; }
+  .stat-chip span { font-size: 12px; }
+  .stat-chip .stat-ico { width: 24px; height: 24px; }
   .faq-a p { padding-inline-end: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
