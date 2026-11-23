@@ -1,0 +1,13 @@
+# keep the build context small (the repo also holds Claude skills, motion sources, audio stems…)
+.git
+.claude
+node_modules
+dist
+dist-server
+motion
+assets-src
+docs
+*.log
+.env
+.env.*
+!.env.example

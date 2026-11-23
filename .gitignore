@@ -3,3 +3,4 @@ motion/build/*.bak
 motion/build/*.wav
 node_modules
 dist-server
+.env

@@ -1,0 +1,67 @@
+# Fartash static site — Caddy 2.11. Serves the prerendered build from /srv.
+#
+# SITE_ADDRESS (env):
+#   standalone with automatic HTTPS:   SITE_ADDRESS="mrmdev.xyz, www.mrmdev.xyz"
+#   behind an existing Caddy/proxy:    SITE_ADDRESS=":80"   (default; plain HTTP inside the Docker network)
+#
+# Caching policy:
+#   /assets/*  content-hashed filenames (JS, CSS, fonts, images, video) -> 1 year, immutable (successful responses only)
+#   HTML       always revalidate (new deploys show immediately; ETag/Last-Modified keep it cheap)
+#   favicons, robots.txt, sitemap.xml -> 1 day
+
+{$SITE_ADDRESS::80} {
+	root * /srv
+
+	# Compression: build-time .br/.gz files are served by `precompressed`; anything else is zstd/gzip on the fly.
+	# Images, fonts (woff2) and video are already compressed and are left alone.
+	encode zstd gzip
+
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+
+	# Machine-readable files must never get the HTML fallback.
+	# (Caddy answers ACME HTTP challenges itself before this route, so automatic HTTPS is unaffected.)
+	handle /.well-known/* {
+		error 404
+	}
+
+	# Fingerprinted build output. Byte-range requests (HTTP 206) are built into file_server, so the
+	# intro video streams instead of downloading whole.
+	handle /assets/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server {
+			precompressed br gzip
+		}
+	}
+
+	@daily path /favicon-*.png /robots.txt /sitemap.xml /llms.txt
+	handle @daily {
+		header Cache-Control "public, max-age=86400"
+		file_server
+	}
+
+	# Pages: /teachers -> /teachers/index.html (prerendered), unknown paths -> the SPA shell.
+	handle {
+		header Cache-Control "no-cache"
+		try_files {path} {path}/index.html /index.html
+		file_server {
+			precompressed br gzip
+		}
+	}
+
+	# Errors (e.g. a missing /assets file) must not inherit the 1-year cache header.
+	handle_errors {
+		header Cache-Control "no-store"
+		respond "{err.status_code} {err.status_text}" {err.status_code}
+	}
+}
+
+# Container healthcheck (loopback only, never exposed): proves Caddy is up and the built site is present.
+http://:8081 {
+	bind 127.0.0.1
+	root * /srv
+	file_server
+}

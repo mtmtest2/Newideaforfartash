@@ -21,6 +21,9 @@
 
 ## Ready-made configs (tested where noted)
 
+- **Docker + Caddy** — `Dockerfile`, `docker-compose.yml` (behind an existing Caddy), `docker-compose.standalone.yml`,
+  `deploy/caddy/Caddyfile`; full guide in **`deploy/caddy/README.md`** (tested: image build, both modes, Caddy 2.11)
+
 - **nginx** — `deploy/nginx.conf` (tested with nginx 1.24: headers, routes, 404s, ranges, gzip)
 - **Apache / cPanel** — `public/.htaccess`, copied into `dist/` by the build (tested with Apache 2.4)
 - **Netlify / Cloudflare Pages** — `public/_headers` (not tested here)
