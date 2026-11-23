@@ -1,20 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 export type Theme = 'light' | 'dark'
 
+// The theme lives on <html data-theme> (set by the inline script in index.html before first paint).
+// Reading it through useSyncExternalStore keeps prerendering safe (server snapshot = light) and keeps
+// every toggle on the page in sync.
+const subscribeTheme = (cb: () => void) => {
+  const mo = new MutationObserver(cb)
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  return () => mo.disconnect()
+}
+const getTheme = (): Theme => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
+const getServerTheme = (): Theme => 'light'
+
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() =>
-    (document.documentElement.dataset.theme as Theme) === 'dark' ? 'dark' : 'light',
-  )
+  const theme = useSyncExternalStore(subscribeTheme, getTheme, getServerTheme)
   const toggle = useCallback(() => {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark'
+    const next: Theme = getTheme() === 'dark' ? 'light' : 'dark'
     const root = document.documentElement
     root.classList.add('theme-anim')
     root.dataset.theme = next
-    setTheme(next)
     try { localStorage.setItem('fartash-theme', next) } catch { /* private mode */ }
     window.setTimeout(() => root.classList.remove('theme-anim'), 500)
-  }, [theme])
+  }, [])
   return { theme, toggle }
 }
 

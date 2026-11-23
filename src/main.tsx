@@ -1,14 +1,23 @@
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import '@fontsource-variable/vazirmatn'
 import './styles.css'
 import App from './App'
 
-createRoot(document.getElementById('root')!).render(
+const container = document.getElementById('root')!
+const app = (
   <StrictMode>
     <BrowserRouter>
       <App />
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 )
+// Production pages are prerendered per route (scripts/prerender.mjs). Hydrate only when the markup belongs to
+// this URL: a server that falls back to index.html for /teachers would otherwise hydrate the wrong page.
+const path = location.pathname.replace(/\/+$/, '') || '/'
+if (container.firstElementChild && container.dataset.route === path) hydrateRoot(container, app)
+else {
+  container.textContent = ''
+  createRoot(container).render(app)
+}
