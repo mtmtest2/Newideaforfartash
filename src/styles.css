@@ -56,7 +56,9 @@
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 88px; -webkit-text-size-adjust: 100%; }
+html { scroll-behavior: smooth; scroll-padding-top: 88px; -webkit-text-size-adjust: 100%;
+  /* the sticky header grows 12px when un-scrolled; scroll anchoring would then stop scroll-to-top ~11px short */
+  overflow-anchor: none; }
 body {
   margin: 0; font-family: var(--font); background: var(--bg); color: var(--fg);
   line-height: 1.8; font-size: 16px; letter-spacing: 0; overflow-x: hidden;
