@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import SectionHead from './SectionHead'
 import { ChevronLeft, ChevronRight, Star, Leaf } from './Icons'
-import { useAutoplay, useReveal } from '../lib/hooks'
+import { useAutoplay, useReveal, useCarouselPause } from '../lib/hooks'
 import av_amir from '../assets/img/av-amir.webp'
 import av_sara from '../assets/img/av-sara.webp'
 import av_woman from '../assets/img/av-woman.webp'
@@ -16,7 +15,7 @@ const ITEMS = [
 
 export default function Testimonials() {
   const ref = useReveal<HTMLElement>()
-  const [hover, setHover] = useState(false)
+  const [hover, pauseHandlers] = useCarouselPause()
   const { index, go, next, prev } = useAutoplay(ITEMS.length, 6000, hover)
   const pair = [ITEMS[index], ITEMS[(index + 1) % ITEMS.length]]
 
@@ -32,7 +31,7 @@ export default function Testimonials() {
             <button className="icon-btn ring" onClick={next} aria-label="نظر بعدی"><ChevronLeft /></button>
           </div>
         </div>
-        <div className="testi-grid rv" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+        <div className="testi-grid rv" {...pauseHandlers}>
           {pair.map((t, k) => (
             <figure key={`${index}-${k}`} className="card quote" style={{ '--d': `${k * 90}ms` } as React.CSSProperties}>
               <div className="quote-top">

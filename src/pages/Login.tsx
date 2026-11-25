@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Leaf, Phone, User } from '../components/Icons'
+import { ArrowLeft, Bars, ChevronRight, Flag, Leaf, Phone, Star, User } from '../components/Icons'
+import { HERO } from '../assets'
+import { PROFS } from '../data'
+import avWoman from '../assets/img/av-woman.webp'
 import { Logo, ThemeToggle } from '../components/Header'
 import { fa, isIranMobile, toLatin } from '../lib/fa'
 
@@ -38,6 +41,7 @@ export default function Login() {
         <Logo />
         <ThemeToggle />
       </div>
+      <div className="login-body container">
       <div className="login-card card">
         <div className="seg" role="tablist" aria-label="ورود یا عضویت">
           <button role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'on' : ''} onClick={() => { setMode('login'); setStep('phone'); setErr('') }}>ورود</button>
@@ -75,6 +79,57 @@ export default function Login() {
         )}
         <Link to="/" className="back-link"><ChevronRight width={16} height={16} /> بازگشت به صفحهٔ اصلی</Link>
       </div>
+      <LoginAside />
+      </div>
     </main>
+  )
+}
+
+const PERKS = [
+  { title: 'تعیین سطح رایگان', text: 'پیش از شروع، سطح دقیق خودتان را بدانید.', icon: <path d="M3 21h18M5 17v-4M10 17V9M15 17v-6M20 17V6" /> },
+  { title: 'کلاس زنده یا دورهٔ آفلاین', text: 'هر طور که با برنامه‌تان جور است یاد بگیرید.', icon: <><rect x="3" y="5" width="13" height="12" rx="2" /><path d="M16 9.5l5-3v11l-5-3z" /></> },
+  { title: 'پیگیری پیشرفت و گواهی', text: 'رشدتان را ببینید و گواهی پایان دوره بگیرید.', icon: <><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8" /></> },
+]
+
+/** Desktop-only brand panel next to the form (hidden on phones; its image is lazy so phones never fetch it). */
+function LoginAside() {
+  return (
+    <aside className="login-aside" aria-label="چرا فرتاش؟">
+      <div className="la-copy">
+        <span className="pill">آموزشگاه آنلاین زبان فرتاش</span>
+        <h2>بیا <span className="hl">یک جور دیگه</span><br />حرف بزنیم</h2>
+        <p>با یک حساب کاربری به کلاس‌های زنده، دوره‌های آفلاین و پشتیبانی هر روزهٔ فرتاش دسترسی دارید.</p>
+        <ul className="la-perks">
+          {PERKS.map((p) => (
+            <li key={p.title}>
+              <span className="la-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{p.icon}</svg></span>
+              <span><b>{p.title}</b><small>{p.text}</small></span>
+            </li>
+          ))}
+        </ul>
+        <div className="la-langs">
+          <span className="la-flags" aria-hidden="true">{PROFS.map((p) => <Flag key={p.flag} code={p.flag} />)}</span>
+          <span>آموزش ۵ زبان زندهٔ دنیا</span>
+        </div>
+      </div>
+      <div className="la-visual" aria-hidden="true">
+        <div className="la-arch" />
+        <div className="la-arch2" />
+        <Leaf className="leaf la-leaf" />
+        <img className="la-person" srcSet={HERO.dark.srcSet} sizes="300px" src={HERO.dark.src} width={HERO.dark.width} height={HERO.dark.height} loading="lazy" decoding="async" alt="" />
+        <div className="la-chip la-stat">
+          <Bars width={26} height={26} />
+          <span><small>تعداد دوره‌ها</small><b>{fa('1200').replace(/(.)(...)$/, '$1٬$2')}+</b></span>
+        </div>
+        <div className="la-chip la-review">
+          <img src={avWoman} width={44} height={44} alt="" loading="lazy" />
+          <span>
+            <i className="la-stars">{Array.from({ length: 5 }, (_, k) => <Star key={k} width={13} height={13} />)}</i>
+            <b>«از همان جلسهٔ اول جرأت صحبت کردن پیدا کردم.»</b>
+            <small>نگار احمدی • دورهٔ آلمانی</small>
+          </span>
+        </div>
+      </div>
+    </aside>
   )
 }

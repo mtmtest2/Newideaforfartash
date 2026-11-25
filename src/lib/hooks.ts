@@ -81,3 +81,21 @@ export function useNearViewport<T extends HTMLElement>(margin = '100% 0px') {
   }, [margin, near])
   return [ref, near] as const
 }
+
+/**
+ * Pause state for auto-rotating carousels. Pauses only while a real mouse hovers or while keyboard focus
+ * (:focus-visible) is inside. A click or tap on an arrow must NOT pause: the clicked button keeps focus,
+ * and touch fires mouseenter without mouseleave, which previously froze autoplay after the first tap.
+ */
+export function useCarouselPause() {
+  const [paused, setPaused] = useState(false)
+  const handlers = {
+    onPointerEnter: (e: React.PointerEvent) => { if (e.pointerType === 'mouse') setPaused(true) },
+    onPointerLeave: (e: React.PointerEvent) => { if (e.pointerType === 'mouse') setPaused(false) },
+    onFocusCapture: (e: React.FocusEvent) => { if ((e.target as HTMLElement).matches?.(':focus-visible')) setPaused(true) },
+    onBlurCapture: (e: React.FocusEvent) => {
+      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPaused(false)
+    },
+  }
+  return [paused, handlers] as const
+}

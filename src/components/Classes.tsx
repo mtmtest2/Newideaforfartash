@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import SectionHead from './SectionHead'
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Leaf } from './Icons'
 import { ProfCard } from './Cards'
 import { PROFS } from '../data'
-import { useAutoplay, useNearViewport, useReveal } from '../lib/hooks'
+import { useAutoplay, useNearViewport, useReveal, useCarouselPause } from '../lib/hooks'
 
 const SECS = 5
 
 export default function Classes() {
   const ref = useReveal<HTMLElement>()
-  const [hover, setHover] = useState(false)
+  const [hover, pauseHandlers] = useCarouselPause()
   const { index, go, next, prev } = useAutoplay(PROFS.length, SECS * 1000, hover)
   const tabsRef = useRef<HTMLDivElement>(null)
   const [wrapRef, near] = useNearViewport<HTMLDivElement>()
@@ -34,10 +34,7 @@ export default function Classes() {
         <div
           ref={wrapRef}
           className="prof-wrap rv"
-          onMouseEnter={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
-          onFocusCapture={() => setHover(true)}
-          onBlurCapture={() => setHover(false)}
+          {...pauseHandlers}
         >
           <button className="icon-btn nav-arrow nav-prev" onClick={prev} aria-label="استاد قبلی"><ChevronRight /></button>
           <button className="icon-btn nav-arrow nav-next" onClick={next} aria-label="استاد بعدی"><ChevronLeft /></button>
