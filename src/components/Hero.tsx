@@ -6,9 +6,9 @@ import { fa } from '../lib/fa'
 import { useReveal } from '../lib/hooks'
 
 const FEATURES = [
-  { icon: <Play width={44} height={44} />, title: 'کلاس‌های زنده', text: 'با برنامهٔ خودتان یاد بگیرید.' },
-  { icon: <Mentors width={44} height={44} />, title: 'اساتید مجرب', text: 'راهنمایی مستقیم از اهل فن.' },
-  { icon: <Chart width={44} height={44} />, title: 'پیگیری پیشرفت', text: 'رشد خودتان را ببینید.' },
+  { icon: <Play width={44} height={44} />, title: 'کلاس‌های زنده', text: 'تعامل مستقیم با استاد و هم‌کلاسی‌ها.' },
+  { icon: <Mentors width={44} height={44} />, title: 'اساتید مجرب', text: 'یادگیری زیر نظر مدرسان باتجربه.' },
+  { icon: <Chart width={44} height={44} />, title: 'پیگیری پیشرفت', text: 'پیشرفتتان را قدم‌به‌قدم ببینید.' },
   { icon: <Headset width={44} height={44} />, title: 'پشتیبانی هر روزه', text: 'همیشه کنار شما هستیم.' },
 ]
 
@@ -36,7 +36,7 @@ export default function Hero() {
       <div className="container hero-grid">
         <div className="hero-copy">
           <p className="eyebrow hero-in" style={{ '--d': '0ms' } as React.CSSProperties}>
-            <Spark className="spark" /> همراه آنلاین یادگیری شما
+            <Spark className="spark" /> همراه شما در یادگیری زبان
           </p>
           <h1 className="hero-in" style={{ '--d': '120ms' } as React.CSSProperties}>
             بیا <span className="hl">یک جور دیگه</span>
@@ -44,7 +44,7 @@ export default function Hero() {
             حرف بزنیم
           </h1>
           <p className="lead hero-in" style={{ '--d': '240ms' } as React.CSSProperties}>
-            هر زمان و هر جا به کلاس‌های باکیفیت دسترسی داشته باش و مسیر یادگیری‌ات را راحت و با اطمینان پیش ببر.
+            هر زمان و هر جا به کلاس‌های باکیفیت دسترسی دارید و مسیر یادگیری‌تان را با خیال راحت پیش می‌برید.
           </p>
           <div className="hero-cta hero-in" style={{ '--d': '360ms' } as React.CSSProperties}>
             <Link to="/placement" className="btn btn-primary btn-lg">

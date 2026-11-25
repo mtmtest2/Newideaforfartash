@@ -7,12 +7,12 @@ import Beasties from 'beasties'
 
 const SITE = (process.env.SITE_URL || 'https://mrmdev.xyz').replace(/\/$/, '')
 const dist = path.resolve('dist')
-const { render, THEME_PRELOADS } = await import(pathToFileURL(path.resolve('dist-server/entry-server.js')).href)
+const { render, THEME_PRELOADS, CONTACT } = await import(pathToFileURL(path.resolve('dist-server/entry-server.js')).href)
 const template = fs.readFileSync(path.join(dist, 'index.html'), 'utf8')
 
 const ROUTES = [
   { url: '/', title: 'فرتاش | آموزشگاه آنلاین زبان', description: 'کلاس‌های زنده و دوره‌های آفلاین زبان انگلیسی، آلمانی، فرانسوی، عربی و ترکی استانبولی با اساتید مجرب فرتاش. تعیین سطح رایگان.' },
-  { url: '/teachers', title: 'همهٔ اساتید فرتاش | فرتاش', description: 'آشنایی با اساتید زبان انگلیسی، آلمانی، فرانسوی، عربی و ترکی استانبولی در آموزشگاه آنلاین فرتاش.' },
+  { url: '/teachers', title: 'همهٔ اساتید فرتاش', description: 'آشنایی با اساتید زبان انگلیسی، آلمانی، فرانسوی، عربی و ترکی استانبولی در آموزشگاه آنلاین فرتاش.' },
   { url: '/blog', title: 'همهٔ مقالات | فرتاش', description: 'مقالات کاربردی و به‌روز فرتاش برای یادگیری بهتر زبان: مکالمه، گرامر، ابزارها و عادت‌های یادگیری.' },
   { url: '/placement', title: 'تعیین سطح رایگان | فرتاش', description: 'پیش از شروع کلاس، سطح زبانتان را رایگان بسنجید تا در کلاس مناسب خودتان قرار بگیرید.' },
   { url: '/login', title: 'ورود / عضویت | فرتاش', description: 'ورود یا ساخت حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
@@ -76,6 +76,15 @@ for (const r of ROUTES) {
     `<meta property="og:description" content="${esc(r.description)}" />`,
     `<meta property="og:url" content="${canonical}" />`,
     fontPreload,
+    r.url === '/' ? `<script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'EducationalOrganization',
+      name: 'فرتاش',
+      alternateName: 'آموزشگاه آنلاین زبان فرتاش',
+      url: SITE + '/',
+      telephone: '+98' + CONTACT.phone.replace(/^0/, ''),
+      address: { '@type': 'PostalAddress', streetAddress: CONTACT.address.replace(/^مشهد، /, ''), addressLocality: 'مشهد', addressCountry: 'IR' },
+    })}</script>` : '',
   ].filter(Boolean).join('\n    ')
   let html = template
     .replace(/<title>[\s\S]*?<\/title>\s*/, '')

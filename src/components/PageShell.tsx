@@ -11,7 +11,7 @@ export default function PageShell({ tag, title, text, children }: { tag: string;
   const ref = useReveal<HTMLElement>()
   useEffect(() => {
     window.scrollTo({ top: 0 })
-    document.title = `${title} | فرتاش`
+    document.title = title.includes('فرتاش') ? title : `${title} | فرتاش`
   }, [title])
   return (
     <>

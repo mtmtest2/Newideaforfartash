@@ -39,7 +39,7 @@ export default function Classes() {
           <button className="icon-btn nav-arrow nav-prev" onClick={prev} aria-label="استاد قبلی"><ChevronRight /></button>
           <button className="icon-btn nav-arrow nav-next" onClick={next} aria-label="استاد بعدی"><ChevronLeft /></button>
 
-          <div className="prof-stage" role="group" aria-roledescription="کاروسل">
+          <div className="prof-stage" role="group" aria-roledescription="اسلایدر">
             {PROFS.map((p, i) => {
               const off = (i - index + PROFS.length) % PROFS.length
               const state = off === 0 ? 'active' : off === PROFS.length - 1 ? 'past' : 'future'

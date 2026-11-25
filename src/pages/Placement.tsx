@@ -8,8 +8,8 @@ import { isIranMobile } from '../lib/fa'
 const STEPS = [
   'فرم زیر را پر کنید.',
   'کارشناس آموزشی برای هماهنگی زمان با شما تماس می‌گیرد.',
-  'در یک جلسهٔ آنلاین کوتاه، سطح شما بر اساس چارچوب CEFR مشخص می‌شود.',
-  'کلاس مناسب سطح و هدفتان پیشنهاد می‌شود.',
+  'در یک جلسهٔ آنلاین کوتاه، سطح شما بر اساس چارچوب اروپایی (CEFR) مشخص می‌شود.',
+  'کلاس متناسب با سطح و هدفتان به شما پیشنهاد می‌شود.',
 ]
 
 export default function Placement() {
@@ -20,7 +20,7 @@ export default function Placement() {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
     if (!String(f.get('name') || '').trim()) return setErr('نام و نام‌خانوادگی را وارد کنید.')
-    if (!isIranMobile(String(f.get('phone') || ''))) return setErr('شمارهٔ موبایل معتبر نیست؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹')
+    if (!isIranMobile(String(f.get('phone') || ''))) return setErr('شمارهٔ موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.')
     setErr('')
     setSent(true)
   }

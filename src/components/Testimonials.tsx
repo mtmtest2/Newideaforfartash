@@ -7,8 +7,8 @@ import av_woman from '../assets/img/av-woman.webp'
 import av_man from '../assets/img/av-man.webp'
 
 const ITEMS = [
-  { name: 'امیر حسینی‌زاد', role: 'دورهٔ انگلیسی • کسب‌وکار', img: av_amir, text: 'به‌دلیل دوره‌هایی بودم که بتونم زبان انگلیسی رو برای همیشه کنار گذاشتن کارم، و لیسانس، واقعاً همچین چیزی بود که نیاز داشتم. مربی‌ها با ارتباط و پاسخگویی‌های شفافی خیلی برام مفید بودن.' },
-  { name: 'سارا رضایی', role: 'دورهٔ مکالمهٔ حرفه‌ای لینگانو', img: av_sara, text: 'من از دورهٔ مکالمهٔ پیشرفته استفاده کردم و واقعاً از کیفیت مطالب و نظم برنامه‌ریزی دوره راضی بودم. حس می‌کنم مسیری به فیل با اطمینان بیشتری صحبت می‌کنم.' },
+  { name: 'امیر حسینی‌زاد', role: 'دورهٔ انگلیسی • کسب‌وکار', img: av_amir, text: 'دنبال دوره‌ای بودم که بتوانم انگلیسی را کنار کار و درسم جدی دنبال کنم و فرتاش دقیقاً همین بود. استادها همیشه در دسترس بودند و با حوصله به سؤال‌هایم جواب می‌دادند.' },
+  { name: 'سارا رضایی', role: 'دورهٔ مکالمهٔ پیشرفتهٔ انگلیسی', img: av_sara, text: 'در دورهٔ مکالمهٔ پیشرفته شرکت کردم و از کیفیت مطالب و نظم برنامهٔ دوره واقعاً راضی بودم. حالا با اطمینان خیلی بیشتری انگلیسی صحبت می‌کنم.' },
   { name: 'نگار احمدی', role: 'دورهٔ آلمانی • مهاجرت', img: av_woman, text: 'کلاس‌های کوچک و تعاملی باعث شد از همان جلسهٔ اول جرأت صحبت کردن پیدا کنم. استادم همیشه بازخورد دقیق و به‌موقع می‌داد.' },
   { name: 'پویا کریمی', role: 'دورهٔ فرانسوی • تحصیل', img: av_man, text: 'برنامهٔ مرتب و تمرین‌های هدفمند کمک کرد در شش ماه به سطح مورد نیاز دلف برسم. پشتیبانی هم همیشه در دسترس بود.' },
 ]
@@ -20,12 +20,12 @@ export default function Testimonials() {
   const pair = [ITEMS[index], ITEMS[(index + 1) % ITEMS.length]]
 
   return (
-    <section className="section testi" ref={ref}>
+    <section id="testimonials" className="section testi" ref={ref}>
       <div className="bg-shape shape-circle-navy shape-end" />
       <Leaf className="leaf leaf-testi" />
       <div className="container">
         <div className="testi-top rv">
-          <SectionHead tag="نظرات زبان‌آموزان" title="داستان موفقیت زبان‌آموزان فرتاش" text="نظر شما برای ما مهم است. چون می‌خواهیم اطمینان داشته باشیم از وقتی که صرف می‌کنید بهترین نتیجه را می‌گیرید." />
+          <SectionHead tag="نظرات زبان‌آموزان" title="داستان موفقیت زبان‌آموزان فرتاش" text="نظر شما برایمان مهم است؛ می‌خواهیم مطمئن شویم از وقتی که برای یادگیری می‌گذارید، بهترین نتیجه را می‌گیرید." />
           <div className="arrows">
             <button className="icon-btn ring" onClick={prev} aria-label="نظر قبلی"><ChevronRight /></button>
             <button className="icon-btn ring" onClick={next} aria-label="نظر بعدی"><ChevronLeft /></button>

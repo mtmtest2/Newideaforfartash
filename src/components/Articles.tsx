@@ -18,7 +18,7 @@ export default function Articles() {
       <div className="bg-shape shape-circle-green" />
       <Leaf className="leaf leaf-blog" />
       <div className="container">
-        <SectionHead tag="مجلهٔ آموزشی" title="آخرین مقالات بلاگ" text="مطالب کاربردی و به‌روز برای یادگیری بهتر زبان." />
+        <SectionHead tag="مجلهٔ آموزشی" title="تازه‌ترین مقالات" text="مطالب کاربردی و به‌روز برای یادگیری بهتر زبان." />
         <div ref={cfRef} className="cf rv" {...pauseHandlers}>
           <button className="icon-btn nav-arrow nav-prev" onClick={prev} aria-label="مقالهٔ قبلی"><ChevronRight /></button>
           <button className="icon-btn nav-arrow nav-next" onClick={next} aria-label="مقالهٔ بعدی"><ChevronLeft /></button>

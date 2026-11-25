@@ -6,10 +6,10 @@ import { useReveal } from '../lib/hooks'
 import consultImg from '../assets/img/consult.webp'
 
 const FAQ = [
-  { q: 'آیا برای شرکت در دوره‌های فرتاش نیاز به سطح خاصی از زبان انگلیسی داریم؟', a: 'نه. پیش از شروع، آزمون تعیین سطح رایگان برگزار می‌شود و شما را در کلاسی هم‌سطح خودتان قرار می‌دهیم؛ از صفر تا پیشرفته.' },
-  { q: 'چگونه می‌توانم در دوره‌های آنلاین ثبت‌نام کنم؟', a: 'کافی است دورهٔ مورد نظر را انتخاب کنید، وارد حساب کاربری شوید و ثبت‌نام را کامل کنید. در صورت نیاز، مشاوران ما هم کمک می‌کنند.' },
-  { q: 'آیا امکان مدیریت و مشاهدهٔ دوره‌ها پس از اتمام آن‌ها وجود دارد؟', a: 'بله. جلسات ضبط‌شده و محتوای دوره تا مدت‌ها پس از پایان کلاس در حساب کاربری شما در دسترس است.' },
-  { q: 'آیا می‌توانم از خارج از ایران هم در دوره‌های فرتاش شرکت کنم؟', a: 'بله. کلاس‌ها آنلاین برگزار می‌شوند و از هر نقطه‌ای از جهان می‌توانید به‌صورت زنده حضور پیدا کنید.' },
+  { q: 'برای شرکت در دوره‌ها باید سطح خاصی از زبان داشته باشم؟', a: 'نه. پیش از شروع، تعیین سطح رایگان انجام می‌شود و شما را در کلاسی متناسب با سطح خودتان قرار می‌دهیم؛ از مبتدی تا پیشرفته.' },
+  { q: 'چطور در دوره‌ها ثبت‌نام کنم؟', a: 'دورهٔ مورد نظرتان را انتخاب کنید، وارد حساب کاربری شوید و ثبت‌نام را تکمیل کنید. اگر سؤالی داشتید، مشاوران ما راهنمایی‌تان می‌کنند.' },
+  { q: 'بعد از پایان دوره هم به جلسات و محتوای آن دسترسی دارم؟', a: 'بله. جلسات ضبط‌شده و محتوای دوره بعد از پایان کلاس هم در حساب کاربری شما در دسترس است.' },
+  { q: 'از خارج از ایران هم می‌توانم در دوره‌ها شرکت کنم؟', a: 'بله. کلاس‌ها آنلاین برگزار می‌شوند و از هر جای دنیا می‌توانید به‌صورت زنده در آن‌ها شرکت کنید.' },
 ]
 
 export default function Faq() {
@@ -23,7 +23,7 @@ export default function Faq() {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
     if (!String(f.get('name') || '').trim()) return setErr('نام و نام‌خانوادگی را وارد کنید.')
-    if (!isIranMobile(String(f.get('phone') || ''))) return setErr('شمارهٔ موبایل معتبر نیست؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹')
+    if (!isIranMobile(String(f.get('phone') || ''))) return setErr('شمارهٔ موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.')
     setErr('')
     setSent(true)
   }
@@ -32,7 +32,7 @@ export default function Faq() {
     <section id="contact" className="section faq" ref={ref}>
       <Leaf className="leaf leaf-faq" />
       <div className="container">
-        <SectionHead tag="پشتیبانی و مشاوره" title="پاسخ به سؤالات متداول شما" text="اگر سؤالی در ذهن دارید، این بخش به شما کمک می‌کند تا پاسخ آن را پیدا کنید." />
+        <SectionHead tag="پشتیبانی و مشاوره" title="پاسخ به سؤالات متداول" text="اگر سؤالی دارید، احتمالاً پاسخش را همین‌جا پیدا می‌کنید." />
         <div className="faq-grid">
           <div className="faq-list rv">
             <p className="faq-label">سؤالات متداول</p>
@@ -51,21 +51,21 @@ export default function Faq() {
 
           <div className="card consult rv" style={{ '--d': '120ms' } as React.CSSProperties}>
             <form onSubmit={submit} noValidate>
-              <h3>ارتباط با مشاوران آکادمی فرتاش</h3>
-              <p>برای دریافت مشاوره و راهنمایی، اطلاعات خود را ارسال کنید تا همکاران ما با شما تماس بگیرند.</p>
+              <h3>گفت‌وگو با مشاوران فرتاش</h3>
+              <p>اطلاعات تماستان را بگذارید تا مشاوران ما برای راهنمایی با شما تماس بگیرند.</p>
               {sent ? (
                 <p className="ok" role="status">درخواست شما ثبت شد. به‌زودی با شما تماس می‌گیریم.</p>
               ) : (
                 <>
                   <label className="field"><span className="sr">نام و نام‌خانوادگی</span><input name="name" placeholder="نام و نام‌خانوادگی" autoComplete="name" /><User width={18} height={18} /></label>
-                  <label className="field"><span className="sr">شمارهٔ تماس</span><input name="phone" placeholder="شمارهٔ تماس" dir="ltr" inputMode="tel" autoComplete="tel" className="ltr-in" /><Phone width={18} height={18} /></label>
+                  <label className="field"><span className="sr">شمارهٔ موبایل</span><input name="phone" placeholder="شمارهٔ موبایل" dir="ltr" inputMode="tel" autoComplete="tel" className="ltr-in" /><Phone width={18} height={18} /></label>
                   <label className="field"><span className="sr">ایمیل (اختیاری)</span><input name="email" type="email" placeholder="ایمیل (اختیاری)" dir="ltr" autoComplete="email" className="ltr-in" /><Mail width={18} height={18} /></label>
                   {err && <p className="err" role="alert">{err}</p>}
                   <button className="btn btn-primary btn-block" type="submit">ثبت درخواست مشاوره <ArrowLeft width={18} height={18} /></button>
                 </>
               )}
             </form>
-            <div className="consult-photo"><img src={consultImg} alt="مشاور آکادمی فرتاش با هدفون" width={608} height={660} loading="lazy" decoding="async" /></div>
+            <div className="consult-photo"><img src={consultImg} alt="مشاور فرتاش با هدفون" width={608} height={660} loading="lazy" decoding="async" /></div>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ const STEPS = [
   { icon: <Chart />, title: 'تعیین سطح رایگان', text: 'در یک جلسهٔ کوتاه و رایگان، سطح دقیق زبان شما مشخص می‌شود.' },
   { icon: <Teacher />, title: 'انتخاب کلاس مناسب', text: 'بر اساس سطح و هدفتان، کلاس و استاد مناسب را پیشنهاد می‌دهیم.' },
   { icon: <Screen />, title: 'برگزاری کلاس‌ها', text: 'کلاس‌های زنده و تعاملی، همراه با تمرین و پیگیری پیشرفت.' },
-  { icon: <Trophy />, title: 'کسب گواهی پایان دوره', text: 'پس از پایان دوره، گواهی معتبر فرتاش را دریافت کنید.' },
+  { icon: <Trophy />, title: 'کسب گواهی پایان دوره', text: 'پس از پایان دوره، گواهی پایان دورهٔ فرتاش را دریافت کنید.' },
 ]
 
 export default function Steps() {
@@ -30,7 +30,7 @@ export default function Steps() {
             </li>
           ))}
         </ol>
-        <div className="center rv"><Link to="/placement" className="btn btn-primary">تعیین سطح رایگان <ArrowLeft /></Link></div>
+        <div className="center rv"><Link to="/placement" className="btn btn-primary">شروع یادگیری <ArrowLeft /></Link></div>
       </div>
     </section>
   )

@@ -24,7 +24,7 @@ export const PROFS: Prof[] = [
   { lang: 'زبان آلمانی', flag: 'de', teacher: 'استاد مهسا فرهادی', role: 'مدرس آزمون‌های گوته', img: prof_de, imgW: 504, imgH: 350,
     tags: ['عمومی', 'آزمون گوته', 'مکالمه'], students: 520, rating: '4.8', level: 'متوسط',
     text: 'یادگیری آلمانی با تمرکز بر مکالمه و آمادگی آزمون‌های بین‌المللی.' },
-  { lang: 'زبان فرانسوی', flag: 'fr', teacher: 'استاد سینا رضایی', role: 'مدرس دلف و مکالمه', img: prof_fr, imgW: 540, imgH: 302,
+  { lang: 'زبان فرانسوی', flag: 'fr', teacher: 'استاد سینا رضایی', role: 'مدرس آزمون DELF و مکالمه', img: prof_fr, imgW: 540, imgH: 302,
     tags: ['عمومی', 'DELF', 'مکالمه'], students: 950, rating: '4.9', level: 'متوسط',
     text: 'یادگیری فرانسوی به‌صورت کاربردی برای تحصیل، مهاجرت و فرصت‌های شغلی.' },
   { lang: 'زبان عربی', flag: 'sa', teacher: 'استاد زهرا موسوی', role: 'مدرس عربی فصیح و محاوره', img: prof_ar, imgW: 504, imgH: 350,
@@ -38,9 +38,9 @@ export const PROFS: Prof[] = [
 export type Post = { title: string; text: string; min: number; img: string; imgW: number; imgH: number; tag: string }
 
 export const POSTS: Post[] = [
-  { title: 'چگونه مهارت مکالمهٔ انگلیسی را تقویت کنیم؟', text: '۵ راهکار کاربردی برای صحبت روان‌تر و با اعتماد به نفس بیشتر.', min: 8, img: blog_english, imgW: 884, imgH: 200, tag: 'محتوای آموزشی' },
-  { title: 'اشتباهات رایج در یادگیری آلمانی', text: 'از این اشتباهات پرهیز کنید!', min: 6, img: blog_writing, imgW: 628, imgH: 252, tag: 'زبان آلمانی' },
-  { title: 'عبارات پرکاربرد در زبان فرانسه', text: 'عباراتی که در سفر و مکالمه به کارتان می‌آیند.', min: 7, img: blog_paris, imgW: 624, imgH: 248, tag: 'زبان فرانسه' },
+  { title: 'چگونه مهارت مکالمهٔ انگلیسی را تقویت کنیم؟', text: '۵ راهکار کاربردی برای صحبت روان‌تر و با اعتمادبه‌نفس بیشتر.', min: 8, img: blog_english, imgW: 884, imgH: 200, tag: 'محتوای آموزشی' },
+  { title: 'اشتباهات رایج در یادگیری آلمانی', text: 'رایج‌ترین اشتباه‌ها و راه پرهیز از آن‌ها.', min: 6, img: blog_writing, imgW: 628, imgH: 252, tag: 'زبان آلمانی' },
+  { title: 'عبارات پرکاربرد زبان فرانسوی', text: 'عباراتی که در سفر و مکالمه به کارتان می‌آیند.', min: 7, img: blog_paris, imgW: 624, imgH: 248, tag: 'زبان فرانسوی' },
   { title: 'عادت‌های روزانه برای یادگیری سریع‌تر', text: 'با ده دقیقه تمرین هر روز، نتیجهٔ چشمگیری بگیرید.', min: 5, img: blog_book, imgW: 884, imgH: 276, tag: 'یادگیری' },
-  { title: 'بهترین ابزارهای آنلاین برای تمرین شنیداری', text: 'گوش‌دادن فعال را با این ابزارها تمرین کنید.', min: 6, img: blog_laptop, imgW: 640, imgH: 240, tag: 'ابزار' },
+  { title: 'بهترین ابزارهای آنلاین برای تمرین شنیداری', text: 'با این ابزارها گوش‌دادن فعال را تمرین کنید.', min: 6, img: blog_laptop, imgW: 640, imgH: 240, tag: 'ابزار' },
 ]

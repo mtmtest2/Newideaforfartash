@@ -22,7 +22,7 @@ export default function Login() {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
     if (mode === 'signup' && !String(f.get('name') || '').trim()) return setErr('نام و نام‌خانوادگی را وارد کنید.')
-    if (!isIranMobile(phone)) return setErr('شمارهٔ موبایل معتبر نیست؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹')
+    if (!isIranMobile(phone)) return setErr('شمارهٔ موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.')
     setErr(''); setStep('code')
   }
   const onCode = (e: FormEvent<HTMLFormElement>) => {
@@ -50,8 +50,8 @@ export default function Login() {
 
         {step === 'phone' && (
           <form onSubmit={onPhone} noValidate>
-            <h1>{mode === 'login' ? 'ورود به حساب' : 'ساخت حساب جدید'}</h1>
-            <p>{mode === 'login' ? 'شمارهٔ موبایل خود را وارد کنید تا کد تأیید برایتان ارسال شود.' : 'اطلاعات خود را وارد کنید تا حساب شما ساخته شود.'}</p>
+            <h1>{mode === 'login' ? 'ورود به حساب کاربری' : 'ساخت حساب کاربری'}</h1>
+            <p>{mode === 'login' ? 'شمارهٔ موبایلتان را وارد کنید تا کد تأیید برایتان پیامک شود.' : 'نام و شمارهٔ موبایلتان را وارد کنید تا حساب کاربری‌تان ساخته شود.'}</p>
             {mode === 'signup' && (
               <label className="field"><span className="sr">نام و نام‌خانوادگی</span><input name="name" placeholder="نام و نام‌خانوادگی" autoComplete="name" /><User width={18} height={18} /></label>
             )}
@@ -63,7 +63,7 @@ export default function Login() {
         {step === 'code' && (
           <form onSubmit={onCode} noValidate>
             <h1>کد تأیید</h1>
-            <p>کد ۵ رقمی ارسال‌شده به <bdi dir="ltr">{fa(toLatin(phone))}</bdi> را وارد کنید.</p>
+            <p>کد ۵ رقمی پیامک‌شده به <bdi dir="ltr">{fa(toLatin(phone))}</bdi> را وارد کنید.</p>
             <label className="field"><span className="sr">کد تأیید</span><input name="code" placeholder="• • • • •" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={5} className="ltr-in code-in" autoFocus /></label>
             {err && <p className="err" role="alert">{err}</p>}
             <button className="btn btn-primary btn-block" type="submit">{mode === 'login' ? 'ورود' : 'ساخت حساب'}</button>
@@ -73,7 +73,7 @@ export default function Login() {
         {step === 'done' && (
           <div className="login-done" role="status">
             <h1>خوش آمدید!</h1>
-            <p>این صفحه فعلاً نمایشی است و به سرویس ورود واقعی وصل نشده.</p>
+            <p>این صفحه فعلاً نمایشی است و هنوز به سامانهٔ ورود متصل نشده است.</p>
             <Link to="/" className="btn btn-primary btn-block">بازگشت به صفحهٔ اصلی <ArrowLeft width={18} height={18} /></Link>
           </div>
         )}
