@@ -49,6 +49,15 @@ export default function Panel() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [noticesRead, setNoticesRead] = useState(false)
   const [sheet, setSheet] = useState(false)
+  const moreBtn = useRef<HTMLButtonElement>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!sheet) return
+    sheetRef.current?.querySelector<HTMLElement>('a, button')?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setSheet(false); moreBtn.current?.focus() } }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [sheet])
 
   // Client only: data depends on "now" and the session lives in localStorage.
   useEffect(() => {
@@ -143,13 +152,13 @@ export default function Panel() {
             {n.badge === 'assignments' && pending > 0 && <em aria-hidden="true">{fa(pending)}</em>}
           </NavLink>
         ))}
-        <button type="button" className={!TABS.includes(current.to) ? 'on' : ''} onClick={() => setSheet(true)} aria-expanded={sheet} aria-controls="p-sheet">
+        <button ref={moreBtn} type="button" className={!TABS.includes(current.to) ? 'on' : ''} onClick={() => setSheet(true)} aria-expanded={sheet} aria-controls="p-sheet">
           {Icon.more(24)}<span>بیشتر</span>
         </button>
       </nav>
       {sheet && (
         <div className="p-sheet-wrap" onClick={() => setSheet(false)}>
-          <div className="p-sheet" id="p-sheet" role="dialog" aria-modal="true" aria-label="بخش‌های دیگر پنل" onClick={(e) => e.stopPropagation()}>
+          <div ref={sheetRef} className="p-sheet" id="p-sheet" role="dialog" aria-modal="true" aria-label="بخش‌های دیگر پنل" onClick={(e) => e.stopPropagation()}>
             <span className="p-sheet-grip" aria-hidden="true" />
             {NAV.filter((n) => !TABS.includes(n.to)).map((n) => <NavLink key={n.to} to={n.to}>{n.icon()}<span>{n.label}</span></NavLink>)}
             <Link to="/">{Icon.home()}<span>بازگشت به سایت</span></Link>

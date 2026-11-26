@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { faMoney } from '../../lib/fa'
+import { fa, faAmount, faMoney } from '../../lib/fa'
 import { formatDate, relativeDay } from '../../lib/jalali'
 import type { Invoice } from '../data'
 import { usePanel } from '../context'
@@ -15,17 +15,18 @@ export default function Payments() {
 
   return (
     <div className="p-page">
-      <section className="p-stats p-stats-3">
-        <div className="p-card p-stat"><span className="p-stat-ico">{Icon.wallet()}</span><b className="p-money">{faMoney(total)}</b><small>جمع پرداخت‌ها</small></div>
-        <div className="p-card p-stat"><span className="p-stat-ico">{Icon.receipt()}</span><b>{paid.length.toLocaleString('fa-IR')}</b><small>فاکتور پرداخت‌شده</small></div>
-        {due[0] && (
-          <div className="p-card p-stat p-due">
-            <span className="p-stat-ico">{Icon.clock()}</span>
-            <b className="p-money">{faMoney(due[0].amount)}</b>
-            <small>قسط بعدی • مهلت {relativeDay(due[0].date, demo.now)}</small>
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => setPaying(true)}>پرداخت آنلاین</button>
-          </div>
-        )}
+      <section className="p-card p-summary" aria-labelledby="pay-h">
+        <h2 id="pay-h" className="sr">خلاصهٔ پرداخت‌ها</h2>
+        <dl className="p-summary-pay">
+          {due[0] && (
+            <div className="p-sum-main p-sum-due">
+              <dt>قسط بعدی • مهلت {relativeDay(due[0].date, demo.now)}، {formatDate(due[0].date, false)}</dt>
+              <dd><span><b>{faAmount(due[0].amount)}</b> تومان</span><button type="button" className="btn btn-primary btn-sm" onClick={() => setPaying(true)}>پرداخت قسط</button></dd>
+            </div>
+          )}
+          <div><dt>جمع پرداخت‌ها</dt><dd><b>{faAmount(total)}</b> تومان</dd></div>
+          <div><dt>فاکتورهای پرداخت‌شده</dt><dd><b>{fa(paid.length)}</b> فاکتور</dd></div>
+        </dl>
       </section>
 
       <section className="p-card">
@@ -36,12 +37,12 @@ export default function Payments() {
             <tbody>
               {[...demo.invoices].sort((a, b) => b.date.getTime() - a.date.getTime()).map((i) => (
                 <tr key={i.id}>
-                  <td><bdi dir="ltr">{i.id}</bdi></td>
-                  <td>{i.title}</td>
-                  <td>{formatDate(i.date)}</td>
-                  <td className="p-num">{faMoney(i.amount)}</td>
-                  <td>{i.status === 'paid' ? <Chip tone="ok">پرداخت‌شده</Chip> : <Chip tone="warn">در انتظار پرداخت</Chip>}</td>
-                  <td><button type="button" className="p-link" onClick={() => setInv(i)}>مشاهده</button></td>
+                  <td data-label="شماره"><bdi dir="ltr">{i.id}</bdi></td>
+                  <td className="p-td-title">{i.title}</td>
+                  <td data-label="تاریخ">{formatDate(i.date)}</td>
+                  <td data-label="مبلغ" className="p-num">{faMoney(i.amount)}</td>
+                  <td className="p-td-status">{i.status === 'paid' ? <Chip tone="ok">پرداخت‌شده</Chip> : <Chip tone="warn">در انتظار پرداخت</Chip>}</td>
+                  <td className="p-td-action"><button type="button" className="p-link" onClick={() => setInv(i)} aria-label={`مشاهدهٔ فاکتور ${i.id}`}>مشاهده</button></td>
                 </tr>
               ))}
             </tbody>

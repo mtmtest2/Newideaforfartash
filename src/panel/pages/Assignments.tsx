@@ -3,13 +3,14 @@ import { fa } from '../../lib/fa'
 import { formatDate, formatTime, relativeDay } from '../../lib/jalali'
 import type { Assignment } from '../data'
 import { usePanel } from '../context'
+import { fieldError, useQueryState } from '../hooks'
 import { Chip, Empty, Icon, Modal } from '../ui'
 
 const TABS = [['all', 'همه'], ['pending', 'در انتظار'], ['submitted', 'ارسال‌شده'], ['graded', 'نمره‌گرفته']] as const
 
 export default function Assignments() {
   const { demo, assignments, submitAssignment } = usePanel()
-  const [tab, setTab] = useState<(typeof TABS)[number][0]>('all')
+  const [tab, setTab] = useQueryState('status', TABS.map(([k]) => k), 'all')
   const [active, setActive] = useState<Assignment | null>(null)
   const [view, setView] = useState<Assignment | null>(null)
   const [err, setErr] = useState('')
@@ -21,7 +22,7 @@ export default function Assignments() {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
     const file = f.get('file') as File | null
-    if (!String(f.get('answer') || '').trim() && !(file && file.size)) return setErr('پاسخ را بنویسید یا فایل آن را پیوست کنید.')
+    if (!String(f.get('answer') || '').trim() && !(file && file.size)) { setErr('پاسخ را بنویسید یا فایل آن را پیوست کنید.'); return fieldError(e.currentTarget, 'answer') }
     setErr('')
     if (active) submitAssignment(active.id)
     setActive(null)
@@ -30,9 +31,9 @@ export default function Assignments() {
   return (
     <div className="p-page">
       <div className="p-toolbar">
-        <div className="p-tabs" role="tablist" aria-label="وضعیت تکالیف">
+        <div className="p-tabs" role="group" aria-label="وضعیت تکالیف">
           {TABS.map(([k, l]) => (
-            <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l} <em>{fa(count(k))}</em></button>
+            <button key={k} type="button" aria-pressed={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l} <em>{fa(count(k))}</em></button>
           ))}
         </div>
       </div>
@@ -69,9 +70,9 @@ export default function Assignments() {
         {active && (
           <form className="p-form" onSubmit={submit} noValidate>
             <p className="p-modal-text"><b>{active.title}</b><br />{active.course.title} <bdi>{active.course.level}</bdi> • مهلت: {relativeDay(active.due, demo.now)}</p>
-            <label className="p-field"><span>پاسخ شما</span><textarea name="answer" rows={5} placeholder="پاسخ را اینجا بنویسید…" /></label>
+            <label className="p-field"><span>پاسخ شما</span><textarea name="answer" rows={5} placeholder="پاسخ را اینجا بنویسید…" aria-invalid={!!err} aria-describedby={err ? 'err-answer' : undefined} />
+              {err && <small className="err" id="err-answer" role="alert">{err}</small>}</label>
             <label className="p-field"><span>پیوست (اختیاری)</span><input name="file" type="file" accept=".pdf,.doc,.docx,.jpg,.png,.mp3,.m4a" /><small className="p-muted">PDF، Word، تصویر یا فایل صوتی؛ حداکثر ۱۰ مگابایت</small></label>
-            {err && <p className="err" role="alert">{err}</p>}
             <button type="submit" className="btn btn-primary btn-block">ارسال برای استاد</button>
           </form>
         )}

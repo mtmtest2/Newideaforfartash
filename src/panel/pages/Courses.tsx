@@ -1,21 +1,21 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fa } from '../../lib/fa'
 import { formatTime, relativeDay, WEEKDAYS } from '../../lib/jalali'
 import { COURSES } from '../data'
 import { usePanel } from '../context'
+import { useQueryState } from '../hooks'
 import { Bar, Chip, Icon } from '../ui'
 
 export default function Courses() {
   const { demo } = usePanel()
-  const [filter, setFilter] = useState<'all' | 'live' | 'offline'>('all')
+  const [filter, setFilter] = useQueryState('type', ['all', 'live', 'offline'] as const, 'all')
   const list = COURSES.filter((c) => filter === 'all' || c.type === filter)
   return (
     <div className="p-page">
       <div className="p-toolbar">
-        <div className="p-tabs" role="tablist" aria-label="نوع دوره">
+        <div className="p-tabs" role="group" aria-label="نوع دوره">
           {([['all', 'همه'], ['live', 'کلاس‌های زنده'], ['offline', 'دوره‌های آفلاین']] as const).map(([k, l]) => (
-            <button key={k} role="tab" aria-selected={filter === k} className={filter === k ? 'on' : ''} onClick={() => setFilter(k)}>{l}</button>
+            <button key={k} type="button" aria-pressed={filter === k} className={filter === k ? 'on' : ''} onClick={() => setFilter(k)}>{l}</button>
           ))}
         </div>
         <Link to="/teachers" className="btn btn-ghost btn-sm">{Icon.plus(18)} ثبت‌نام در دورهٔ جدید</Link>

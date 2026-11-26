@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fa } from '../../lib/fa'
-import { addDays, formatDuration, formatTime, relativeDay, WEEKDAYS, WEEKDAYS_SHORT, weekdayIndex } from '../../lib/jalali'
+import { formatDate, formatDuration, formatTime, relativeDay, WEEKDAYS, WEEKDAYS_SHORT, weekdayIndex } from '../../lib/jalali'
 import { COURSES, type Session } from '../data'
 import { usePanel } from '../context'
 import { JOIN_EARLY_MS, useNow } from '../hooks'
-import { Bar, Chip, Icon, Modal, Ring } from '../ui'
+import { Bar, Chip, Icon, Modal } from '../ui'
 
 export function NextClassCard({ s, compact = false }: { s: Session; compact?: boolean }) {
   const now = useNow()
@@ -49,103 +49,109 @@ export default function Dashboard() {
   const { stats, now } = demo
   const first = session.name.trim().split(/\s+/)[0]
   const pending = assignments.filter((a) => a.status === 'pending').sort((a, b) => a.due.getTime() - b.due.getTime())
-  const week = demo.upcoming.filter((s) => s.end > now && s.start < addDays(demo.weekStart, 7))
+  const upcoming = demo.upcoming.filter((s) => s.end > now).slice(0, 4)
   const max = Math.max(...demo.activity, 1)
   const total = demo.activity.reduce((a, b) => a + b, 0)
   const today = weekdayIndex(now)
+  const progress = stats.sessionsDone / stats.sessionsTotal
+  const pct = (v: number) => `${fa(Math.round(v * 100))}٪`
 
   return (
     <div className="p-page p-dash">
-      <section className="p-hello">
-        <div>
-          <h2>سلام {first}، خوش آمدید 👋</h2>
-          <p>{fa(stats.streak)} روز پشت سر هم تمرین کرده‌اید؛ همین‌طور ادامه بدهید.</p>
-          <div className="p-hello-pills">
-            <span>{Icon.fire(18)} {fa(stats.streak)} روز پیاپی</span>
-            <span>{Icon.tasks(18)} {fa(pending.length)} تکلیف در انتظار</span>
-          </div>
-        </div>
-        <Ring value={stats.sessionsDone / stats.sessionsTotal} size={104} stroke={10} label={<>{fa(Math.round((stats.sessionsDone / stats.sessionsTotal) * 100))}٪<small>کل پیشرفت</small></>} />
-      </section>
+      <h2 className="p-greet">سلام {first}</h2>
 
-      <section className="p-stats" aria-label="خلاصهٔ وضعیت">
-        <div className="p-card p-stat"><span className="p-stat-ico">{Icon.courses()}</span><b>{fa(stats.activeCourses)}</b><small>دورهٔ فعال</small></div>
-        <div className="p-card p-stat"><span className="p-stat-ico">{Icon.check()}</span><b>{fa(stats.sessionsDone)}<i> از {fa(stats.sessionsTotal)}</i></b><small>جلسهٔ گذرانده</small></div>
-        <div className="p-card p-stat"><span className="p-stat-ico">{Icon.clock()}</span><b>{fa(stats.hoursThisMonth)}</b><small>ساعت یادگیری این ماه</small></div>
-        <div className="p-card p-stat"><span className="p-stat-ico">{Icon.chart()}</span><b>{fa(stats.avgScore.toFixed(1).replace(/\.0$/, '')).replace('.', '٫')}<i> از ۲۰</i></b><small>میانگین نمره</small></div>
-      </section>
+      <div className="p-row p-row-lead">
+        <NextClassCard s={demo.nextSession} />
 
-      <div className="p-grid">
-        <div className="p-col">
-          <NextClassCard s={demo.nextSession} />
-
-          <section className="p-card">
-            <header className="p-card-head"><h2>پیشرفت دوره‌ها</h2><Link to="/panel/courses">همهٔ دوره‌ها {Icon.chevronLeft(16)}</Link></header>
-            <ul className="p-progress-list">
-              {COURSES.map((c) => (
-                <li key={c.id}>
-                  <Ring value={c.done / c.sessions} size={54} stroke={6} />
-                  <div>
-                    <b>{c.title} <bdi>{c.level}</bdi></b>
-                    <small>{c.type === 'live' ? 'کلاس زنده' : 'دورهٔ آفلاین'} • {fa(c.done)} از {fa(c.sessions)} جلسه</small>
-                    <Bar value={c.done / c.sessions} label={`پیشرفت ${c.title}`} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="p-card">
-            <header className="p-card-head"><h2>فعالیت این هفته</h2><span className="p-muted">{formatDuration(total * 60000)}</span></header>
-            <div className="p-activity" role="img" aria-label={`دقیقه‌های یادگیری این هفته: ${demo.activity.map((m, i) => `${WEEKDAYS[i]} ${fa(m)}`).join('، ')}`}>
-              {demo.activity.map((m, i) => (
-                <div key={i} className={i === today ? 'today' : i > today ? 'future' : ''}>
-                  <span className="p-activity-val">{i <= today ? fa(m) : ''}</span>
-                  <i style={{ height: `${Math.max(4, (m / max) * 100)}%` }} />
-                  <span className="p-activity-day">{WEEKDAYS_SHORT[i]}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        <div className="p-col">
-          <section className="p-card">
-            <header className="p-card-head"><h2>تکالیف پیش رو</h2><Link to="/panel/assignments">همه {Icon.chevronLeft(16)}</Link></header>
+        <section className="p-card">
+          <header className="p-card-head"><h2>تکالیف پیش رو</h2><Link to="/panel/assignments">همهٔ تکالیف {Icon.chevronLeft(16)}</Link></header>
+          {pending.length ? (
             <ul className="p-list">
-              {pending.slice(0, 3).map((a) => (
-                <li key={a.id}>
-                  <span className={`p-dot c-${a.course.color}`} aria-hidden="true" />
-                  <div><b>{a.title}</b><small>{a.kind} • {a.course.title} <bdi>{a.course.level}</bdi></small></div>
-                  <Chip tone={relativeDay(a.due, now) === 'فردا' || relativeDay(a.due, now) === 'امروز' ? 'warn' : 'muted'}>مهلت: {relativeDay(a.due, now)}</Chip>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="p-card">
-            <header className="p-card-head"><h2>کلاس‌های این هفته</h2><Link to="/panel/schedule">برنامهٔ کامل {Icon.chevronLeft(16)}</Link></header>
-            {week.length ? (
-              <ul className="p-list">
-                {week.slice(0, 4).map((s) => (
-                  <li key={s.start.toISOString() + s.course.id}>
-                    <span className="p-day-badge"><b>{WEEKDAYS[weekdayIndex(s.start)]}</b><small>{formatTime(s.start)}</small></span>
-                    <div><b>{s.course.title} <bdi>{s.course.level}</bdi></b><small>{s.topic}</small></div>
+              {pending.slice(0, 4).map((a) => {
+                const rel = relativeDay(a.due, now)
+                const soon = rel === 'امروز' || rel === 'فردا'
+                return (
+                  <li key={a.id}>
+                    <span className={`p-dot c-${a.course.color}`} aria-hidden="true" />
+                    <div><b>{a.title}</b><small>{a.kind} • {a.course.title} <bdi>{a.course.level}</bdi></small></div>
+                    <span className={`p-due-at${soon ? ' soon' : ''}`}>{rel}<small>{formatTime(a.due)}</small></span>
                   </li>
-                ))}
-              </ul>
-            ) : <p className="p-muted">کلاس دیگری تا پایان این هفته ندارید.</p>}
-          </section>
+                )
+              })}
+            </ul>
+          ) : <p className="p-muted">تکلیف باز ندارید.</p>}
+        </section>
+      </div>
 
-          <section className="p-card">
-            <header className="p-card-head"><h2>اطلاعیه‌ها</h2></header>
+      <section className="p-card p-summary" aria-labelledby="sum-h">
+        <h2 id="sum-h" className="sr">وضعیت یادگیری</h2>
+        <dl>
+          <div className="p-sum-main">
+            <dt>پیشرفت کل دوره‌ها</dt>
+            <dd><b>{pct(progress)}</b><Bar value={progress} label="پیشرفت کل دوره‌ها" /></dd>
+          </div>
+          <div><dt>جلسه‌های گذرانده</dt><dd><b>{fa(stats.sessionsDone)}</b> از {fa(stats.sessionsTotal)}</dd></div>
+          <div><dt>یادگیری در این ماه</dt><dd><b>{fa(stats.hoursThisMonth)}</b> ساعت</dd></div>
+          <div><dt>میانگین نمره</dt><dd><b>{fa(stats.avgScore.toFixed(1).replace(/\.0$/, '')).replace('.', '٫')}</b> از ۲۰</dd></div>
+          <div><dt>تمرین پیاپی</dt><dd><b>{fa(stats.streak)}</b> روز</dd></div>
+        </dl>
+      </section>
+
+      <div className="p-row">
+        <section className="p-card">
+          <header className="p-card-head"><h2>دوره‌های من</h2><Link to="/panel/courses">جزئیات دوره‌ها {Icon.chevronLeft(16)}</Link></header>
+          <ul className="p-progress-list">
+            {COURSES.map((c) => (
+              <li key={c.id}>
+                <div className="p-progress-top">
+                  <b>{c.title} <bdi>{c.level}</bdi></b>
+                  <span className="p-num">{pct(c.done / c.sessions)}</span>
+                </div>
+                <Bar value={c.done / c.sessions} label={`پیشرفت ${c.title}`} />
+                <small>{c.type === 'live' ? 'کلاس زنده' : 'دورهٔ آفلاین'} • {fa(c.done)} از {fa(c.sessions)} جلسه • {c.teacher}</small>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="p-card p-card-fill">
+          <header className="p-card-head"><h2>دقیقه‌های یادگیری این هفته</h2><span className="p-muted p-num">{formatDuration(total * 60000)}</span></header>
+          <div className="p-activity" role="img" aria-label={`دقیقه‌های یادگیری این هفته: ${demo.activity.map((m, i) => `${WEEKDAYS[i]} ${fa(m)}`).join('، ')}`}>
+            {demo.activity.map((m, i) => (
+              <div key={i} className={i === today ? 'today' : i > today ? 'future' : ''}>
+                <span className="p-activity-val">{i <= today ? fa(m) : ''}</span>
+                <i style={{ height: `${Math.max(4, (m / max) * 100)}%` }} />
+                <span className="p-activity-day">{WEEKDAYS_SHORT[i]}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="p-row">
+        <section className="p-card">
+          <header className="p-card-head"><h2>کلاس‌های پیش رو</h2><Link to="/panel/schedule">برنامهٔ کامل {Icon.chevronLeft(16)}</Link></header>
+          {upcoming.length ? (
             <ul className="p-list">
-              {demo.notices.filter((n) => n.kind === 'news' || n.kind === 'payment').map((n) => (
-                <li key={n.id}><span className="p-dot c-sky" aria-hidden="true" /><div><b>{n.title}</b><small>{n.text}</small></div></li>
+              {upcoming.map((s) => (
+                <li key={s.start.toISOString() + s.course.id}>
+                  <span className="p-day-badge"><b>{WEEKDAYS[weekdayIndex(s.start)]}</b><small>{formatDate(s.start, false)}</small></span>
+                  <div><b>{s.course.title} <bdi>{s.course.level}</bdi></b><small>{s.topic}</small></div>
+                  <span className="p-due-at">{formatTime(s.start)}<small>{relativeDay(s.start, now)}</small></span>
+                </li>
               ))}
             </ul>
-          </section>
-        </div>
+          ) : <p className="p-muted">کلاس زندهٔ دیگری در برنامه ندارید.</p>}
+        </section>
+
+        <section className="p-card">
+          <header className="p-card-head"><h2>اطلاعیه‌ها</h2></header>
+          <ul className="p-list">
+            {demo.notices.filter((n) => n.kind === 'news' || n.kind === 'payment').map((n) => (
+              <li key={n.id}><div><b>{n.title}</b><small>{n.text}</small></div><time className="p-muted p-time">{relativeDay(n.date, now)}</time></li>
+            ))}
+          </ul>
+        </section>
       </div>
     </div>
   )

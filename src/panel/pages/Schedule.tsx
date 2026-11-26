@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fa } from '../../lib/fa'
 import { addDays, formatDate, formatTime, jDate, MONTHS, sameDay, WEEKDAYS } from '../../lib/jalali'
 import { sessionsBetween } from '../data'
@@ -9,7 +9,9 @@ const HOURS = [8, 10, 12, 14, 16, 18, 20]
 
 export default function Schedule() {
   const { demo } = usePanel()
-  const [offset, setOffset] = useState(0)
+  const [params, setParams] = useSearchParams()
+  const offset = Math.max(-52, Math.min(52, Number.parseInt(params.get('week') ?? '0', 10) || 0))
+  const setOffset = (o: number) => setParams((p) => { const n = new URLSearchParams(p); if (o) n.set('week', String(o)); else n.delete('week'); return n }, { replace: true })
   const start = addDays(demo.weekStart, offset * 7)
   const end = addDays(start, 7)
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i))
@@ -23,9 +25,9 @@ export default function Schedule() {
     <div className="p-page">
       <div className="p-toolbar">
         <div className="p-week-nav">
-          <button type="button" className="icon-btn" onClick={() => setOffset((o) => o - 1)} aria-label="هفتهٔ قبل">{Icon.chevronRight(20)}</button>
+          <button type="button" className="icon-btn" onClick={() => setOffset(offset - 1)} aria-label="هفتهٔ قبل">{Icon.chevronRight(20)}</button>
           <b aria-live="polite">{range}</b>
-          <button type="button" className="icon-btn" onClick={() => setOffset((o) => o + 1)} aria-label="هفتهٔ بعد">{Icon.chevronLeft(20)}</button>
+          <button type="button" className="icon-btn" onClick={() => setOffset(offset + 1)} aria-label="هفتهٔ بعد">{Icon.chevronLeft(20)}</button>
         </div>
         {offset !== 0 && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setOffset(0)}>این هفته</button>}
         <p className="p-muted p-tz">ساعت‌ها به وقت تهران</p>

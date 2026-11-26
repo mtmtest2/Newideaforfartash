@@ -20,6 +20,7 @@ export function useTheme() {
     const root = document.documentElement
     root.classList.add('theme-anim')
     root.dataset.theme = next
+    document.querySelector('meta[name=theme-color]')?.setAttribute('content', next === 'dark' ? '#111c36' : '#f8f1e7')
     try { localStorage.setItem('fartash-theme', next) } catch { /* private mode */ }
     window.setTimeout(() => root.classList.remove('theme-anim'), 500)
   }, [])

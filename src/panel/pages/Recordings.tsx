@@ -4,11 +4,12 @@ import { formatDate } from '../../lib/jalali'
 import { INTRO_VIDEO } from '../../assets'
 import { COURSES, type Recording } from '../data'
 import { usePanel } from '../context'
+import { useQueryState } from '../hooks'
 import { Bar, Chip, Icon, Modal } from '../ui'
 
 export default function Recordings() {
   const { demo } = usePanel()
-  const [course, setCourse] = useState('all')
+  const [course, setCourse] = useQueryState('course', ['all', ...COURSES.map((c) => c.id)], 'all')
   const [playing, setPlaying] = useState<Recording | null>(null)
   const list = demo.recordings.filter((r) => course === 'all' || r.course.id === course)
   const resume = demo.recordings.find((r) => r.watched > 0 && r.watched < 1)
@@ -17,16 +18,16 @@ export default function Recordings() {
     <div className="p-page">
       {resume && (
         <button type="button" className="p-card p-resume" onClick={() => setPlaying(resume)}>
-          <img src={resume.thumb} alt="" loading="lazy" />
+          <img src={resume.thumb} alt="" width={240} height={144} loading="lazy" />
           <span><small>ادامهٔ تماشا</small><b>{resume.title}</b><Bar value={resume.watched} label="میزان تماشا" /></span>
           <span className="p-play" aria-hidden="true">{Icon.play(26)}</span>
         </button>
       )}
 
       <div className="p-toolbar">
-        <div className="p-tabs" role="tablist" aria-label="دوره">
-          <button role="tab" aria-selected={course === 'all'} className={course === 'all' ? 'on' : ''} onClick={() => setCourse('all')}>همه</button>
-          {COURSES.map((c) => <button key={c.id} role="tab" aria-selected={course === c.id} className={course === c.id ? 'on' : ''} onClick={() => setCourse(c.id)}>{c.title} <bdi>{c.level}</bdi></button>)}
+        <div className="p-tabs" role="group" aria-label="دوره">
+          <button type="button" aria-pressed={course === 'all'} className={course === 'all' ? 'on' : ''} onClick={() => setCourse('all')}>همه</button>
+          {COURSES.map((c) => <button key={c.id} type="button" aria-pressed={course === c.id} className={course === c.id ? 'on' : ''} onClick={() => setCourse(c.id)}>{c.title} <bdi>{c.level}</bdi></button>)}
         </div>
       </div>
 
@@ -35,7 +36,7 @@ export default function Recordings() {
           <li key={r.id}>
             <button type="button" className="p-card p-rec" onClick={() => setPlaying(r)} aria-label={`پخش ${r.title}`}>
               <span className="p-rec-thumb">
-                <img src={r.thumb} alt="" loading="lazy" />
+                <img src={r.thumb} alt="" width={480} height={270} loading="lazy" />
                 <span className="p-play" aria-hidden="true">{Icon.play(22)}</span>
                 <span className="p-rec-len">{fa(r.minutes)} دقیقه</span>
                 {r.watched >= 1 && <span className="p-rec-done">{Icon.check(16)} دیده‌شده</span>}
