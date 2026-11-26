@@ -69,16 +69,16 @@ const ready = (p) => p.waitForSelector('#panel-content .p-page', { timeout: 1000
     ok(T('student sees teacher feedback'), await s.isVisible('dialog >> text=بازخورد آزمایشی استاد'))
     await s.keyboard.press('Escape')
 
-    // 4. messages both ways with unread state
-    await s.goto(base + '/panel/messages?t=en-b1'); await ready(s)
+    // 4. class group chat (no direct messages): student -> group -> teacher sees it, and back
+    await s.goto(base + '/panel/messages?t=g-en-b1'); await ready(s)
     await s.fill('#p-msg', 'سلام استاد، پیام آزمایشی ' + vp.width); await s.keyboard.press('Enter')
-    ok(T('student message sent with Enter'), await s.isVisible(`.p-chat-log li.mine >> text=پیام آزمایشی ${vp.width}`))
-    await t.bringToFront(); await t.goto(base + '/teacher/messages?t=en-b1~me'); await ready(t)
-    ok(T('teacher receives the student message'), await t.isVisible(`.p-chat-log li.theirs >> text=پیام آزمایشی ${vp.width}`))
+    ok(T('student posts in the class group with Enter'), await s.isVisible(`.p-chat-log li.mine >> text=پیام آزمایشی ${vp.width}`))
+    await t.bringToFront(); await t.goto(base + '/teacher/messages?t=g-en-b1'); await ready(t)
+    ok(T('teacher sees it in the same group, with the student name'), await t.locator('.p-chat-log li.theirs', { hasText: `پیام آزمایشی ${vp.width}` }).locator('.p-author', { hasText: 'مریم کاظمی' }).isVisible())
     await t.fill('#p-msg', 'سلام مریم، پاسخ آزمایشی'); await t.click('.p-send')
     await s.bringToFront(); await s.waitForTimeout(400)
-    ok(T('student receives the reply (live)'), await s.isVisible('.p-chat-log li.theirs >> text=پاسخ آزمایشی'))
-    ok(T('student message marked read by teacher'), (await s.locator('.p-chat-log li.mine .p-tick').last().getAttribute('aria-label')) === 'خوانده شد')
+    ok(T('student sees the teacher reply tagged «استاد» (live)'), await s.locator('.p-chat-log li.theirs', { hasText: 'پاسخ آزمایشی' }).locator('.p-role-tag', { hasText: 'استاد' }).isVisible())
+    ok(T('no direct-message threads: one item per class group'), (await s.locator('.p-chat-list li').count()) === 2)
 
     // 5. announcement -> student dashboard + notifications
     await t.bringToFront(); await t.goto(base + '/teacher/classes?id=en-b1&tab=news'); await ready(t)
@@ -99,6 +99,45 @@ const ready = (p) => p.waitForSelector('#panel-content .p-page', { timeout: 1000
     await s.bringToFront(); await s.goto(base + '/panel/courses'); await ready(s)
     const line = await s.locator('.p-course', { hasText: course.split(' ')[0] }).locator('.p-course-line', { hasText: 'حضور' }).first().textContent()
     ok(T('student attendance reflects teacher marks'), /حضور/.test(line), line)
+
+    // 7. reception: guard, login, create the missing group, moderate, close, join
+    const r = await ctx.newPage(); watch(r)
+    await r.goto(base + '/reception/groups'); await r.waitForURL(/role=reception/, { timeout: 8000 }).catch(() => {})
+    ok(T('reception guard -> /login?role=reception'), /role=reception/.test(r.url()))
+    await r.fill('input[inputmode=tel]', '09121113344'); await r.click('form button[type=submit]')
+    await r.fill('input[name=code]', '12345'); await r.click('form button[type=submit]')
+    await ready(r)
+    ok(T('reception login -> groups'), new URL(r.url()).pathname.startsWith('/reception/groups'))
+    ok(T('reception sees all class groups'), (await r.locator('.p-chat-list li').count()) === 2)
+    await r.click('button[aria-label="ساخت گروه گرامر کاربردی انگلیسی B1"]')
+    await r.waitForTimeout(300)
+    ok(T('reception creates the missing group'), (await r.locator('.p-chat-list li').count()) === 3 && !(await r.isVisible('.p-missing')))
+    await s.bringToFront(); await s.goto(base + '/panel/messages'); await ready(s)
+    ok(T('student now has the new group'), (await s.locator('.p-chat-list li').count()) === 3)
+    await t.bringToFront(); await t.goto(base + '/teacher/messages'); await ready(t)
+    ok(T('teacher now has the new group'), (await t.locator('.p-chat-list li').count()) === 2)
+
+    await r.bringToFront(); await r.goto(base + '/reception/groups?t=g-en-b1'); await ready(r)
+    await r.locator('.p-chat-log li', { hasText: `پیام آزمایشی ${vp.width}` }).locator('.p-remove').click()
+    ok(T('removed message shows the reception note'), await r.isVisible('.p-chat-log >> text=این پیام را پذیرش حذف کرد') && await r.isVisible('.p-undo'))
+    await r.click('.p-undo button'); await r.waitForTimeout(200)
+    ok(T('undo restores the message'), await r.isVisible(`.p-chat-log >> text=پیام آزمایشی ${vp.width}`))
+    await r.locator('.p-chat-log li', { hasText: `پیام آزمایشی ${vp.width}` }).locator('.p-remove').click()
+    await r.click('.p-chat-lock'); await r.waitForTimeout(200)
+    await s.bringToFront(); await s.goto(base + '/panel/messages?t=g-en-b1'); await ready(s)
+    ok(T('student sees the removal and the closed group'), await s.isVisible('.p-chat-log >> text=این پیام را پذیرش حذف کرد') && await s.isVisible('.p-chat-locked') && !(await s.isVisible('#p-msg')))
+    await r.bringToFront(); await r.click('.p-chat-lock'); await r.waitForTimeout(200)
+    await s.bringToFront(); await s.waitForTimeout(300)
+    ok(T('reopened group accepts messages again'), await s.isVisible('#p-msg'))
+
+    await r.bringToFront(); await r.goto(base + '/reception/classes'); await ready(r)
+    ok(T('reception lists every class'), (await r.locator('.p-course').count()) === 3)
+    await r.goto(base + '/reception/classes?id=en-b1'); await ready(r)
+    ok(T('class detail shows roster'), (await r.locator('.p-table tbody tr').count()) === 8)
+    for (const pg of ['', 'classes', 'classes?id=de-a2', 'groups']) {
+      await r.goto(base + '/reception/' + pg); await ready(r)
+      ok(T(`reception ${pg || 'home'} no horizontal overflow`), !(await r.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)))
+    }
 
     // no horizontal overflow on any teacher page
     for (const pg of ['', 'classes', 'classes?id=en-b1', 'schedule', 'assignments', 'attendance', 'messages', 'profile']) {

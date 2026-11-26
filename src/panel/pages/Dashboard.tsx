@@ -146,7 +146,7 @@ export default function Dashboard() {
         </section>
 
         <section className="p-card">
-          <header className="p-card-head"><h2>اطلاعیه‌ها</h2><Link to="/panel/messages">پیام به استاد {Icon.chevronLeft(16)}</Link></header>
+          <header className="p-card-head"><h2>اطلاعیه‌ها</h2><Link to="/panel/messages">گروه‌های کلاس {Icon.chevronLeft(16)}</Link></header>
           <ul className="p-list">
             {[...db.announcements.filter((a) => db.rosters[a.courseId]?.includes(ME)).map((a) => ({ id: a.id, title: a.title, text: a.text, by: courseById(a.courseId).teacher, date: new Date(a.at) })),
               ...demo.notices.filter((n) => n.kind === 'news').map((n) => ({ ...n, by: 'آموزشگاه فرتاش' }))]

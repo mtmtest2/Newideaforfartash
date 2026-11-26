@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Moon, Sun, User } from './Icons'
 import { useTheme } from '../lib/hooks'
 import { LOGO } from '../assets'
-import { useSession, useTeacher } from '../panel/session'
+import { useReception, useSession, useTeacher } from '../panel/session'
 
 const NAV = [
   { href: '/#home', label: 'خانه' },
@@ -45,7 +45,8 @@ export function ThemeToggle() {
 export default function Header() {
   const student = !!useSession()
   const teacher = !!useTeacher()
-  const account = student ? { to: '/panel', label: 'پنل کاربری' } : teacher ? { to: '/teacher', label: 'پنل استاد' } : null
+  const reception = !!useReception()
+  const account = student ? { to: '/panel', label: 'پنل کاربری' } : teacher ? { to: '/teacher', label: 'پنل استاد' } : reception ? { to: '/reception', label: 'پنل پذیرش' } : null
   const [scrolled, setScrolled] = useState(false)
   const { pathname, hash } = useLocation()
   const current = pathname === '/' ? `/${hash || '#home'}` : pathname

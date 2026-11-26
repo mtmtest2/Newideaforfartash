@@ -1,32 +1,28 @@
-import { useSearchParams } from 'react-router-dom'
-import Chat, { type Thread } from '../../panel/Chat'
+import Chat, { type ChatGroup } from '../../panel/Chat'
 import { courseById } from '../../panel/data'
-import { markThreadRead, sendMessage } from '../../school/db'
+import { authorName, markGroupRead, reader, sendMessage, unreadIn } from '../../school/db'
 import { useTeacherPanel } from '../context'
 
-/** Teacher side: one conversation per (course, student). Threads open from the class roster too (?t=course~student). */
+/** Teacher side: the group chat of each of their classes (groups are created by reception). */
 export default function Messages() {
-  const { db, courses, now, name } = useTeacherPanel()
-  const [params] = useSearchParams()
-  const ids = courses.map((c) => c.id)
-  const keys = new Set(db.messages.filter((m) => ids.includes(m.courseId)).map((m) => `${m.courseId}~${m.studentId}`))
-  const asked = params.get('t')
-  if (asked && ids.includes(asked.split('~')[0])) keys.add(asked)
-
-  const threads: Thread[] = [...keys].map((key) => {
-    const [courseId, studentId] = key.split('~')
-    const c = courseById(courseId)
+  const { db, courses, now, teacher, name } = useTeacherPanel()
+  const me = reader('teacher', teacher.id)
+  const groups: ChatGroup[] = db.groups.filter((g) => courses.some((c) => c.id === g.courseId)).map((g) => {
+    const c = courseById(g.courseId)
     return {
-      key, title: name(studentId), subtitle: `${c.title} ${c.level}`,
-      messages: db.messages.filter((m) => m.courseId === courseId && m.studentId === studentId).sort((a, b) => a.at.localeCompare(b.at)),
+      id: g.id, title: `${c.title} ${c.level}`, subtitle: c.type === 'live' ? 'کلاس زنده' : 'دورهٔ آفلاین', locked: g.locked,
+      members: (db.rosters[c.id]?.length ?? 0) + 2, unread: unreadIn(db, g.id, me).length,
+      messages: db.messages.filter((m) => m.groupId === g.id).sort((a, b) => a.at.localeCompare(b.at)),
     }
   })
-  const split = (t: Thread) => t.key.split('~') as [string, string]
+  const missing = courses.filter((c) => !db.groups.some((g) => g.courseId === c.id))
   return (
     <div className="p-page">
-      <Chat threads={threads} me="teacher" now={now} emptyText="هنوز پیامی از زبان‌آموزان ندارید."
-        onSend={(t, text) => { const [c, s] = split(t); sendMessage(c, s, 'teacher', text) }}
-        onRead={(t) => { const [c, s] = split(t); markThreadRead(c, s, 'teacher') }} />
+      <Chat groups={groups} me={me} now={now} emptyText="پذیرش هنوز گروه کلاس‌هایتان را نساخته است."
+        nameOf={(m) => (m.role === 'student' ? name(m.authorId) : authorName(db, m))}
+        onSend={(g, text) => sendMessage(g.id, 'teacher', teacher.id, text)}
+        onRead={(g) => markGroupRead(g.id, me)} />
+      {missing.length > 0 && <p className="p-muted p-form-note">گروه {missing.map((c) => `«${c.title} ${c.level}»`).join(' و ')} هنوز ساخته نشده است؛ پذیرش آن را می‌سازد.</p>}
     </div>
   )
 }

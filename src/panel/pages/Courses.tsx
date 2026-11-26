@@ -3,7 +3,7 @@ import { fa } from '../../lib/fa'
 import { formatTime, relativeDay, WEEKDAYS } from '../../lib/jalali'
 import { COURSES } from '../data'
 import { usePanel } from '../context'
-import { ME, attendanceOf } from '../../school/db'
+import { ME, attendanceOf, groupOf } from '../../school/db'
 import { useQueryState } from '../hooks'
 import { Bar, Chip, Icon } from '../ui'
 
@@ -53,7 +53,7 @@ export default function Courses() {
                   {c.type === 'live'
                     ? <Link to="/panel" className="btn btn-primary btn-sm">{Icon.live(18)} کلاس بعدی</Link>
                     : <Link to="/panel/recordings" className="btn btn-primary btn-sm">{Icon.play(18)} ادامهٔ یادگیری</Link>}
-                  <Link to={`/panel/messages?t=${c.id}`} className="btn btn-ghost btn-sm">{Icon.chat(18)} پیام به استاد</Link>
+                  {groupOf(db, c.id) && <Link to={`/panel/messages?t=${groupOf(db, c.id)!.id}`} className="btn btn-ghost btn-sm">{Icon.chat(18)} گروه کلاس</Link>}
                 </div>
               </div>
             </article>

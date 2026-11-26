@@ -2,7 +2,7 @@
 const { chromium } = require('playwright')
 const base = process.argv[2] || 'http://localhost:4173', out = process.argv[3] || 'shots/teacher'
 require('fs').mkdirSync(out, { recursive: true })
-const pages = ['', 'classes', 'classes?id=en-b1', 'schedule', 'assignments', 'assignments?task=a4', 'attendance', 'messages?t=en-b1~s3', 'profile']
+const pages = ['', 'classes', 'classes?id=en-b1', 'schedule', 'assignments', 'assignments?task=a4', 'attendance', 'messages?t=g-en-b1', 'profile']
 ;(async () => {
   const b = await chromium.launch(); const errs = []
   for (const [tag, vp] of [['d', { width: 1440, height: 900 }], ['m', { width: 390, height: 844 }]]) for (const theme of ['light', 'dark']) {

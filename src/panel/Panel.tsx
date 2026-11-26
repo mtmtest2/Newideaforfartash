@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { ME, avgScore, studentName, submitTask, useDb } from '../school/db'
+import { ME, authorName, avgScore, reader, studentName, submitTask, unreadIn, useDb } from '../school/db'
 import { buildDemo, courseById, COURSES, type Assignment, type Demo, type Ticket } from './data'
 import { PanelContext, type PanelCtx } from './context'
 import { getSession, signOut, useSession } from './session'
@@ -61,14 +61,15 @@ export default function Panel() {
   } : null), [session, demo, assignments, tickets, db])
 
   const pending = assignments.filter((a) => a.status === 'pending' && a.due > (demo?.now ?? new Date(0))).length
-  const unreadMsgs = db.messages.filter((m) => m.studentId === ME && m.from === 'teacher' && !m.read).length
+  const myGroups = db.groups.filter((g) => db.rosters[g.courseId]?.includes(ME))
+  const unreadMsgs = myGroups.reduce((n, g) => n + unreadIn(db, g.id, reader('student', ME)).length, 0)
 
   const nav: NavItem[] = [
     { to: '/panel', label: 'داشبورد', icon: Icon.dashboard, end: true },
     { to: '/panel/courses', label: 'دوره‌های من', short: 'دوره‌ها', icon: Icon.courses },
     { to: '/panel/schedule', label: 'برنامهٔ کلاس‌ها', short: 'برنامه', icon: Icon.calendar },
     { to: '/panel/assignments', label: 'تکالیف و آزمون‌ها', short: 'تکالیف', icon: Icon.tasks, badge: pending },
-    { to: '/panel/messages', label: 'پیام به استاد', short: 'پیام‌ها', icon: Icon.chat, badge: unreadMsgs },
+    { to: '/panel/messages', label: 'گروه‌های کلاس', short: 'گروه‌ها', icon: Icon.chat, badge: unreadMsgs },
     { to: '/panel/recordings', label: 'جلسات ضبط‌شده', icon: Icon.video },
     { to: '/panel/certificates', label: 'گواهی‌ها', icon: Icon.award },
     { to: '/panel/payments', label: 'پرداخت‌ها', icon: Icon.wallet },
@@ -87,10 +88,12 @@ export default function Panel() {
         const t = db.tasks.find((x) => x.id === s.taskId)
         return { id: 'g' + s.id, kind: 'assignment' as const, title: 'نمرهٔ تازه ثبت شد', text: `«${t?.title}»`, date: new Date(s.gradedAt!), href: '/panel/assignments?status=graded' }
       }),
-      ...db.messages.filter((m) => m.studentId === ME && m.from === 'teacher').map((m) => ({
-        id: m.id, kind: 'message' as const, title: `پیام ${courseById(m.courseId).teacher}`, text: m.text, date: new Date(m.at), href: `/panel/messages?t=${m.courseId}` })),
+      ...db.messages.filter((m) => !m.deleted && myGroups.some((g) => g.id === m.groupId) && !(m.role === 'student' && m.authorId === ME)).map((m) => {
+        const c = courseById(myGroups.find((g) => g.id === m.groupId)!.courseId)
+        return { id: m.id, kind: 'message' as const, title: `گروه ${c.title} ${c.level}`, text: `${authorName(db, m, session?.name)}: ${m.text}`, date: new Date(m.at), href: `/panel/messages?t=${m.groupId}` }
+      }),
     ]
-  }, [demo, db])
+  }, [demo, db, session?.name]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const logout = () => { signOut(); navigate('/', { replace: true }) }
 

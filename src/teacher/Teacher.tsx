@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { TEACHERS } from '../panel/data'
+import { courseById, TEACHERS } from '../panel/data'
 import { getSession, getTeacher, signOutTeacher, useTeacher } from '../panel/session'
 import Shell, { Skeleton, type NavItem, type NoticeItem } from '../panel/Shell'
 import { Icon } from '../panel/ui'
-import { coursesOfTeacher, studentName, useDb } from '../school/db'
+import { authorName, coursesOfTeacher, reader, studentName, unreadIn, useDb } from '../school/db'
 import { TeacherContext, type TeacherCtx } from './context'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -44,7 +44,8 @@ export default function TeacherPanel() {
 
   const myTasks = db.tasks.filter((t) => ids.includes(t.courseId))
   const toGrade = db.submissions.filter((s) => s.score == null && myTasks.some((t) => t.id === s.taskId))
-  const unread = db.messages.filter((m) => ids.includes(m.courseId) && m.from === 'student' && !m.read)
+  const myGroups = db.groups.filter((g) => ids.includes(g.courseId))
+  const unread = myGroups.flatMap((g) => unreadIn(db, g.id, reader('teacher', teacher.id)))
 
   const nav: NavItem[] = [
     { to: '/teacher', label: 'پیشخوان', icon: Icon.dashboard, end: true },
@@ -52,7 +53,7 @@ export default function TeacherPanel() {
     { to: '/teacher/schedule', label: 'برنامهٔ تدریس', icon: Icon.calendar },
     { to: '/teacher/assignments', label: 'تکالیف و نمره‌دهی', short: 'نمره‌دهی', icon: Icon.tasks, badge: toGrade.length },
     { to: '/teacher/attendance', label: 'حضور و غیاب', icon: Icon.checklist },
-    { to: '/teacher/messages', label: 'پیام‌ها', icon: Icon.chat, badge: unread.length },
+    { to: '/teacher/messages', label: 'گروه‌های کلاس', short: 'گروه‌ها', icon: Icon.chat, badge: unread.length },
     { to: '/teacher/profile', label: 'پروفایل و تنظیمات', icon: Icon.user },
   ]
 
@@ -61,8 +62,10 @@ export default function TeacherPanel() {
       const t = myTasks.find((x) => x.id === s.taskId)!
       return { id: 'sub' + s.id, kind: 'assignment' as const, title: 'پاسخ تازه برای نمره‌دهی', text: `${ctx.name(s.studentId)}: «${t.title}»`, date: new Date(s.at), href: `/teacher/assignments?task=${t.id}&sub=${s.id}` }
     }),
-    ...db.messages.filter((m) => ids.includes(m.courseId) && m.from === 'student').map((m) => ({
-      id: m.id, kind: 'message' as const, title: `پیام ${ctx.name(m.studentId)}`, text: m.text, date: new Date(m.at), href: `/teacher/messages?t=${m.courseId}~${m.studentId}` })),
+    ...db.messages.filter((m) => !m.deleted && m.role !== 'teacher' && myGroups.some((g) => g.id === m.groupId)).map((m) => {
+      const c = courseById(myGroups.find((g) => g.id === m.groupId)!.courseId)
+      return { id: m.id, kind: 'message' as const, title: `گروه ${c.title} ${c.level}`, text: `${m.role === 'student' ? ctx.name(m.authorId) : authorName(db, m)}: ${m.text}`, date: new Date(m.at), href: `/teacher/messages?t=${m.groupId}` }
+    }),
   ] : null), [ctx, db]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const logout = () => { signOutTeacher(); navigate('/', { replace: true }) }

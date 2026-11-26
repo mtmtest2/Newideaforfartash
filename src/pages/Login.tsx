@@ -1,6 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { getSession, getTeacher, signIn, signInTeacher } from '../panel/session'
+import { getReception, getSession, getTeacher, signIn, signInReception, signInTeacher } from '../panel/session'
+
+type Role = 'student' | 'teacher' | 'reception'
+const ROLES: Record<Role, { home: string; title: string; button: string; link: string; demo: string; signedIn: () => boolean }> = {
+  student: { home: '/panel', title: 'ورود زبان‌آموزان', button: 'ورود به پنل', link: 'ورود زبان‌آموزان', demo: '', signedIn: () => !!getSession() },
+  teacher: { home: '/teacher', title: 'ورود اساتید', button: 'ورود به پنل استاد', link: 'ورود اساتید', demo: 'آرمان کیانی', signedIn: () => !!getTeacher() },
+  reception: { home: '/reception', title: 'ورود پذیرش', button: 'ورود به پنل پذیرش', link: 'ورود پذیرش', demo: 'نرگس امیری (پذیرش)', signedIn: () => !!getReception() },
+}
 import { ArrowLeft, Bars, ChevronRight, Flag, Leaf, Phone, Star, User } from '../components/Icons'
 import { HERO } from '../assets'
 import { PROFS } from '../data'
@@ -18,16 +25,18 @@ export default function Login() {
   const [name, setName] = useState('')
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
-  const teacher = params.get('role') === 'teacher'
-  const home = teacher ? '/teacher' : '/panel'
+  const role: Role = params.get('role') === 'teacher' ? 'teacher' : params.get('role') === 'reception' ? 'reception' : 'student'
+  const staff = role !== 'student'
+  const R = ROLES[role]
+  const home = R.home
   // only allow redirect targets inside the matching panel
   const next = (params.get('next') || '').startsWith(home) ? params.get('next')! : home
   useEffect(() => {
-    document.title = teacher ? 'ورود اساتید | فرتاش' : 'ورود / عضویت | فرتاش'
-    if (teacher ? getTeacher() : getSession()) navigate(next, { replace: true }) // already signed in
+    document.title = staff ? `${R.title} | فرتاش` : 'ورود / عضویت | فرتاش'
+    if (R.signedIn()) navigate(next, { replace: true }) // already signed in
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teacher])
-  const switchRole = () => { setParams(teacher ? {} : { role: 'teacher' }, { replace: true }); setMode('login'); setStep('phone'); setErr('') }
+  }, [role])
+  const switchRole = (r: Role) => { setParams(r === 'student' ? {} : { role: r }, { replace: true }); setMode('login'); setStep('phone'); setErr('') }
 
   const onPhone = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -45,7 +54,8 @@ export default function Login() {
     setErr('')
     // Demo sign-in (no backend yet): a sample name is used for existing accounts.
     const cleanPhone = toLatin(phone).replace(/[\s-]/g, '')
-    if (teacher) signInTeacher({ teacherId: 'arman', name: 'آرمان کیانی', phone: cleanPhone })
+    if (role === 'teacher') signInTeacher({ teacherId: 'arman', name: 'آرمان کیانی', phone: cleanPhone })
+    else if (role === 'reception') signInReception({ name: 'نرگس امیری', phone: cleanPhone })
     else signIn({ name: mode === 'signup' && name ? name : 'سارا رضایی', phone: cleanPhone })
     navigate(next, { replace: true })
   }
@@ -61,15 +71,15 @@ export default function Login() {
       </div>
       <div className="login-body container">
       <div className="login-card card">
-        {!teacher && <div className="seg" role="tablist" aria-label="ورود یا عضویت">
+        {!staff && <div className="seg" role="tablist" aria-label="ورود یا عضویت">
           <button role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'on' : ''} onClick={() => { setMode('login'); setStep('phone'); setErr('') }}>ورود</button>
           <button role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'on' : ''} onClick={() => { setMode('signup'); setStep('phone'); setErr('') }}>عضویت</button>
         </div>}
 
         {step === 'phone' && (
           <form onSubmit={onPhone} noValidate>
-            <h1>{teacher ? 'ورود اساتید' : mode === 'login' ? 'ورود به حساب کاربری' : 'ساخت حساب کاربری'}</h1>
-            <p>{teacher ? 'شمارهٔ موبایلی را وارد کنید که در آموزشگاه ثبت کرده‌اید.' : mode === 'login' ? 'شمارهٔ موبایلتان را وارد کنید تا کد تأیید برایتان پیامک شود.' : 'نام و شمارهٔ موبایلتان را وارد کنید تا حساب کاربری‌تان ساخته شود.'}</p>
+            <h1>{staff ? R.title : mode === 'login' ? 'ورود به حساب کاربری' : 'ساخت حساب کاربری'}</h1>
+            <p>{staff ? 'شمارهٔ موبایلی را وارد کنید که در آموزشگاه ثبت کرده‌اید.' : mode === 'login' ? 'شمارهٔ موبایلتان را وارد کنید تا کد تأیید برایتان پیامک شود.' : 'نام و شمارهٔ موبایلتان را وارد کنید تا حساب کاربری‌تان ساخته شود.'}</p>
             {mode === 'signup' && (
               <label className="field"><span className="sr">نام و نام‌خانوادگی</span><input name="name" placeholder="نام و نام‌خانوادگی" autoComplete="name" /><User width={18} height={18} /></label>
             )}
@@ -84,12 +94,16 @@ export default function Login() {
             <p>کد ۵ رقمی پیامک‌شده به <bdi dir="ltr">{fa(toLatin(phone))}</bdi> را وارد کنید.</p>
             <label className="field"><span className="sr">کد تأیید</span><input name="code" placeholder="• • • • •" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={5} className="ltr-in code-in" autoFocus /></label>
             {err && <p className="err" role="alert">{err}</p>}
-            <p className="demo-note">{teacher ? 'نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود و با حساب «آرمان کیانی» وارد می‌شوید.' : 'نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود.'}</p>
-            <button className="btn btn-primary btn-block" type="submit">{teacher ? 'ورود به پنل استاد' : mode === 'login' ? 'ورود به پنل' : 'ساخت حساب و ورود'}</button>
+            <p className="demo-note">{staff ? `نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود و با حساب «${R.demo}» وارد می‌شوید.` : 'نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود.'}</p>
+            <button className="btn btn-primary btn-block" type="submit">{staff ? R.button : mode === 'login' ? 'ورود به پنل' : 'ساخت حساب و ورود'}</button>
             <button type="button" className="link-btn" onClick={() => { setStep('phone'); setErr('') }}>ویرایش شماره</button>
           </form>
         )}
-        <button type="button" className="link-btn role-switch" onClick={switchRole}>{teacher ? 'زبان‌آموز هستید؟ ورود زبان‌آموزان' : 'استاد فرتاش هستید؟ ورود اساتید'}</button>
+        <nav className="role-links" aria-label="ورود کارکنان">
+          {(Object.keys(ROLES) as Role[]).filter((r) => r !== role).map((r) => (
+            <button key={r} type="button" className="link-btn role-switch" onClick={() => switchRole(r)}>{ROLES[r].link}</button>
+          ))}
+        </nav>
         <Link to="/" className="back-link"><ChevronRight width={16} height={16} /> بازگشت به صفحهٔ اصلی</Link>
       </div>
       <LoginAside />

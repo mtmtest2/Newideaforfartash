@@ -5,11 +5,11 @@ import { addDays, formatDate, formatDuration, formatTime, relativeDay, startOfWe
 import { courseById, sessionsBetween, type Session } from '../../panel/data'
 import { JOIN_EARLY_MS, useNow } from '../../panel/hooks'
 import { Bar, Chip, Icon, initials, Modal } from '../../panel/ui'
-import { sessionKey } from '../../school/db'
+import { authorName, reader, sessionKey, unreadIn } from '../../school/db'
 import { useTeacherPanel } from '../context'
 
 export default function Home() {
-  const { session, courses, db, now, name } = useTeacherPanel()
+  const { session, courses, db, now, name, teacher } = useTeacherPanel()
   const ids = courses.map((c) => c.id)
   const live = courses.filter((c) => c.type === 'live')
   const upcoming = sessionsBetween(new Date(now.getTime() - 90 * 60000), addDays(now, 14), live).filter((s) => s.end > now)
@@ -20,7 +20,7 @@ export default function Home() {
   const students = new Set(ids.flatMap((id) => db.rosters[id] ?? []))
   const marks = Object.entries(db.attendance).filter(([k]) => ids.includes(k.split('|')[0])).flatMap(([, v]) => Object.values(v))
   const attendance = marks.length ? marks.filter((m) => m !== 'absent').length / marks.length : null
-  const unread = db.messages.filter((m) => ids.includes(m.courseId) && m.from === 'student' && !m.read)
+  const unread = db.groups.filter((g) => ids.includes(g.courseId)).flatMap((g) => unreadIn(db, g.id, reader('teacher', teacher.id))).sort((a, b) => a.at.localeCompare(b.at))
   const lastName = session.name.trim().split(/\s+/).slice(-1)[0]
 
   return (
@@ -67,15 +67,19 @@ export default function Home() {
 
       <div className="p-row">
         <section className="p-card">
-          <header className="p-card-head"><h2>پیام‌های زبان‌آموزان</h2><Link to="/teacher/messages">همهٔ پیام‌ها {Icon.chevronLeft(16)}</Link></header>
+          <header className="p-card-head"><h2>پیام‌های تازهٔ گروه‌ها</h2><Link to="/teacher/messages">گروه‌های کلاس {Icon.chevronLeft(16)}</Link></header>
           {unread.length ? (
             <ul className="p-list">
-              {unread.slice(-4).reverse().map((m) => (
-                <li key={m.id}>
-                  <div><b>{name(m.studentId)}</b><small className="p-clamp">{m.text}</small></div>
-                  <Link className="btn btn-ghost btn-sm" to={`/teacher/messages?t=${m.courseId}~${m.studentId}`} aria-label={`پاسخ به ${name(m.studentId)}`}>پاسخ</Link>
-                </li>
-              ))}
+              {unread.slice(-4).reverse().map((m) => {
+                const c = courseById(db.groups.find((g) => g.id === m.groupId)!.courseId)
+                const who = m.role === 'student' ? name(m.authorId) : authorName(db, m)
+                return (
+                  <li key={m.id}>
+                    <div><b>{who} <span className="p-muted p-in">در {c.title} <bdi>{c.level}</bdi></span></b><small className="p-clamp">{m.text}</small></div>
+                    <Link className="btn btn-ghost btn-sm" to={`/teacher/messages?t=${m.groupId}`} aria-label={`باز کردن گروه ${c.title}`}>پاسخ</Link>
+                  </li>
+                )
+              })}
             </ul>
           ) : <p className="p-muted">پیام خوانده‌نشده‌ای ندارید.</p>}
         </section>

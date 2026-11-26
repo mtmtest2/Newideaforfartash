@@ -5,7 +5,7 @@ import { addDays, formatDate, formatTime, relativeDay, WEEKDAYS } from '../../li
 import { sessionsBetween, type Course } from '../../panel/data'
 import { fieldError, useQueryState } from '../../panel/hooks'
 import { Bar, Chip, Empty, Icon } from '../../panel/ui'
-import { attendanceOf, avgScore, postAnnouncement } from '../../school/db'
+import { attendanceOf, avgScore, groupOf, postAnnouncement } from '../../school/db'
 import { useTeacherPanel } from '../context'
 
 export default function Classes() {
@@ -34,7 +34,7 @@ function useClassStats(c: Course) {
 }
 
 function ClassCard({ c }: { c: Course }) {
-  const { now } = useTeacherPanel()
+  const { now, db } = useTeacherPanel()
   const st = useClassStats(c)
   const next = c.type === 'live' ? sessionsBetween(now, addDays(now, 8), [c]).find((s) => s.end > now) : undefined
   return (
@@ -57,6 +57,7 @@ function ClassCard({ c }: { c: Course }) {
         <div className="p-course-actions">
           <Link to={`/teacher/classes?id=${c.id}`} className="btn btn-primary btn-sm">{Icon.users(18)} زبان‌آموزان</Link>
           <Link to={`/teacher/classes?id=${c.id}&tab=news`} className="btn btn-ghost btn-sm">{Icon.megaphone(18)} اطلاعیه</Link>
+          {groupOf(db, c.id) && <Link to={`/teacher/messages?t=${groupOf(db, c.id)!.id}`} className="btn btn-ghost btn-sm">{Icon.chat(18)} گروه کلاس</Link>}
         </div>
       </div>
     </article>
@@ -101,7 +102,7 @@ function ClassDetail({ c }: { c: Course }) {
           <div className="p-table-wrap">
             <table className="p-table">
               <caption className="sr">زبان‌آموزان {c.title}</caption>
-              <thead><tr><th scope="col">نام</th><th scope="col">حضور</th><th scope="col">تکالیف ارسال‌شده</th><th scope="col">میانگین نمره</th><th scope="col"><span className="sr">پیام</span></th></tr></thead>
+              <thead><tr><th scope="col">نام</th><th scope="col">حضور</th><th scope="col">تکالیف ارسال‌شده</th><th scope="col">میانگین نمره</th></tr></thead>
               <tbody>
                 {st.roster.map((id) => {
                   const a = attendanceOf(db, c.id, id)
@@ -114,7 +115,6 @@ function ClassDetail({ c }: { c: Course }) {
                       <td data-label="حضور">{a.total ? <>{fa(a.present)} از {fa(a.total)}{a.late > 0 && <span className="p-muted"> ({fa(a.late)} تأخیر)</span>}</> : '—'}</td>
                       <td data-label="تکالیف">{fa(mine.length)} از {fa(Math.max(due, mine.length))}</td>
                       <td className="p-td-status">{avg == null ? <Chip tone="muted">بدون نمره</Chip> : <Chip tone={avg >= 17 ? 'ok' : avg >= 14 ? 'lime' : 'warn'}>{faDec(avg)}</Chip>}</td>
-                      <td className="p-td-action"><Link className="p-link" to={`/teacher/messages?t=${c.id}~${id}`} aria-label={`پیام به ${name(id)}`}>پیام</Link></td>
                     </tr>
                   )
                 })}

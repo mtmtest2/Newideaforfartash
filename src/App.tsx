@@ -10,6 +10,7 @@ const Blog = lazy(() => import('./pages/Blog'))
 const Placement = lazy(() => import('./pages/Placement'))
 const Panel = lazy(() => import('./panel/Panel'))
 const TeacherPanel = lazy(() => import('./teacher/Teacher'))
+const ReceptionPanel = lazy(() => import('./reception/Reception'))
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/placement" element={<Placement />} />
         <Route path="/panel/*" element={<Panel />} />
         <Route path="/teacher/*" element={<TeacherPanel />} />
+        <Route path="/reception/*" element={<ReceptionPanel />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </Suspense>

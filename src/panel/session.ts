@@ -57,3 +57,10 @@ export const signInTeacher = teacher.signIn
 export const updateTeacher = teacher.update
 export const signOutTeacher = teacher.signOut
 export const useTeacher = teacher.use
+
+export type ReceptionSession = { name: string; phone: string; joined: string }
+const reception = store<ReceptionSession>('fartash-reception', {})
+export const getReception = reception.read
+export const signInReception = reception.signIn
+export const signOutReception = reception.signOut
+export const useReception = reception.use
