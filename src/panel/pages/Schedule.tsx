@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom'
 import { fa } from '../../lib/fa'
-import { addDays, formatDate, formatTime, jDate, MONTHS, sameDay, WEEKDAYS } from '../../lib/jalali'
-import { sessionsBetween } from '../data'
+import { addDays, startOfWeek, formatDate, formatTime, jDate, MONTHS, sameDay, WEEKDAYS } from '../../lib/jalali'
+import { COURSES, sessionsBetween, type Course } from '../data'
 import { usePanel } from '../context'
 import { Icon } from '../ui'
 
@@ -9,13 +9,19 @@ const HOURS = [8, 10, 12, 14, 16, 18, 20]
 
 export default function Schedule() {
   const { demo } = usePanel()
+  return <WeekSchedule now={demo.now} />
+}
+
+/** Week grid (desktop) + agenda (phones). Used by both panels; the teacher passes their own courses. */
+export function WeekSchedule({ now, courses = COURSES, emptyDay = 'کلاسی ندارید' }: { now: Date; courses?: Course[]; emptyDay?: string }) {
+  const demo = { now, weekStart: startOfWeek(now) }
   const [params, setParams] = useSearchParams()
   const offset = Math.max(-52, Math.min(52, Number.parseInt(params.get('week') ?? '0', 10) || 0))
   const setOffset = (o: number) => setParams((p) => { const n = new URLSearchParams(p); if (o) n.set('week', String(o)); else n.delete('week'); return n }, { replace: true })
   const start = addDays(demo.weekStart, offset * 7)
   const end = addDays(start, 7)
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i))
-  const sessions = sessionsBetween(start, end)
+  const sessions = sessionsBetween(start, end, courses)
   const a = jDate(start), b = jDate(addDays(end, -1))
   const range = a.m === b.m ? `${fa(a.d)} تا ${fa(b.d)} ${MONTHS[a.m - 1]} ${fa(a.y)}` : `${formatDate(start, false)} تا ${formatDate(addDays(end, -1))}`
   const fromH = 8, toH = 22
@@ -68,7 +74,7 @@ export default function Schedule() {
                     <b>{s.course.title} <bdi>{s.course.level}</bdi></b>
                     <small>{formatTime(s.start)} تا {formatTime(s.end)} • {s.topic}</small>
                   </div>
-                )) : <small className="p-muted">{i === 6 ? 'تعطیل' : 'کلاسی ندارید'}</small>}
+                )) : <small className="p-muted">{i === 6 ? 'تعطیل' : emptyDay}</small>}
               </div>
             </li>
           )

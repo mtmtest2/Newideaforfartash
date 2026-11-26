@@ -1,0 +1,92 @@
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { TEACHERS } from '../panel/data'
+import { getSession, getTeacher, signOutTeacher, useTeacher } from '../panel/session'
+import Shell, { Skeleton, type NavItem, type NoticeItem } from '../panel/Shell'
+import { Icon } from '../panel/ui'
+import { coursesOfTeacher, studentName, useDb } from '../school/db'
+import { TeacherContext, type TeacherCtx } from './context'
+
+const Home = lazy(() => import('./pages/Home'))
+const Classes = lazy(() => import('./pages/Classes'))
+const Schedule = lazy(() => import('./pages/Schedule'))
+const Tasks = lazy(() => import('./pages/Tasks'))
+const Attendance = lazy(() => import('./pages/Attendance'))
+const Messages = lazy(() => import('./pages/Messages'))
+const Profile = lazy(() => import('./pages/Profile'))
+
+const TABS = ['/teacher', '/teacher/classes', '/teacher/assignments', '/teacher/messages']
+
+export default function TeacherPanel() {
+  const session = useTeacher()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const db = useDb()
+  const [now, setNow] = useState<Date | null>(null)
+
+  useEffect(() => {
+    if (!getTeacher()) { navigate(`/login?role=teacher&next=${encodeURIComponent(pathname)}`, { replace: true }); return }
+    setNow(new Date())
+    const id = window.setInterval(() => setNow(new Date()), 60000)
+    return () => window.clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => { if (now && !session) navigate('/login?role=teacher', { replace: true }) }, [session, now, navigate])
+
+  const teacher = TEACHERS.find((t) => t.id === session?.teacherId) ?? TEACHERS[0]
+  const courses = useMemo(() => coursesOfTeacher(teacher.id), [teacher.id])
+  const ids = courses.map((c) => c.id)
+
+  const ctx = useMemo<TeacherCtx | null>(() => (session && now ? {
+    session, teacher, courses, db, now,
+    name: (id: string) => studentName(db, id, getSession()?.name),
+  } : null), [session, teacher, courses, db, now])
+
+  const myTasks = db.tasks.filter((t) => ids.includes(t.courseId))
+  const toGrade = db.submissions.filter((s) => s.score == null && myTasks.some((t) => t.id === s.taskId))
+  const unread = db.messages.filter((m) => ids.includes(m.courseId) && m.from === 'student' && !m.read)
+
+  const nav: NavItem[] = [
+    { to: '/teacher', label: 'پیشخوان', icon: Icon.dashboard, end: true },
+    { to: '/teacher/classes', label: 'کلاس‌های من', short: 'کلاس‌ها', icon: Icon.users },
+    { to: '/teacher/schedule', label: 'برنامهٔ تدریس', icon: Icon.calendar },
+    { to: '/teacher/assignments', label: 'تکالیف و نمره‌دهی', short: 'نمره‌دهی', icon: Icon.tasks, badge: toGrade.length },
+    { to: '/teacher/attendance', label: 'حضور و غیاب', icon: Icon.checklist },
+    { to: '/teacher/messages', label: 'پیام‌ها', icon: Icon.chat, badge: unread.length },
+    { to: '/teacher/profile', label: 'پروفایل و تنظیمات', icon: Icon.user },
+  ]
+
+  const notices = useMemo<NoticeItem[] | null>(() => (ctx ? [
+    ...toGrade.map((s) => {
+      const t = myTasks.find((x) => x.id === s.taskId)!
+      return { id: 'sub' + s.id, kind: 'assignment' as const, title: 'پاسخ تازه برای نمره‌دهی', text: `${ctx.name(s.studentId)}: «${t.title}»`, date: new Date(s.at), href: `/teacher/assignments?task=${t.id}&sub=${s.id}` }
+    }),
+    ...db.messages.filter((m) => ids.includes(m.courseId) && m.from === 'student').map((m) => ({
+      id: m.id, kind: 'message' as const, title: `پیام ${ctx.name(m.studentId)}`, text: m.text, date: new Date(m.at), href: `/teacher/messages?t=${m.courseId}~${m.studentId}` })),
+  ] : null), [ctx, db]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const logout = () => { signOutTeacher(); navigate('/', { replace: true }) }
+
+  return (
+    <Shell nav={nav} tabs={TABS} user={session ? { name: `استاد ${session.name}`, role: teacher.title } : null}
+      profileHref="/teacher/profile" appName="پنل استاد فرتاش" notices={notices} noticeKey="fartash-seen-teacher" now={now} onLogout={logout}>
+      {ctx ? (
+        <TeacherContext.Provider value={ctx}>
+          <Suspense fallback={<Skeleton />}>
+            <Routes>
+              <Route index element={<Home />} />
+              <Route path="classes" element={<Classes />} />
+              <Route path="schedule" element={<Schedule />} />
+              <Route path="assignments" element={<Tasks />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="messages" element={<Messages />} />
+              <Route path="profile" element={<Profile onLogout={logout} />} />
+              <Route path="*" element={<Navigate to="/teacher" replace />} />
+            </Routes>
+          </Suspense>
+        </TeacherContext.Provider>
+      ) : <Skeleton />}
+    </Shell>
+  )
+}
+

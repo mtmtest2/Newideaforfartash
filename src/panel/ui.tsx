@@ -32,6 +32,12 @@ export const Icon = {
   close: (s?: number) => <I size={s}><path d="M6 6l12 12M18 6L6 18" /></I>,
   lock: (s?: number) => <I size={s}><rect x="5" y="10" width="14" height="11" rx="2.5" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></I>,
   news: (s?: number) => <I size={s}><path d="M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5" /></I>,
+  chat: (s?: number) => <I size={s}><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v10a1.5 1.5 0 0 1-1.5 1.5H9l-5 4z" /><path d="M8 9h8M8 12.5h5" /></I>,
+  send: (s?: number) => <I size={s}><path d="M20 4L3 11l6.5 2.5L12 20zM9.5 13.5L20 4" /></I>,
+  users: (s?: number) => <I size={s}><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.8-3.6 3.3-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.8.7 3 2.4 3.5 5.2" /></I>,
+  checklist: (s?: number) => <I size={s}><path d="M4 6l1.5 1.5L8.5 4.5M4 12l1.5 1.5 3-3M4 18l1.5 1.5 3-3M12 6h8M12 12h8M12 18h8" /></I>,
+  megaphone: (s?: number) => <I size={s}><path d="M4 10v4a1 1 0 0 0 1 1h2l8 4V5L7 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6M8 15l1 5h2.5l-1-5" /></I>,
+  pen: (s?: number) => <I size={s}><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16zM13.5 6.5l4 4" /></I>,
   chevronLeft: (s?: number) => <I size={s}><path d="M15 6l-6 6 6 6" /></I>,
   chevronRight: (s?: number) => <I size={s}><path d="M9 6l6 6-6 6" /></I>,
 }

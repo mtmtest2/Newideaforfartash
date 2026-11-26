@@ -3,11 +3,12 @@ import { fa } from '../../lib/fa'
 import { formatTime, relativeDay, WEEKDAYS } from '../../lib/jalali'
 import { COURSES } from '../data'
 import { usePanel } from '../context'
+import { ME, attendanceOf } from '../../school/db'
 import { useQueryState } from '../hooks'
 import { Bar, Chip, Icon } from '../ui'
 
 export default function Courses() {
-  const { demo } = usePanel()
+  const { demo, db } = usePanel()
   const [filter, setFilter] = useQueryState('type', ['all', 'live', 'offline'] as const, 'all')
   const list = COURSES.filter((c) => filter === 'all' || c.type === filter)
   return (
@@ -42,6 +43,8 @@ export default function Courses() {
                   <>
                     <p className="p-course-line">{Icon.calendar(18)} {c.slots.map((s) => WEEKDAYS[s.weekday]).join('، ')} • ساعت {formatTime(new Date(2000, 0, 1, c.slots[0].start[0], c.slots[0].start[1]))}</p>
                     {next && <p className="p-course-line">{Icon.clock(18)} جلسهٔ بعد: {relativeDay(next.start, demo.now)} ساعت {formatTime(next.start)}</p>}
+                    {(() => { const a = attendanceOf(db, c.id, ME); return a.total > 0 && (
+                      <p className="p-course-line">{Icon.checklist(18)} حضور: {fa(a.present)} از {fa(a.total)} جلسهٔ ثبت‌شده{a.late > 0 && <> • {fa(a.late)} تأخیر</>}</p>) })()}
                   </>
                 ) : (
                   <p className="p-course-line">{Icon.video(18)} {fa(c.sessions - c.done)} درس دیده‌نشده؛ هر زمان که خواستید ادامه دهید.</p>
@@ -50,7 +53,7 @@ export default function Courses() {
                   {c.type === 'live'
                     ? <Link to="/panel" className="btn btn-primary btn-sm">{Icon.live(18)} کلاس بعدی</Link>
                     : <Link to="/panel/recordings" className="btn btn-primary btn-sm">{Icon.play(18)} ادامهٔ یادگیری</Link>}
-                  <Link to="/panel/recordings" className="btn btn-ghost btn-sm">جلسات ضبط‌شده</Link>
+                  <Link to={`/panel/messages?t=${c.id}`} className="btn btn-ghost btn-sm">{Icon.chat(18)} پیام به استاد</Link>
                 </div>
               </div>
             </article>

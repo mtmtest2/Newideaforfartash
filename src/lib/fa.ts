@@ -13,3 +13,6 @@ export const faAmount = (n: number): string => faNum.format(n)
 export const faMoney = (n: number): string => `${faAmount(n)} تومان`
 
 export const isIranMobile = (v: string): boolean => /^(\+98|0098|0)?9\d{9}$/.test(toLatin(v).replace(/[\s-]/g, ''))
+
+/** A number that may have decimals, with Persian digits and the Persian decimal separator (۱۸٫۵). */
+export const faDec = (n: number, digits = 1): string => fa(String(Number(n.toFixed(digits)))).replace('.', '٫')

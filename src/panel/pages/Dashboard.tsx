@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fa } from '../../lib/fa'
+import { fa, faDec } from '../../lib/fa'
 import { formatDate, formatDuration, formatTime, relativeDay, WEEKDAYS, WEEKDAYS_SHORT, weekdayIndex } from '../../lib/jalali'
-import { COURSES, type Session } from '../data'
+import { COURSES, courseById, type Session } from '../data'
+import { ME } from '../../school/db'
 import { usePanel } from '../context'
 import { JOIN_EARLY_MS, useNow } from '../hooks'
 import { Bar, Chip, Icon, Modal } from '../ui'
@@ -45,7 +46,7 @@ export function NextClassCard({ s, compact = false }: { s: Session; compact?: bo
 }
 
 export default function Dashboard() {
-  const { session, demo, assignments } = usePanel()
+  const { session, demo, assignments, avgScore, db } = usePanel()
   const { stats, now } = demo
   const first = session.name.trim().split(/\s+/)[0]
   const pending = assignments.filter((a) => a.status === 'pending').sort((a, b) => a.due.getTime() - b.due.getTime())
@@ -92,7 +93,7 @@ export default function Dashboard() {
           </div>
           <div><dt>جلسه‌های گذرانده</dt><dd><b>{fa(stats.sessionsDone)}</b> از {fa(stats.sessionsTotal)}</dd></div>
           <div><dt>یادگیری در این ماه</dt><dd><b>{fa(stats.hoursThisMonth)}</b> ساعت</dd></div>
-          <div><dt>میانگین نمره</dt><dd><b>{fa(stats.avgScore.toFixed(1).replace(/\.0$/, '')).replace('.', '٫')}</b> از ۲۰</dd></div>
+          <div><dt>میانگین نمره</dt><dd><b>{avgScore == null ? '—' : faDec(avgScore)}</b> از ۲۰</dd></div>
           <div><dt>تمرین پیاپی</dt><dd><b>{fa(stats.streak)}</b> روز</dd></div>
         </dl>
       </section>
@@ -145,10 +146,12 @@ export default function Dashboard() {
         </section>
 
         <section className="p-card">
-          <header className="p-card-head"><h2>اطلاعیه‌ها</h2></header>
+          <header className="p-card-head"><h2>اطلاعیه‌ها</h2><Link to="/panel/messages">پیام به استاد {Icon.chevronLeft(16)}</Link></header>
           <ul className="p-list">
-            {demo.notices.filter((n) => n.kind === 'news' || n.kind === 'payment').map((n) => (
-              <li key={n.id}><div><b>{n.title}</b><small>{n.text}</small></div><time className="p-muted p-time">{relativeDay(n.date, now)}</time></li>
+            {[...db.announcements.filter((a) => db.rosters[a.courseId]?.includes(ME)).map((a) => ({ id: a.id, title: a.title, text: a.text, by: courseById(a.courseId).teacher, date: new Date(a.at) })),
+              ...demo.notices.filter((n) => n.kind === 'news').map((n) => ({ ...n, by: 'آموزشگاه فرتاش' }))]
+              .sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 4).map((n) => (
+              <li key={n.id}><div><b>{n.title}</b><small>{n.text}</small><small className="p-by">{n.by}</small></div><time className="p-muted p-time">{relativeDay(n.date, now)}</time></li>
             ))}
           </ul>
         </section>

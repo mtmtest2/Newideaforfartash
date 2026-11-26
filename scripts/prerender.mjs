@@ -17,9 +17,13 @@ const ROUTES = [
   { url: '/placement', title: 'تعیین سطح رایگان | فرتاش', description: 'پیش از شروع کلاس، سطح زبانتان را رایگان بسنجید تا در کلاس مناسب خودتان قرار بگیرید.' },
   { url: '/login', title: 'ورود / عضویت | فرتاش', description: 'ورود یا ساخت حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
   // Student panel: private, so noindex and not in the sitemap. Prerendered as a skeleton (data is client-only).
-  ...[['', 'داشبورد'], ['/courses', 'دوره‌های من'], ['/schedule', 'برنامهٔ کلاس‌ها'], ['/assignments', 'تکالیف و آزمون‌ها'],
+  ...[['', 'داشبورد'], ['/courses', 'دوره‌های من'], ['/schedule', 'برنامهٔ کلاس‌ها'], ['/assignments', 'تکالیف و آزمون‌ها'], ['/messages', 'پیام به استاد'],
     ['/recordings', 'جلسات ضبط‌شده'], ['/certificates', 'گواهی‌ها'], ['/payments', 'پرداخت‌ها'], ['/support', 'پشتیبانی'], ['/profile', 'پروفایل و تنظیمات']]
     .map(([p, t]) => ({ url: '/panel' + p, title: `${t} | پنل فرتاش`, description: 'پنل زبان‌آموزان فرتاش.', noindex: true })),
+  // Teacher panel: same treatment.
+  ...[['', 'پیشخوان'], ['/classes', 'کلاس‌های من'], ['/schedule', 'برنامهٔ تدریس'], ['/assignments', 'تکالیف و نمره‌دهی'],
+    ['/attendance', 'حضور و غیاب'], ['/messages', 'پیام‌ها'], ['/profile', 'پروفایل و تنظیمات']]
+    .map(([p, t]) => ({ url: '/teacher' + p, title: `${t} | پنل استاد فرتاش`, description: 'پنل اساتید فرتاش.', noindex: true })),
 ]
 
 // Inline (in the theme script, which already knows the theme before first paint): preload the active

@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Moon, Sun, User } from './Icons'
 import { useTheme } from '../lib/hooks'
 import { LOGO } from '../assets'
-import { useSession } from '../panel/session'
+import { useSession, useTeacher } from '../panel/session'
 
 const NAV = [
   { href: '/#home', label: 'خانه' },
@@ -43,7 +43,9 @@ export function ThemeToggle() {
 }
 
 export default function Header() {
-  const signedIn = !!useSession()
+  const student = !!useSession()
+  const teacher = !!useTeacher()
+  const account = student ? { to: '/panel', label: 'پنل کاربری' } : teacher ? { to: '/teacher', label: 'پنل استاد' } : null
   const [scrolled, setScrolled] = useState(false)
   const { pathname, hash } = useLocation()
   const current = pathname === '/' ? `/${hash || '#home'}` : pathname
@@ -68,9 +70,9 @@ export default function Header() {
         </nav>
         <div className="header-actions">
           {/* server snapshot is "signed out", so this hydrates cleanly and switches after mount */}
-          <Link to={signedIn ? '/panel' : '/login'} className="btn btn-primary btn-sm login-btn" aria-label={signedIn ? 'پنل کاربری' : 'ورود / عضویت'}>
+          <Link to={account?.to ?? '/login'} className="btn btn-primary btn-sm login-btn" aria-label={account?.label ?? 'ورود / عضویت'}>
             <User width={18} height={18} />
-            <span>{signedIn ? 'پنل کاربری' : 'ورود / عضویت'}</span>
+            <span>{account?.label ?? 'ورود / عضویت'}</span>
           </Link>
           <ThemeToggle />
         </div>

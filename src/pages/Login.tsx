@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { getSession, signIn } from '../panel/session'
+import { getSession, getTeacher, signIn, signInTeacher } from '../panel/session'
 import { ArrowLeft, Bars, ChevronRight, Flag, Leaf, Phone, Star, User } from '../components/Icons'
 import { HERO } from '../assets'
 import { PROFS } from '../data'
@@ -17,14 +17,17 @@ export default function Login() {
   const [err, setErr] = useState('')
   const [name, setName] = useState('')
   const navigate = useNavigate()
-  const [params] = useSearchParams()
-  // only allow in-panel redirect targets
-  const next = (params.get('next') || '').startsWith('/panel') ? params.get('next')! : '/panel'
+  const [params, setParams] = useSearchParams()
+  const teacher = params.get('role') === 'teacher'
+  const home = teacher ? '/teacher' : '/panel'
+  // only allow redirect targets inside the matching panel
+  const next = (params.get('next') || '').startsWith(home) ? params.get('next')! : home
   useEffect(() => {
-    document.title = 'ورود / عضویت | فرتاش'
-    if (getSession()) navigate(next, { replace: true }) // already signed in
+    document.title = teacher ? 'ورود اساتید | فرتاش' : 'ورود / عضویت | فرتاش'
+    if (teacher ? getTeacher() : getSession()) navigate(next, { replace: true }) // already signed in
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [teacher])
+  const switchRole = () => { setParams(teacher ? {} : { role: 'teacher' }, { replace: true }); setMode('login'); setStep('phone'); setErr('') }
 
   const onPhone = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -41,7 +44,9 @@ export default function Login() {
     if (!/^\d{5}$/.test(code)) return setErr('کد تأیید ۵ رقمی را وارد کنید.')
     setErr('')
     // Demo sign-in (no backend yet): a sample name is used for existing accounts.
-    signIn({ name: mode === 'signup' && name ? name : 'سارا رضایی', phone: toLatin(phone).replace(/[\s-]/g, '') })
+    const cleanPhone = toLatin(phone).replace(/[\s-]/g, '')
+    if (teacher) signInTeacher({ teacherId: 'arman', name: 'آرمان کیانی', phone: cleanPhone })
+    else signIn({ name: mode === 'signup' && name ? name : 'سارا رضایی', phone: cleanPhone })
     navigate(next, { replace: true })
   }
 
@@ -56,15 +61,15 @@ export default function Login() {
       </div>
       <div className="login-body container">
       <div className="login-card card">
-        <div className="seg" role="tablist" aria-label="ورود یا عضویت">
+        {!teacher && <div className="seg" role="tablist" aria-label="ورود یا عضویت">
           <button role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'on' : ''} onClick={() => { setMode('login'); setStep('phone'); setErr('') }}>ورود</button>
           <button role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'on' : ''} onClick={() => { setMode('signup'); setStep('phone'); setErr('') }}>عضویت</button>
-        </div>
+        </div>}
 
         {step === 'phone' && (
           <form onSubmit={onPhone} noValidate>
-            <h1>{mode === 'login' ? 'ورود به حساب کاربری' : 'ساخت حساب کاربری'}</h1>
-            <p>{mode === 'login' ? 'شمارهٔ موبایلتان را وارد کنید تا کد تأیید برایتان پیامک شود.' : 'نام و شمارهٔ موبایلتان را وارد کنید تا حساب کاربری‌تان ساخته شود.'}</p>
+            <h1>{teacher ? 'ورود اساتید' : mode === 'login' ? 'ورود به حساب کاربری' : 'ساخت حساب کاربری'}</h1>
+            <p>{teacher ? 'شمارهٔ موبایلی را وارد کنید که در آموزشگاه ثبت کرده‌اید.' : mode === 'login' ? 'شمارهٔ موبایلتان را وارد کنید تا کد تأیید برایتان پیامک شود.' : 'نام و شمارهٔ موبایلتان را وارد کنید تا حساب کاربری‌تان ساخته شود.'}</p>
             {mode === 'signup' && (
               <label className="field"><span className="sr">نام و نام‌خانوادگی</span><input name="name" placeholder="نام و نام‌خانوادگی" autoComplete="name" /><User width={18} height={18} /></label>
             )}
@@ -79,11 +84,12 @@ export default function Login() {
             <p>کد ۵ رقمی پیامک‌شده به <bdi dir="ltr">{fa(toLatin(phone))}</bdi> را وارد کنید.</p>
             <label className="field"><span className="sr">کد تأیید</span><input name="code" placeholder="• • • • •" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={5} className="ltr-in code-in" autoFocus /></label>
             {err && <p className="err" role="alert">{err}</p>}
-            <p className="demo-note">نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود.</p>
-            <button className="btn btn-primary btn-block" type="submit">{mode === 'login' ? 'ورود به پنل' : 'ساخت حساب و ورود'}</button>
+            <p className="demo-note">{teacher ? 'نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود و با حساب «آرمان کیانی» وارد می‌شوید.' : 'نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود.'}</p>
+            <button className="btn btn-primary btn-block" type="submit">{teacher ? 'ورود به پنل استاد' : mode === 'login' ? 'ورود به پنل' : 'ساخت حساب و ورود'}</button>
             <button type="button" className="link-btn" onClick={() => { setStep('phone'); setErr('') }}>ویرایش شماره</button>
           </form>
         )}
+        <button type="button" className="link-btn role-switch" onClick={switchRole}>{teacher ? 'زبان‌آموز هستید؟ ورود زبان‌آموزان' : 'استاد فرتاش هستید؟ ورود اساتید'}</button>
         <Link to="/" className="back-link"><ChevronRight width={16} height={16} /> بازگشت به صفحهٔ اصلی</Link>
       </div>
       <LoginAside />

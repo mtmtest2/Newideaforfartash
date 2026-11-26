@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { fa } from '../../lib/fa'
+import { fa, faDec } from '../../lib/fa'
 import { formatDate, formatTime, relativeDay } from '../../lib/jalali'
 import type { Assignment } from '../data'
 import { usePanel } from '../context'
@@ -24,7 +24,7 @@ export default function Assignments() {
     const file = f.get('file') as File | null
     if (!String(f.get('answer') || '').trim() && !(file && file.size)) { setErr('پاسخ را بنویسید یا فایل آن را پیوست کنید.'); return fieldError(e.currentTarget, 'answer') }
     setErr('')
-    if (active) submitAssignment(active.id)
+    if (active) submitAssignment(active.id, String(f.get('answer') || '').trim(), file && file.size ? file.name : undefined)
     setActive(null)
   }
 
@@ -57,8 +57,8 @@ export default function Assignments() {
                 </div>
                 <div className="p-task-side">
                   {a.status === 'pending' && <><Chip tone={urgent ? 'warn' : 'navy'}>در انتظار</Chip><button type="button" className="btn btn-primary btn-sm" onClick={() => setActive(a)}>{Icon.upload(18)} {a.kind === 'آزمونک' ? 'شروع آزمونک' : 'ارسال پاسخ'}</button></>}
-                  {a.status === 'submitted' && <><Chip tone="sky">ارسال شد</Chip><small className="p-muted">در انتظار بررسی استاد</small></>}
-                  {a.status === 'graded' && <><span className="p-score"><b>{fa(a.score!)}</b><small>از {fa(a.max!)}</small></span><button type="button" className="btn btn-ghost btn-sm" onClick={() => setView(a)}>بازخورد استاد</button></>}
+                  {a.status === 'submitted' && <><Chip tone="sky">ارسال شد</Chip><button type="button" className="btn btn-ghost btn-sm" onClick={() => setView(a)}>پاسخ من</button></>}
+                  {a.status === 'graded' && <><span className="p-score"><b>{faDec(a.score!, 2)}</b><small>از {fa(a.max!)}</small></span><button type="button" className="btn btn-ghost btn-sm" onClick={() => setView(a)}>بازخورد استاد</button></>}
                 </div>
               </li>
             )
@@ -70,6 +70,7 @@ export default function Assignments() {
         {active && (
           <form className="p-form" onSubmit={submit} noValidate>
             <p className="p-modal-text"><b>{active.title}</b><br />{active.course.title} <bdi>{active.course.level}</bdi> • مهلت: {relativeDay(active.due, demo.now)}</p>
+            {active.desc && <p className="p-task-desc">{active.desc}</p>}
             <label className="p-field"><span>پاسخ شما</span><textarea name="answer" rows={5} placeholder="پاسخ را اینجا بنویسید…" aria-invalid={!!err} aria-describedby={err ? 'err-answer' : undefined} />
               {err && <small className="err" id="err-answer" role="alert">{err}</small>}</label>
             <label className="p-field"><span>پیوست (اختیاری)</span><input name="file" type="file" accept=".pdf,.doc,.docx,.jpg,.png,.mp3,.m4a" /><small className="p-muted">PDF، Word، تصویر یا فایل صوتی؛ حداکثر ۱۰ مگابایت</small></label>
@@ -78,13 +79,18 @@ export default function Assignments() {
         )}
       </Modal>
 
-      <Modal open={!!view} onClose={() => setView(null)} title="بازخورد استاد">
+      <Modal open={!!view} onClose={() => setView(null)} title={view?.status === 'graded' ? 'نمره و بازخورد استاد' : 'پاسخ ارسال‌شده'}>
         {view && (
           <div className="p-feedback">
-            <span className="p-score big"><b>{fa(view.score!)}</b><small>از {fa(view.max!)}</small></span>
+            {view.status === 'graded' && <span className="p-score big"><b>{faDec(view.score!, 2)}</b><small>از {fa(view.max!)}</small></span>}
             <p><b>{view.title}</b></p>
-            <blockquote>{view.feedback}</blockquote>
-            <small className="p-muted">{view.course.teacher}</small>
+            {view.status === 'graded' && view.feedback && <><blockquote>{view.feedback}</blockquote><small className="p-muted">{view.course.teacher}</small></>}
+            {view.status === 'submitted' && <p className="p-muted">{view.course.teacher} هنوز پاسخ را بررسی نکرده است. نمره که ثبت شود، اعلان می‌گیرید.</p>}
+            <div className="p-answer">
+              <small className="p-muted">پاسخ شما{view.submittedAt && <> • {formatDate(view.submittedAt, false)} ساعت {formatTime(view.submittedAt)}</>}</small>
+              {view.answer && <p>{view.answer}</p>}
+              {view.file && <span className="p-file">{Icon.upload(16)} <bdi dir="ltr">{view.file}</bdi></span>}
+            </div>
           </div>
         )}
       </Modal>

@@ -12,7 +12,6 @@ const GOALS = ['مکالمهٔ روزمره', 'مهاجرت', 'تحصیل', 'ک�
 
 export default function Profile({ onLogout }: { onLogout: () => void }) {
   const { session } = usePanel()
-  const { theme, toggle } = useTheme()
   const [saved, setSaved] = useState(false)
   const [err, setErr] = useState<{ field: 'name' | 'email'; msg: string } | null>(null)
 
@@ -61,15 +60,23 @@ export default function Profile({ onLogout }: { onLogout: () => void }) {
         <button type="submit" className="btn btn-primary">ذخیرهٔ تغییرات</button>
       </form>
 
-      <section className="p-card">
-        <h2 className="p-section-title">ظاهر</h2>
-        <div className="p-theme-pick" role="radiogroup" aria-label="حالت نمایش">
-          <button type="button" role="radio" aria-checked={theme === 'light'} className={theme === 'light' ? 'on' : ''} onClick={() => theme !== 'light' && toggle()}><Sun width={20} height={20} /> حالت روز</button>
-          <button type="button" role="radio" aria-checked={theme === 'dark'} className={theme === 'dark' ? 'on' : ''} onClick={() => theme !== 'dark' && toggle()}><Moon width={20} height={20} /> حالت شب</button>
-        </div>
-      </section>
+      <ThemeSection />
 
       <button type="button" className="btn btn-ghost p-logout" onClick={onLogout}>{Icon.logout(20)} خروج از حساب کاربری</button>
     </div>
+  )
+}
+
+/** Day/night choice; shared with the teacher profile. */
+export function ThemeSection() {
+  const { theme, toggle } = useTheme()
+  return (
+    <section className="p-card">
+      <h2 className="p-section-title">ظاهر</h2>
+      <div className="p-theme-pick" role="radiogroup" aria-label="حالت نمایش">
+        <button type="button" role="radio" aria-checked={theme === 'light'} className={theme === 'light' ? 'on' : ''} onClick={() => theme !== 'light' && toggle()}><Sun width={20} height={20} /> حالت روز</button>
+        <button type="button" role="radio" aria-checked={theme === 'dark'} className={theme === 'dark' ? 'on' : ''} onClick={() => theme !== 'dark' && toggle()}><Moon width={20} height={20} /> حالت شب</button>
+      </div>
+    </section>
   )
 }
