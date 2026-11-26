@@ -1,6 +1,6 @@
 import { courseById, COURSES } from '../data'
 import { usePanel } from '../context'
-import { ME, authorName, markGroupRead, reader, sendMessage, unreadIn } from '../../school/db'
+import { ME, authorName, editMessage, markGroupRead, reader, sendMessage, unreadIn } from '../../school/db'
 import Chat, { type ChatGroup } from '../Chat'
 
 /** Student side: the group chat of each class they are in (groups are created by reception). */
@@ -22,6 +22,7 @@ export default function Messages() {
       <Chat groups={groups} me={me} now={demo.now} emptyText="پذیرش هنوز گروه کلاس‌هایتان را نساخته است."
         nameOf={(m) => authorName(db, m, session.name)}
         onSend={(g, text) => sendMessage(g.id, 'student', ME, text)}
+        onEdit={(m, text) => editMessage(m.id, 'student', ME, text)}
         onRead={(g) => markGroupRead(g.id, me)} />
       {missing.length > 0 && <p className="p-muted p-form-note">گروه {missing.map((c) => `«${c.title} ${c.level}»`).join(' و ')} هنوز ساخته نشده است؛ پذیرش آن را می‌سازد.</p>}
     </div>

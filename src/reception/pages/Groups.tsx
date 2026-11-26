@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import Chat, { type ChatGroup } from '../../panel/Chat'
 import { COURSES, courseById } from '../../panel/data'
 import { fa } from '../../lib/fa'
-import { DESK, authorName, markGroupRead, reader, removeMessage, restoreMessage, sendMessage, setGroupLocked, unreadIn } from '../../school/db'
+import { DESK, authorName, markGroupRead, reader, canRemove, editMessage, removeMessage, restoreMessage, sendMessage, setGroupLocked, unreadIn } from '../../school/db'
 import { useReceptionPanel } from '../context'
 import { CreateGroup } from '../parts'
 
@@ -10,7 +9,6 @@ import { CreateGroup } from '../parts'
 export default function Groups() {
   const { db, now, name } = useReceptionPanel()
   const me = reader('reception', DESK)
-  const [removed, setRemoved] = useState<string | null>(null)
   const missing = COURSES.filter((c) => !db.groups.some((g) => g.courseId === c.id))
   const groups: ChatGroup[] = db.groups.map((g) => {
     const c = courseById(g.courseId)
@@ -40,11 +38,13 @@ export default function Groups() {
         nameOf={(m) => (m.role === 'student' ? name(m.authorId) : authorName(db, m))}
         onSend={(g, text) => sendMessage(g.id, 'reception', DESK, text)}
         onRead={(g) => markGroupRead(g.id, me)}
-        moderate={{ remove: (m) => { removeMessage(m.id); setRemoved(m.id) }, lock: (g, locked) => setGroupLocked(g.id, locked) }} />
-      {removed && (
-        <p className="p-undo" role="status">پیام حذف شد و برای اعضا «این پیام را پذیرش حذف کرد» نشان داده می‌شود.
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => { restoreMessage(removed); setRemoved(null) }}>بازگرداندن پیام</button></p>
-      )}
+        onEdit={(m, text) => editMessage(m.id, 'reception', DESK, text)}
+        moderate={{
+          canRemove: (m) => canRemove(db, m, 'reception', DESK),
+          remove: (m) => removeMessage(m.id, 'reception', DESK),
+          restore: (m) => restoreMessage(m.id),
+          lock: (g, locked) => setGroupLocked(g.id, locked, 'reception', DESK),
+        }} />
     </div>
   )
 }

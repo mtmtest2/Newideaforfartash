@@ -6,6 +6,7 @@ import { Chip, Icon } from '../../panel/ui'
 import { DESK, authorName, reader, sameDayIso, unreadIn } from '../../school/db'
 import { useReceptionPanel } from '../context'
 import { CreateGroup, JoinClass } from '../parts'
+import History from '../History'
 
 export default function Home() {
   const { session, db, now, name } = useReceptionPanel()
@@ -70,6 +71,8 @@ export default function Home() {
           <div><dt>خوانده‌نشده</dt><dd><b>{fa(unread.length)}</b> پیام</dd></div>
         </dl>
       </section>
+
+      <History />
 
       <section className="p-card">
         <header className="p-card-head"><h2>پیام‌های تازهٔ گروه‌ها</h2><Link to="/reception/groups">بررسی گروه‌ها {Icon.chevronLeft(16)}</Link></header>

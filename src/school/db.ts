@@ -12,18 +12,32 @@ export type Task = { id: string; courseId: string; title: string; kind: 'تکل�
 export type Submission = { id: string; taskId: string; studentId: string; answer: string; file?: string; at: string; score?: number; feedback?: string; gradedAt?: string }
 /** One group chat per class. Only reception creates groups; a locked group is read-only for students and the teacher. */
 export type Group = { id: string; courseId: string; createdAt: string; locked: boolean }
-export type Message = { id: string; groupId: string; role: Role; authorId: string; text: string; at: string; deleted?: boolean }
+export type Message = {
+  id: string; groupId: string; role: Role; authorId: string; text: string; at: string
+  editedAt?: string
+  /** removed by a moderator (the class teacher or reception); the text stays for the history */
+  deleted?: boolean; deletedBy?: { role: Role; id: string }
+}
+/** Moderation history (reception dashboard): who removed or edited which message, with the original text. */
+export type LogEntry = {
+  id: string; groupId: string; messageId: string; action: 'delete' | 'edit'
+  by: { role: Role; id: string }; at: string
+  author: { role: Role; id: string }
+  before: string; after?: string
+  restoredAt?: string
+}
 /** Who is reading: `${role}:${id}` (student:me, teacher:arman, reception:desk). */
 export type Reader = string
 export type Announcement = { id: string; courseId: string; title: string; text: string; at: string }
 export type Db = {
-  v: 2; seededAt: string
+  v: 3; seededAt: string
   students: Student[]
   rosters: Record<string, string[]>
   tasks: Task[]
   submissions: Submission[]
   groups: Group[]
   messages: Message[]
+  log: LogEntry[]
   /** reader -> groupId -> ISO time they last opened the group */
   reads: Record<Reader, Record<string, string>>
   announcements: Announcement[]
@@ -98,6 +112,15 @@ function seed(now = new Date()): Db {
     m('g-de-a2', 'reception', DESK, welcome('آلمانی عمومی A2'), 18, 10, 0),
     m('g-de-a2', 'teacher', 'mahsa', 'برای آزمونک فصل ۳، جدول فعل‌های بی‌قاعدهٔ صفحهٔ ۳۸ را مرور کنید.', 2, 12, 30),
     m('g-de-a2', 'student', 's9', 'ممنون استاد.', 2, 13, 2),
+    m('g-de-a2', 'student', 's11', 'کسی جزوهٔ آمادگی آزمون گوته دارد که بفروشد؟ شماره‌ام را خصوصی بدهید.', 1, 16, 40),
+  ]
+  const off = messages[messages.length - 1]
+  Object.assign(off, { deleted: true, deletedBy: { role: 'reception', id: DESK } })
+  const edited = messages.find((x) => x.authorId === 's5')!
+  edited.editedAt = at(0, 10, 26)
+  const log: LogEntry[] = [
+    { id: 'l1', groupId: 'g-de-a2', messageId: off.id, action: 'delete', by: { role: 'reception', id: DESK }, at: at(-1, 17, 5), author: { role: 'student', id: 's11' }, before: off.text },
+    { id: 'l2', groupId: 'g-en-b1', messageId: edited.id, action: 'edit', by: { role: 'student', id: 's5' }, at: at(0, 10, 26), author: { role: 'student', id: 's5' }, before: 'مهلت متن سفر کی است؟', after: edited.text },
   ]
   const reads: Db['reads'] = {
     [reader('student', ME)]: { 'g-en-b1': at(-1, 21, 10), 'g-de-a2': at(-2, 12, 0) },
@@ -121,7 +144,7 @@ function seed(now = new Date()): Db {
     attendance[sessionKey(s.course.id, s.start)] = marks
   })
 
-  return { v: 2, seededAt: iso(now), students, rosters, tasks, submissions: subs, groups, messages, reads, announcements, attendance }
+  return { v: 3, seededAt: iso(now), students, rosters, tasks, submissions: subs, groups, messages, log, reads, announcements, attendance }
 }
 
 /* ---------- store ---------- */
@@ -134,7 +157,7 @@ function load(): Db {
   if (cache.db && raw === cache.raw) return cache.db
   let db: Db | null = null
   try { db = raw ? (JSON.parse(raw) as Db) : null } catch { db = null }
-  const stale = !db || db.v !== 2 || Date.now() - new Date(db.seededAt).getTime() > MAX_AGE_DAYS * 86400000
+  const stale = !db || db.v !== 3 || Date.now() - new Date(db.seededAt).getTime() > MAX_AGE_DAYS * 86400000
   if (stale) {
     db = seed()
     raw = JSON.stringify(db)
@@ -162,7 +185,7 @@ const subscribe = (cb: () => void) => {
 }
 // Prerendered HTML (and hydration) sees an empty school: badges and counts appear right after mount,
 // so the server markup always matches the first client render.
-const EMPTY: Db = { v: 2, seededAt: '', students: [], rosters: {}, tasks: [], submissions: [], groups: [], messages: [], reads: {}, announcements: [], attendance: {} }
+const EMPTY: Db = { v: 3, seededAt: '', students: [], rosters: {}, tasks: [], submissions: [], groups: [], messages: [], log: [], reads: {}, announcements: [], attendance: {} }
 export const useDb = () => useSyncExternalStore(subscribe, load, () => EMPTY)
 
 /* ---------- actions ---------- */
@@ -187,19 +210,53 @@ export const createGroup = (courseId: string) => commit((db) => {
 })
 export const sendMessage = (groupId: string, role: Role, authorId: string, text: string) => commit((db) => {
   const g = db.groups.find((x) => x.id === groupId)
-  if (!g || (g.locked && role !== 'reception')) return
+  if (!g || (g.locked && !canModerate(db, groupId, role, authorId))) return
   const at = new Date().toISOString()
   db.messages.push({ id: uid('m'), groupId, role, authorId, text, at })
   ;(db.reads[reader(role, authorId)] ??= {})[groupId] = at
 })
 /** Reception moderation: the message stays in place as "removed by reception". */
-export const removeMessage = (id: string) => commit((db) => { const m = db.messages.find((x) => x.id === id); if (m) m.deleted = true })
-export const setGroupLocked = (groupId: string, locked: boolean) => commit((db) => {
+/** Class teacher and reception moderate a group. Reception can remove anything except its own notices;
+ *  the teacher can remove students' messages and their own, not reception's. */
+export const canModerate = (db: Db, groupId: string, role: Role, id: string) => {
+  if (role === 'reception') return true
   const g = db.groups.find((x) => x.id === groupId)
-  if (!g || g.locked === locked) return
+  return role === 'teacher' && !!g && COURSES.some((c) => c.id === g.courseId && c.teacherId === id)
+}
+export const canRemove = (db: Db, m: Message, role: Role, id: string) =>
+  !m.deleted && canModerate(db, m.groupId, role, id) && m.role !== 'reception' && (role === 'reception' || m.role === 'student' || m.authorId === id)
+
+export const removeMessage = (msgId: string, role: Role, id: string) => commit((db) => {
+  const m = db.messages.find((x) => x.id === msgId)
+  if (!m || !canRemove(db, m, role, id)) return
+  Object.assign(m, { deleted: true, deletedBy: { role, id } })
+  db.log.unshift({ id: uid('l'), groupId: m.groupId, messageId: m.id, action: 'delete', by: { role, id }, at: new Date().toISOString(), author: { role: m.role, id: m.authorId }, before: m.text })
+})
+/** Undo a removal (the history keeps the entry, marked as restored). */
+export const restoreMessage = (msgId: string) => commit((db) => {
+  const m = db.messages.find((x) => x.id === msgId)
+  if (!m) return
+  delete m.deleted; delete m.deletedBy
+  const e = db.log.find((x) => x.messageId === msgId && x.action === 'delete' && !x.restoredAt)
+  if (e) e.restoredAt = new Date().toISOString()
+})
+/** Authors edit their own messages (not in a closed group unless they moderate it). */
+export const editMessage = (msgId: string, role: Role, id: string, text: string) => commit((db) => {
+  const m = db.messages.find((x) => x.id === msgId)
+  const g = m && db.groups.find((x) => x.id === m.groupId)
+  if (!m || !g || m.deleted || m.role !== role || m.authorId !== id || m.text === text) return
+  if (g.locked && !canModerate(db, g.id, role, id)) return
+  const at = new Date().toISOString()
+  db.log.unshift({ id: uid('l'), groupId: m.groupId, messageId: m.id, action: 'edit', by: { role, id }, at, author: { role, id }, before: m.text, after: text })
+  m.text = text; m.editedAt = at
+})
+export const setGroupLocked = (groupId: string, locked: boolean, role: Role, id: string) => commit((db) => {
+  const g = db.groups.find((x) => x.id === groupId)
+  if (!g || g.locked === locked || !canModerate(db, groupId, role, id)) return
   g.locked = locked
-  db.messages.push({ id: uid('m'), groupId, role: 'reception', authorId: DESK, at: new Date().toISOString(),
-    text: locked ? 'گروه موقتاً بسته شد؛ فقط پذیرش می‌تواند پیام بفرستد.' : 'گروه دوباره باز شد.' })
+  const who = role === 'reception' ? 'پذیرش' : 'استاد'
+  db.messages.push({ id: uid('m'), groupId, role, authorId: id, at: new Date().toISOString(),
+    text: locked ? `${who} گروه را موقتاً بست؛ فقط استاد و پذیرش می‌توانند پیام بفرستند.` : `${who} گروه را دوباره باز کرد.` })
 })
 export const markGroupRead = (groupId: string, who: Reader) => {
   const db = load()
@@ -235,4 +292,3 @@ export const groupOf = (db: Db, courseId: string) => db.groups.find((g) => g.cou
 export const authorName = (db: Db, m: Message, meName?: string) =>
   m.role === 'student' ? studentName(db, m.authorId, meName) : m.role === 'teacher' ? `استاد ${TEACHERS.find((t) => t.id === m.authorId)?.name ?? ''}` : 'پذیرش فرتاش'
 export const sameDayIso = (iso: string, d: Date) => { const x = new Date(iso); return x.getFullYear() === d.getFullYear() && x.getMonth() === d.getMonth() && x.getDate() === d.getDate() }
-export const restoreMessage = (id: string) => commit((db) => { const m = db.messages.find((x) => x.id === id); if (m) delete m.deleted })

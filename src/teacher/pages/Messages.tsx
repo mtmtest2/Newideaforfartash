@@ -1,6 +1,6 @@
 import Chat, { type ChatGroup } from '../../panel/Chat'
 import { courseById } from '../../panel/data'
-import { authorName, markGroupRead, reader, sendMessage, unreadIn } from '../../school/db'
+import { authorName, canRemove, editMessage, markGroupRead, reader, removeMessage, restoreMessage, sendMessage, setGroupLocked, unreadIn } from '../../school/db'
 import { useTeacherPanel } from '../context'
 
 /** Teacher side: the group chat of each of their classes (groups are created by reception). */
@@ -21,6 +21,13 @@ export default function Messages() {
       <Chat groups={groups} me={me} now={now} emptyText="پذیرش هنوز گروه کلاس‌هایتان را نساخته است."
         nameOf={(m) => (m.role === 'student' ? name(m.authorId) : authorName(db, m))}
         onSend={(g, text) => sendMessage(g.id, 'teacher', teacher.id, text)}
+        onEdit={(m, text) => editMessage(m.id, 'teacher', teacher.id, text)}
+        moderate={{
+          canRemove: (m) => canRemove(db, m, 'teacher', teacher.id),
+          remove: (m) => removeMessage(m.id, 'teacher', teacher.id),
+          restore: (m) => restoreMessage(m.id),
+          lock: (g, locked) => setGroupLocked(g.id, locked, 'teacher', teacher.id),
+        }}
         onRead={(g) => markGroupRead(g.id, me)} />
       {missing.length > 0 && <p className="p-muted p-form-note">گروه {missing.map((c) => `«${c.title} ${c.level}»`).join(' و ')} هنوز ساخته نشده است؛ پذیرش آن را می‌سازد.</p>}
     </div>
