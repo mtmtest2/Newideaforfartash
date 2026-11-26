@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { getSession, signIn } from '../panel/session'
 import { ArrowLeft, Bars, ChevronRight, Flag, Leaf, Phone, Star, User } from '../components/Icons'
 import { HERO } from '../assets'
 import { PROFS } from '../data'
@@ -11,17 +12,26 @@ type Mode = 'login' | 'signup'
 
 export default function Login() {
   const [mode, setMode] = useState<Mode>('login')
-  const [step, setStep] = useState<'phone' | 'code' | 'done'>('phone')
+  const [step, setStep] = useState<'phone' | 'code'>('phone')
   const [phone, setPhone] = useState('')
   const [err, setErr] = useState('')
+  const [name, setName] = useState('')
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  // only allow in-panel redirect targets
+  const next = (params.get('next') || '').startsWith('/panel') ? params.get('next')! : '/panel'
   useEffect(() => {
     document.title = 'ورود / عضویت | فرتاش'
+    if (getSession()) navigate(next, { replace: true }) // already signed in
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const onPhone = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
-    if (mode === 'signup' && !String(f.get('name') || '').trim()) return setErr('نام و نام‌خانوادگی را وارد کنید.')
+    const n = String(f.get('name') || '').trim()
+    if (mode === 'signup' && !n) return setErr('نام و نام‌خانوادگی را وارد کنید.')
+    setName(n)
     if (!isIranMobile(phone)) return setErr('شمارهٔ موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.')
     setErr(''); setStep('code')
   }
@@ -29,7 +39,10 @@ export default function Login() {
     e.preventDefault()
     const code = toLatin(String(new FormData(e.currentTarget).get('code') || ''))
     if (!/^\d{5}$/.test(code)) return setErr('کد تأیید ۵ رقمی را وارد کنید.')
-    setErr(''); setStep('done')
+    setErr('')
+    // Demo sign-in (no backend yet): a sample name is used for existing accounts.
+    signIn({ name: mode === 'signup' && name ? name : 'سارا رضایی', phone: toLatin(phone).replace(/[\s-]/g, '') })
+    navigate(next, { replace: true })
   }
 
   return (
@@ -66,16 +79,10 @@ export default function Login() {
             <p>کد ۵ رقمی پیامک‌شده به <bdi dir="ltr">{fa(toLatin(phone))}</bdi> را وارد کنید.</p>
             <label className="field"><span className="sr">کد تأیید</span><input name="code" placeholder="• • • • •" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={5} className="ltr-in code-in" autoFocus /></label>
             {err && <p className="err" role="alert">{err}</p>}
-            <button className="btn btn-primary btn-block" type="submit">{mode === 'login' ? 'ورود' : 'ساخت حساب'}</button>
+            <p className="demo-note">نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود.</p>
+            <button className="btn btn-primary btn-block" type="submit">{mode === 'login' ? 'ورود به پنل' : 'ساخت حساب و ورود'}</button>
             <button type="button" className="link-btn" onClick={() => { setStep('phone'); setErr('') }}>ویرایش شماره</button>
           </form>
-        )}
-        {step === 'done' && (
-          <div className="login-done" role="status">
-            <h1>خوش آمدید!</h1>
-            <p>این صفحه فعلاً نمایشی است و هنوز به سامانهٔ ورود متصل نشده است.</p>
-            <Link to="/" className="btn btn-primary btn-block">بازگشت به صفحهٔ اصلی <ArrowLeft width={18} height={18} /></Link>
-          </div>
         )}
         <Link to="/" className="back-link"><ChevronRight width={16} height={16} /> بازگشت به صفحهٔ اصلی</Link>
       </div>

@@ -16,6 +16,10 @@ const ROUTES = [
   { url: '/blog', title: 'همهٔ مقالات | فرتاش', description: 'مقالات کاربردی و به‌روز فرتاش برای یادگیری بهتر زبان: مکالمه، گرامر، ابزارها و عادت‌های یادگیری.' },
   { url: '/placement', title: 'تعیین سطح رایگان | فرتاش', description: 'پیش از شروع کلاس، سطح زبانتان را رایگان بسنجید تا در کلاس مناسب خودتان قرار بگیرید.' },
   { url: '/login', title: 'ورود / عضویت | فرتاش', description: 'ورود یا ساخت حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
+  // Student panel: private, so noindex and not in the sitemap. Prerendered as a skeleton (data is client-only).
+  ...[['', 'داشبورد'], ['/courses', 'دوره‌های من'], ['/schedule', 'برنامهٔ کلاس‌ها'], ['/assignments', 'تکالیف و آزمون‌ها'],
+    ['/recordings', 'جلسات ضبط‌شده'], ['/certificates', 'گواهی‌ها'], ['/payments', 'پرداخت‌ها'], ['/support', 'پشتیبانی'], ['/profile', 'پروفایل و تنظیمات']]
+    .map(([p, t]) => ({ url: '/panel' + p, title: `${t} | پنل فرتاش`, description: 'پنل زبان‌آموزان فرتاش.', noindex: true })),
 ]
 
 // Inline (in the theme script, which already knows the theme before first paint): preload the active

@@ -83,8 +83,18 @@ const ok = (name, cond, extra = '') => results.push(`${cond ? 'PASS' : 'FAIL'}  
     // login flow
     await p.goto(base + '/login'); await p.waitForTimeout(600)
     await p.fill('input[inputmode=tel]', '09121234567'); await p.click('form button[type=submit]'); await p.waitForTimeout(200)
-    await p.fill('input[name=code]', '12345'); await p.click('form button[type=submit]'); await p.waitForTimeout(200)
-    ok(T('login phone -> code -> done'), await p.isVisible('.login-done'))
+    await p.fill('input[name=code]', '12345'); await p.click('form button[type=submit]')
+    await p.waitForSelector('#panel-content .p-page', { timeout: 8000 }).catch(() => {})
+    ok(T('login phone -> code -> panel'), new URL(p.url()).pathname.startsWith('/panel') && await p.isVisible('#panel-content .p-page'))
+    for (const sec of ['courses', 'schedule', 'assignments', 'recordings', 'certificates', 'payments', 'support', 'profile']) {
+      await p.goto(base + '/panel/' + sec); await p.waitForSelector('#panel-content .p-page', { timeout: 8000 }).catch(() => {})
+      const wide = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)
+      ok(T('panel ' + sec + ' renders, no horizontal overflow'), await p.isVisible('#panel-content .p-page') && !wide)
+    }
+    await p.click('text=خروج از حساب').catch(async () => { await p.goto(base + '/panel/profile'); await p.click('.p-page >> text=خروج') })
+    await p.waitForTimeout(400)
+    await p.goto(base + '/panel'); await p.waitForURL(/\/login/, { timeout: 5000 }).catch(() => {})
+    ok(T('panel guard redirects to login after sign-out'), new URL(p.url()).pathname.startsWith('/login'))
 
     ok(T('no console/page errors'), errs.length === 0, errs.slice(0, 2).join(' | '))
     await ctx.close()
