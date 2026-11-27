@@ -1,0 +1,9 @@
+node_modules
+.next
+.env
+media/*
+private/*
+!media/.gitkeep
+!private/.gitkeep
+next-env.d.ts
+*.tsbuildinfo

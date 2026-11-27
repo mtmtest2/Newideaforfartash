@@ -11,3 +11,7 @@ docs
 .env
 .env.*
 !.env.example
+
+# the CMS is a separate app with its own image (cms/Dockerfile)
+cms
+**/node_modules

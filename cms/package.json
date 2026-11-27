@@ -1,0 +1,42 @@
+{
+  "name": "fartash-cms",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Fartash Content Hub: Payload CMS (Support Dashboard) + public content API for the Vite site.",
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "payload": "payload",
+    "generate:types": "payload generate:types",
+    "migrate": "payload migrate",
+    "migrate:create": "payload migrate:create",
+    "create-support-admin": "payload run scripts/create-support-admin.ts",
+    "seed": "payload run scripts/seed.ts",
+    "test": "node --test tests/"
+  },
+  "engines": {
+    "node": "^22.23.5 || ^24.22.3"
+  },
+  "dependencies": {
+    "@fontsource-variable/vazirmatn": "^5.3.0",
+    "@payloadcms/db-postgres": "^3.94.2",
+    "@payloadcms/next": "^3.94.2",
+    "@payloadcms/richtext-lexical": "^3.94.2",
+    "@payloadcms/translations": "^3.94.2",
+    "@payloadcms/ui": "^3.94.2",
+    "graphql": "^16.15.0",
+    "next": "^16.4.6",
+    "payload": "^3.94.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.7",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "5.9"
+  }
+}
