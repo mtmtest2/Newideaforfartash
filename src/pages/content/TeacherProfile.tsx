@@ -4,6 +4,7 @@ import { Flag } from '../../components/Icons'
 import type { FlagCode } from '../../data'
 import type { TeacherDTO } from '../../content/types'
 import { faNum } from '../../content/format'
+import { fa } from '../../lib/fa'
 import { Gate, Html, Img } from './Gate'
 
 export default function TeacherProfile() {
@@ -18,6 +19,14 @@ export default function TeacherProfile() {
               {t.levels.length > 0 && <span className="c-pill">سطح {t.levels.join('، ')}</span>}
               {t.experienceYears != null && <span className="c-pill">{faNum(t.experienceYears)} سال سابقهٔ تدریس</span>}
             </p>
+            {t.text && <p className="c-lead">{t.text}</p>}
+            {(t.students != null || t.rating != null || t.tags.length > 0) && (
+              <p className="c-stats">
+                {t.students != null && <span><b>{fa(t.students)}+</b> زبان‌آموز</span>}
+                {t.rating != null && <span>امتیاز <b>{fa(t.rating).replace('.', '٫')}</b> از ۵</span>}
+                {t.tags.length > 0 && <span>{t.tags.join(' • ')}</span>}
+              </p>
+            )}
             <Html html={t.bio} />
             {t.specializations.length > 0 && <><h2>تخصص‌ها</h2><ul className="c-list">{t.specializations.map((s) => <li key={s}>{s}</li>)}</ul></>}
             {t.qualifications.length > 0 && <><h2>مدارک تحصیلی</h2><ul className="c-list">{t.qualifications.map((s) => <li key={s}>{s}</li>)}</ul></>}

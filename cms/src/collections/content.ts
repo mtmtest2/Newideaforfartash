@@ -46,7 +46,7 @@ export const Redirects = reference({
 
 /* ---------------- magazine ---------------- */
 export const Articles = publishable({
-  slug: 'articles', labels: { singular: 'مقاله', plural: 'مجله' },
+  slug: 'articles', enableQueryPresets: true, labels: { singular: 'مقاله', plural: 'مجله' },
   publicPath: (d) => (d.slug ? `/magazine/${d.slug}` : null),
   revalidate: ['articles', 'sitemap'],
   admin: { group: G, useAsTitle: 'title', defaultColumns: ['title', 'category', 'author', '_status', 'publishedAt'], listSearchableFields: ['title', 'slug'] },
@@ -76,7 +76,7 @@ export const Articles = publishable({
 
 /* ---------------- teachers ---------------- */
 export const Teachers = publishable({
-  slug: 'teachers', labels: { singular: 'استاد', plural: 'اساتید' },
+  slug: 'teachers', enableQueryPresets: true, labels: { singular: 'استاد', plural: 'اساتید' },
   orderable: true, // drag-and-drop order = order in the directory and the homepage carousel
   publicPath: (d) => (d.slug ? `/teachers/${d.slug}` : null),
   revalidate: ['teachers', 'home', 'sitemap'],
@@ -149,7 +149,7 @@ export const Languages = publishable({
 
 /* ---------------- events ---------------- */
 export const Events = publishable({
-  slug: 'events', labels: { singular: 'رویداد', plural: 'کارگاه‌ها و رویدادها' },
+  slug: 'events', enableQueryPresets: true, labels: { singular: 'رویداد', plural: 'کارگاه‌ها و رویدادها' },
   orderable: true,
   publicPath: (d) => (d.slug ? `/events/${d.slug}` : null),
   revalidate: ['events', 'home', 'sitemap'],
@@ -166,8 +166,8 @@ export const Events = publishable({
     { type: 'tabs', tabs: [
       { label: 'زمان و مکان', fields: [
         { type: 'row', fields: [
-          { name: 'startsAt', label: 'شروع', type: 'date', required: true, index: true, admin: { date: { pickerAppearance: 'dayAndTime' } } },
-          { name: 'endsAt', label: 'پایان', type: 'date', required: true, admin: { date: { pickerAppearance: 'dayAndTime' } },
+          { name: 'startsAt', label: 'شروع', type: 'date', required: true, index: true, admin: { date: { pickerAppearance: 'dayAndTime' }, components: { afterInput: ['/components/Jalali#JalaliHint'], Cell: '/components/Jalali#JalaliCell' } } },
+          { name: 'endsAt', label: 'پایان', type: 'date', required: true, admin: { date: { pickerAppearance: 'dayAndTime' }, components: { afterInput: ['/components/Jalali#JalaliHint'], Cell: '/components/Jalali#JalaliCell' } },
             validate: (v: unknown, { siblingData }: { siblingData: Record<string, unknown> }) => !v || !siblingData.startsAt || new Date(String(v)) > new Date(String(siblingData.startsAt)) || 'پایان باید بعد از شروع باشد.' }] },
         { name: 'timezone', label: 'منطقهٔ زمانی', type: 'text', defaultValue: 'Asia/Tehran' },
         { name: 'format', label: 'نوع برگزاری', type: 'select', defaultValue: 'online', options: [{ label: 'آنلاین', value: 'online' }, { label: 'حضوری', value: 'offline' }] },
@@ -210,7 +210,7 @@ const lessonFields: Field[] = [
   { name: 'resources', label: 'فایل‌های درس', type: 'relationship', relationTo: 'private-files', hasMany: true },
 ]
 export const Courses = publishable({
-  slug: 'courses', labels: { singular: 'دورهٔ آفلاین', plural: 'دوره‌های آفلاین' },
+  slug: 'courses', enableQueryPresets: true, labels: { singular: 'دورهٔ آفلاین', plural: 'دوره‌های آفلاین' },
   orderable: true,
   publicPath: (d) => (d.slug ? `/courses/${d.slug}` : null),
   revalidate: ['courses', 'home', 'sitemap'],
@@ -255,11 +255,11 @@ export const Courses = publishable({
           { type: 'row', fields: [
             { name: 'kind', label: 'نوع', type: 'select', options: [{ label: 'درصدی', value: 'percent' }, { label: 'مبلغ ثابت', value: 'amount' }] },
             { name: 'value', label: 'مقدار', type: 'number', min: 0 }] },
-          { type: 'row', fields: [{ name: 'from', label: 'از', type: 'date' }, { name: 'to', label: 'تا', type: 'date' }] }] },
+          { type: 'row', fields: [{ name: 'from', label: 'از', type: 'date', admin: { components: { afterInput: ['/components/Jalali#JalaliHint'], Cell: '/components/Jalali#JalaliCell' } } }, { name: 'to', label: 'تا', type: 'date', admin: { components: { afterInput: ['/components/Jalali#JalaliHint'], Cell: '/components/Jalali#JalaliCell' } } }] }] },
         { name: 'enrollment', label: 'وضعیت ثبت‌نام', type: 'select', defaultValue: 'not_open', options: [
           { label: 'هنوز باز نشده', value: 'not_open' }, { label: 'باز', value: 'open' }, { label: 'بسته', value: 'closed' }] },
         { name: 'purchasable', label: 'قابل خرید', type: 'checkbox', defaultValue: false, admin: { description: 'تا راه‌اندازی سامانهٔ پرداخت، دکمهٔ خرید در سایت نمایش داده نمی‌شود.' } },
-        { type: 'row', fields: [{ name: 'availableFrom', label: 'در دسترس از', type: 'date' }, { name: 'availableTo', label: 'در دسترس تا', type: 'date' }] },
+        { type: 'row', fields: [{ name: 'availableFrom', label: 'در دسترس از', type: 'date', admin: { components: { afterInput: ['/components/Jalali#JalaliHint'], Cell: '/components/Jalali#JalaliCell' } } }, { name: 'availableTo', label: 'در دسترس تا', type: 'date', admin: { components: { afterInput: ['/components/Jalali#JalaliHint'], Cell: '/components/Jalali#JalaliCell' } } }] },
       ] },
       { label: 'سئو', fields: [seoField] },
     ] },
@@ -283,19 +283,19 @@ export const Courses = publishable({
 
 /* ---------------- public pages (controlled blocks only) ---------------- */
 const PAGE_BLOCKS = [
-  { slug: 'intro', labels: { singular: 'سرآغاز', plural: 'سرآغازها' }, fields: [
+  { slug: 'intro', labels: { singular: 'سرآغاز', plural: 'سرآغازها' }, admin: { disableBlockName: true }, fields: [
     { name: 'heading', label: 'تیتر', type: 'text', required: true }, { name: 'text', label: 'متن', type: 'textarea' },
     { name: 'image', label: 'تصویر', type: 'upload', relationTo: 'media' }] },
-  { slug: 'richText', labels: { singular: 'متن', plural: 'متن‌ها' }, fields: [{ name: 'body', label: 'متن', type: 'richText', editor: simpleEditor, required: true }] },
-  { slug: 'faq', labels: { singular: 'پرسش‌های متداول', plural: 'پرسش‌های متداول' }, fields: [
+  { slug: 'richText', labels: { singular: 'متن', plural: 'متن‌ها' }, admin: { disableBlockName: true }, fields: [{ name: 'body', label: 'متن', type: 'richText', editor: simpleEditor, required: true }] },
+  { slug: 'faq', labels: { singular: 'پرسش‌های متداول', plural: 'پرسش‌های متداول' }, admin: { disableBlockName: true }, fields: [
     { name: 'title', label: 'عنوان', type: 'text' },
     { name: 'items', label: 'پرسش‌ها', type: 'array', minRows: 1, fields: [{ name: 'q', label: 'پرسش', type: 'text', required: true }, { name: 'a', label: 'پاسخ', type: 'textarea', required: true }] }] },
-  { slug: 'cta', labels: { singular: 'دعوت به اقدام', plural: 'دعوت به اقدام' }, fields: [
+  { slug: 'cta', labels: { singular: 'دعوت به اقدام', plural: 'دعوت به اقدام' }, admin: { disableBlockName: true }, fields: [
     { name: 'heading', label: 'تیتر', type: 'text', required: true }, { name: 'text', label: 'متن', type: 'textarea' },
     { name: 'buttonLabel', label: 'متن دکمه', type: 'text', required: true },
     { name: 'href', label: 'آدرس دکمه', type: 'text', required: true, validate: (v: unknown) => /^(\/|https:\/\/)/.test(String(v ?? '')) || 'مسیر داخلی یا آدرس https.' }] },
-  { slug: 'contact', labels: { singular: 'اطلاعات تماس', plural: 'اطلاعات تماس' }, fields: [{ name: 'title', label: 'عنوان', type: 'text' }] },
-  { slug: 'announcement', labels: { singular: 'اطلاعیه', plural: 'اطلاعیه‌ها' }, fields: [
+  { slug: 'contact', labels: { singular: 'اطلاعات تماس', plural: 'اطلاعات تماس' }, admin: { disableBlockName: true }, fields: [{ name: 'title', label: 'عنوان', type: 'text' }] },
+  { slug: 'announcement', labels: { singular: 'اطلاعیه', plural: 'اطلاعیه‌ها' }, admin: { disableBlockName: true }, fields: [
     { name: 'tone', label: 'نوع', type: 'select', defaultValue: 'info', options: [{ label: 'اطلاع', value: 'info' }, { label: 'مهم', value: 'important' }] },
     { name: 'text', label: 'متن', type: 'textarea', required: true }] },
 ] as const

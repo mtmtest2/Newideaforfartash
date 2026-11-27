@@ -41,11 +41,11 @@ export function richTextToHtml(data: unknown, mediaUrl: (doc: Record<string, unk
         tip: ({ node }: { node: unknown }) => { const f = (node as { fields: { tone?: string; text?: string } }).fields; return `<aside class="m-tip m-tip-${esc(f.tone)}"><p>${esc(f.text)}</p></aside>` },
         vocab: ({ node }: { node: unknown }) => {
           const f = (node as { fields: { title?: string; items?: { term: string; meaning: string; example?: string }[] } }).fields
-          return `<section class="m-vocab">${f.title ? `<h4>${esc(f.title)}</h4>` : ''}<dl>${(f.items ?? []).map((i) => `<div><dt dir="auto">${esc(i.term)}</dt><dd>${esc(i.meaning)}${i.example ? `<small dir="auto">${esc(i.example)}</small>` : ''}</dd></div>`).join('')}</dl></section>`
+          return `<section class="m-vocab">${f.title ? `<h4>${esc(f.title)}</h4>` : ''}<dl>${(f.items ?? []).map((i) => `<div><dt><bdi dir="auto">${esc(i.term)}</bdi></dt><dd>${esc(i.meaning)}</dd>${i.example ? `<dd class="ex"><bdi dir="auto">${esc(i.example)}</bdi></dd>` : ''}</div>`).join('')}</dl></section>`
         },
         dialogue: ({ node }: { node: unknown }) => {
           const f = (node as { fields: { lines?: { speaker: string; text: string; translation?: string }[] } }).fields
-          return `<section class="m-dialogue">${(f.lines ?? []).map((l) => `<p><b>${esc(l.speaker)}:</b> <span dir="auto">${esc(l.text)}</span>${l.translation ? `<small>${esc(l.translation)}</small>` : ''}</p>`).join('')}</section>`
+          return `<section class="m-dialogue">${(f.lines ?? []).map((l) => `<div class="m-line"><b class="m-sp"><bdi>${esc(l.speaker)}</bdi></b><p><bdi dir="auto" class="m-say">${esc(l.text)}</bdi>${l.translation ? `<small>${esc(l.translation)}</small>` : ''}</p></div>`).join('')}</section>`
         },
         video: ({ node }: { node: unknown }) => {
           const f = (node as { fields: { url?: string; title?: string } }).fields

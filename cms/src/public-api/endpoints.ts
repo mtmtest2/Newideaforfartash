@@ -170,15 +170,7 @@ async function siteChrome(req: PayloadRequest, f: { offlineCourses: boolean }) {
   }
 }
 
-/* ---------- endpoints ---------- */
-const getParam = (req: PayloadRequest, k: string) => String((req.routeParams as Record<string, unknown> | undefined)?.[k] ?? '')
-const q = (req: PayloadRequest, k: string) => new URL(req.url ?? 'http://x').searchParams.get(k)
-
-export const publicEndpoints: Endpoint[] = [
-  { path: '/public/site', method: 'get', handler: guard(async (req) => json(await siteChrome(req, await flags(req)))) },
-
-  { path: '/public/home', method: 'get', handler: guard(async (req) => {
-    const f = await flags(req)
+async function buildHome(req: PayloadRequest, f: { offlineCourses: boolean }) {
     const home = await req.payload.findGlobal({ slug: 'home-layout', overrideAccess: true, req, depth: 0 })
     const [teachers, articles, events] = await Promise.all([
       req.payload.find({ collection: 'teachers', where: published([...activeTeacher, { showOnHome: { equals: true } }], false), sort: '_order', depth: 2, limit: 24, overrideAccess: true, req }),
@@ -196,15 +188,24 @@ export const publicEndpoints: Endpoint[] = [
         courses = (await req.payload.find({ collection: 'courses', where: published([...liveCourse(), { showOnHome: { equals: true } }]), sort: '_order', depth: 1, limit: 24, overrideAccess: true, req })).docs.map(courseCard)
       }
     }
-    return json({
+    return ({
       ...(await siteChrome(req, f)),
       teachers: { tag: home.teachers?.tag, title: home.teachers?.title, description: home.teachers?.description, items: teachers.docs.map(teacherCard) },
       articles: articles.docs.map(articleCard),
       // absent (not empty) when the feature is off or nothing is configured: the site renders no section at all
-      ...(f.offlineCourses && courses.length ? { courses: { tag: home.courses?.tag, title: home.courses?.title, description: home.courses?.description, visibleCards: home.courses?.visibleCards ?? 3, position: home.courses?.position ?? 'afterClasses', items: courses } } : {}),
+      ...(f.offlineCourses && courses.length ? { courses: { tag: home.courses?.tag, title: home.courses?.title, description: home.courses?.description, position: home.courses?.position ?? 'afterClasses', items: courses } } : {}),
       ...(events && events.docs.length ? { events: { title: home.events?.title, items: events.docs.map(eventCard) } } : {}),
     })
-  }) },
+}
+
+/* ---------- endpoints ---------- */
+const getParam = (req: PayloadRequest, k: string) => String((req.routeParams as Record<string, unknown> | undefined)?.[k] ?? '')
+const q = (req: PayloadRequest, k: string) => new URL(req.url ?? 'http://x').searchParams.get(k)
+
+export const publicEndpoints: Endpoint[] = [
+  { path: '/public/site', method: 'get', handler: guard(async (req) => json(await siteChrome(req, await flags(req)))) },
+
+  { path: '/public/home', method: 'get', handler: guard(async (req) => json(await buildHome(req, await flags(req)))) },
 
   { path: '/public/teachers', method: 'get', handler: guard(async (req) => {
     const r = await req.payload.find({ collection: 'teachers', where: published(activeTeacher, false), sort: '_order', depth: 2, limit: 100, overrideAccess: true, req })
@@ -290,6 +291,8 @@ export const publicEndpoints: Endpoint[] = [
   { path: '/public/preview', method: 'get', handler: guard(async (req) => {
     const t = verifyPreview(q(req, 'token') ?? '')
     if (!t) return json({ error: 'invalid_preview' }, 403)
+    // homepage preview with the offline-course carousel shown as if the feature were on (dashboard button)
+    if (t.collection === 'home' && t.id === 'courses') return Response.json({ collection: 'home', preview: true, data: await buildHome(req, { offlineCourses: true }) }, { headers: { 'Cache-Control': 'no-store' } })
     const allowed = ['articles', 'teachers', 'events', 'languages', 'pages', 'courses'] as const
     if (!allowed.includes(t.collection as never)) return json({ error: 'invalid_preview' }, 403)
     const doc = await req.payload.findByID({ collection: t.collection as (typeof allowed)[number], id: t.id, draft: true, depth: 2, overrideAccess: true, req }).catch(() => null)

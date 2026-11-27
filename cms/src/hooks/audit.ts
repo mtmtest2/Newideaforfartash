@@ -1,6 +1,7 @@
 // Append-only audit trail for every content/settings change made through the CMS.
 // Writes go through the Local API with overrideAccess (the audit collection itself denies create/update/delete
 // to everyone), and a database trigger (migration "audit_append_only") rejects UPDATE/DELETE at the SQL level.
+import { describe } from '../lib/labels'
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, GlobalAfterChangeHook, PayloadRequest } from 'payload'
 
 const SECRET_KEYS = /^(password|hash|salt|resetPassword|apiKey|token|_verificationToken|loginAttempts|lockUntil|sessions)/i
@@ -20,7 +21,7 @@ const changedKeys = (a: Record<string, unknown> | undefined, b: Record<string, u
 
 async function write(req: PayloadRequest, entry: { action: string; entity: string; entityId?: string | number; before?: unknown; after?: unknown; changed?: string[] }) {
   if (req.context?.skipAudit) return
-  const user = req.user as { id: number | string; role?: string; collection?: string } | null
+  const user = req.user as { id: number | string; role?: string; collection?: string; name?: string } | null
   try {
     await req.payload.create({
       collection: 'audit-logs',
@@ -33,6 +34,8 @@ async function write(req: PayloadRequest, entry: { action: string; entity: strin
         entityId: entry.entityId != null ? String(entry.entityId) : undefined,
         actor: user?.collection === 'staff' ? (user.id as number) : undefined,
         actorLabel: user ? `${user.collection}:${user.id}` : 'system',
+        actorName: user?.name ?? (user ? undefined : 'سامانه'),
+        summary: describe({ ...entry, entityId: entry.entityId != null ? String(entry.entityId) : null, actorName: user?.name ?? (user ? null : 'سامانه'), actorLabel: user ? 'staff' : 'system' }),
         actorRole: user?.role ?? (user ? user.collection : 'system'),
         before: (entry.before ?? null) as never,
         after: (entry.after ?? null) as never,

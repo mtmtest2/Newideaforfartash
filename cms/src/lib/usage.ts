@@ -3,7 +3,7 @@ import type { PayloadRequest } from 'payload'
 /** Where a media item is referenced. Keeps deletion safe: media used by content cannot be removed silently. */
 const REFS: { collection: string; fields: string[]; title: string }[] = [
   { collection: 'articles', fields: ['cover', 'seo.image'], title: 'title' },
-  { collection: 'teachers', fields: ['photo', 'seo.image'], title: 'lastName' },
+  { collection: 'teachers', fields: ['photo', 'seo.image'], title: 'displayName' },
   { collection: 'events', fields: ['poster', 'seo.image'], title: 'title' },
   { collection: 'courses', fields: ['cover', 'seo.image'], title: 'title' },
   { collection: 'languages', fields: ['image', 'seo.image'], title: 'name' },

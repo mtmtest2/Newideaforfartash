@@ -39,7 +39,7 @@ export const seoField: Field = {
 
 export const publishedAtField: Field = {
   name: 'publishedAt', label: 'تاریخ انتشار', type: 'date', index: true,
-  admin: { position: 'sidebar', date: { pickerAppearance: 'dayAndTime' }, description: 'اگر خالی بماند، زمان اولین انتشار ثبت می‌شود.' },
+  admin: { position: 'sidebar', date: { pickerAppearance: 'dayAndTime' }, description: 'اگر خالی بماند، زمان اولین انتشار ثبت می‌شود. تاریخ آینده = انتشار در آن زمان.', components: { afterInput: ['/components/Jalali#JalaliHint'], Cell: '/components/Jalali#JalaliCell' } },
   hooks: { beforeChange: [({ value, siblingData }) => (!value && siblingData?._status === 'published' ? new Date().toISOString() : value)] },
 }
 

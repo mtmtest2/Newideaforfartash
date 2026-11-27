@@ -24,7 +24,7 @@ export const HomeLayout: GlobalConfig = {
         { label: 'همهٔ دوره‌های منتشرشده با تیک «نمایش در کاروسل» (به ترتیب فهرست دوره‌ها)', value: 'auto' },
         { label: 'فقط دوره‌های انتخاب‌شدهٔ زیر (به همین ترتیب)', value: 'manual' }] },
       { name: 'picked', label: 'دوره‌های انتخاب‌شده', type: 'relationship', relationTo: 'courses', hasMany: true, admin: { condition: (_, s) => s.selection === 'manual', description: 'برای تغییر ترتیب بکشید و رها کنید.' } },
-      { name: 'visibleCards', label: 'تعداد کارت‌های همزمان (دسکتاپ)', type: 'number', defaultValue: 3, min: 1, max: 4 },
+      { name: 'previewCourses', type: 'ui', admin: { components: { Field: '/components/CoursesPreview#PreviewCoursesButton' } } },
       { name: 'position', label: 'جای بخش در صفحهٔ اصلی', type: 'select', defaultValue: 'afterClasses', options: [
         { label: 'بعد از کلاس‌های زبان', value: 'afterClasses' }, { label: 'بعد از ویدیوی معرفی', value: 'afterIntro' }, { label: 'قبل از مقاله‌ها', value: 'beforeArticles' }] }] },
     { name: 'events', label: 'بخش رویدادها', type: 'group', fields: [

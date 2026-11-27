@@ -18,7 +18,7 @@ export default function Language() {
           )}
           {l.exams.length > 0 && (
             <section aria-labelledby="ex-h"><h2 id="ex-h">آمادگی آزمون‌های بین‌المللی</h2>
-              <ul className="c-list">{l.exams.map((x) => <li key={x.name}><bdi>{x.name}</bdi>{x.description && ` — ${x.description}`}</li>)}</ul>
+              <p className="c-chips-row">{l.exams.map((x) => <span key={x.name}><b><bdi>{x.name}</bdi></b>{x.description && <small>{x.description}</small>}</span>)}</p>
             </section>
           )}
           {l.resources.length > 0 && (

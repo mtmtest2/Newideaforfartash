@@ -1,13 +1,12 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import PageShell from '../../components/PageShell'
-import { useIsPreview, useRouteData } from '../../content/context'
+import { useRouteData } from '../../content/context'
 
 /** Loading / not-found / error states shared by every CMS-driven page. */
 export function Gate<T>({ children }: { children: (data: T) => ReactNode }) {
   const r = useRouteData<T>()
-  const preview = useIsPreview()
-  if (r.status === 'ready') return <>{preview && <p className="preview-bar" role="status">پیش‌نمایش پیش‌نویس — این نسخه هنوز منتشر نشده است.</p>}{children(r.data)}</>
+  if (r.status === 'ready') return <>{children(r.data)}</>
   if (r.status === 'loading') return <PageShell tag="فرتاش" title="در حال بارگذاری…"><div className="c-skel" aria-busy="true"><div /><div /><div /></div></PageShell>
   if (r.status === 'error') return <PageShell tag="خطا" title="صفحه بارگذاری نشد" text="ارتباط با سرور برقرار نشد. چند لحظهٔ دیگر دوباره امتحان کنید."><p className="center"><button type="button" className="btn btn-dark" onClick={() => location.reload()}>تلاش دوباره</button></p></PageShell>
   return <NotFound />

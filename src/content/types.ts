@@ -69,7 +69,7 @@ export type PageDTO = { slug: string; title: string; kind: string; blocks: PageB
 export type HomeDTO = SiteDTO & {
   teachers: { tag?: string; title?: string; description?: string; items: TeacherCardDTO[] }
   articles: ArticleCardDTO[]
-  courses?: { tag?: string; title?: string; description?: string; visibleCards: number; position: 'afterClasses' | 'afterIntro' | 'beforeArticles'; items: CourseCardDTO[] }
+  courses?: { tag?: string; title?: string; description?: string; position: 'afterClasses' | 'afterIntro' | 'beforeArticles'; items: CourseCardDTO[] }
   events?: { title?: string; items: EventCardDTO[] }
 }
 /** What the server embeds in the page / returns from /__data: the site chrome plus the data of one route. */

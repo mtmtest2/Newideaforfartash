@@ -15,7 +15,8 @@ export const monitoringEndpoints: Endpoint[] = [
     if (!can(req, 'settings.write')) return deny()
     await revalidateSite(['*'])
     await req.payload.create({ collection: 'audit-logs', overrideAccess: true, data: {
-      action: 'tool.revalidate', entity: 'site-cache', actor: req.user!.id, actorLabel: `staff:${req.user!.id}`, actorRole: (req.user as { role?: string }).role,
+      action: 'tool.revalidate', entity: 'site-cache', actor: req.user!.id, actorLabel: `staff:${req.user!.id}`, actorRole: (req.user as { role?: string }).role, actorName: (req.user as { name?: string }).name,
+      summary: `${(req.user as { name?: string }).name ?? 'پشتیبانی'} حافظهٔ سایت را به‌روزرسانی کرد`,
       result: lastRevalidation.ok ? 'success' : `failure: ${lastRevalidation.error ?? 'not configured'}` } })
     return Response.json({ ok: !!lastRevalidation.ok, at: lastRevalidation.at ?? null, error: lastRevalidation.ok ? null : lastRevalidation.error ?? 'SITE_REVALIDATE_URL تنظیم نشده است' }, { status: lastRevalidation.ok ? 200 : 502 })
   } },
@@ -24,7 +25,8 @@ export const monitoringEndpoints: Endpoint[] = [
     let result = 'success'
     try { await req.payload.jobs.run({ queue: 'default', limit: 50 }) } catch (e) { result = `failure: ${(e as Error).message}` }
     await req.payload.create({ collection: 'audit-logs', overrideAccess: true, data: {
-      action: 'tool.run-jobs', entity: 'jobs', actor: req.user!.id, actorLabel: `staff:${req.user!.id}`, actorRole: (req.user as { role?: string }).role, result } })
+      action: 'tool.run-jobs', entity: 'jobs', actor: req.user!.id, actorLabel: `staff:${req.user!.id}`, actorRole: (req.user as { role?: string }).role, result,
+      actorName: (req.user as { name?: string }).name, summary: `${(req.user as { name?: string }).name ?? 'پشتیبانی'} صف انتشار را اجرا کرد` } })
     return Response.json({ ok: result === 'success', result }, { status: result === 'success' ? 200 : 500 })
   } },
 ]

@@ -12,6 +12,7 @@ export const DOC_TYPES = ['application/pdf']
 export const Media: CollectionConfig = {
   slug: 'media',
   labels: { singular: 'رسانه', plural: 'کتابخانهٔ رسانه' },
+  enableQueryPresets: true,
   admin: { group: 'مدیریت محتوا', defaultColumns: ['filename', 'alt', 'category', 'filesize', 'updatedAt'], listSearchableFields: ['filename', 'alt'] },
   access: {
     read: () => true, // files are referenced by the public site; nothing private may be uploaded here
@@ -37,6 +38,7 @@ export const Media: CollectionConfig = {
       { label: 'دوره‌ها', value: 'courses' }, { label: 'زبان‌ها', value: 'languages' }, { label: 'صفحه‌ها', value: 'pages' }, { label: 'سایر', value: 'other' }] },
     { name: 'credit', label: 'منبع / حق نشر', type: 'text' },
     { name: 'checksum', type: 'text', index: true, admin: { readOnly: true, hidden: true } },
+    { name: 'usage', type: 'ui', admin: { position: 'sidebar', components: { Field: '/components/MediaUsage#MediaUsage' } } },
   ],
   hooks: {
     beforeValidate: [({ data, req }) => {

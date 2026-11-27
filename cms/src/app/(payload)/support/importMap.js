@@ -27,6 +27,21 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { JalaliCell as JalaliCell_d7309cff0fd8b91d41e933dc64444bb0 } from '../../../components/Jalali'
+import { JalaliHint as JalaliHint_d7309cff0fd8b91d41e933dc64444bb0 } from '../../../components/Jalali'
+import { MediaUsage as MediaUsage_f6650644f5d188bfe66735fac80447c8 } from '../../../components/MediaUsage'
+import { AuditCell as AuditCell_c321856105a8a13745d965b684593379 } from '../../../components/AuditCell'
+import { ActorCell as ActorCell_c321856105a8a13745d965b684593379 } from '../../../components/AuditCell'
+import { EntityCell as EntityCell_c321856105a8a13745d965b684593379 } from '../../../components/AuditCell'
+import { QueryPresetsAccessCell as QueryPresetsAccessCell_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { QueryPresetsWhereCell as QueryPresetsWhereCell_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { QueryPresetsWhereField as QueryPresetsWhereField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { QueryPresetsColumnsCell as QueryPresetsColumnsCell_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { QueryPresetsColumnField as QueryPresetsColumnField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { QueryPresetsGroupByCell as QueryPresetsGroupByCell_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { QueryPresetsGroupByField as QueryPresetsGroupByField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { PreviewCoursesButton as PreviewCoursesButton_f57a318c0016c892287b977179b0fb5e } from '../../../components/CoursesPreview'
+import { FlagPanel as FlagPanel_f57a318c0016c892287b977179b0fb5e } from '../../../components/CoursesPreview'
 import { Icon as Icon_42af45a2e169122dea8a98337d41efda } from '../../../components/Brand'
 import { Logo as Logo_42af45a2e169122dea8a98337d41efda } from '../../../components/Brand'
 import { NavLinks as NavLinks_81af12b52b4dd603ece34338c3ddc417 } from '../../../components/NavLinks'
@@ -65,6 +80,21 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "/components/Jalali#JalaliCell": JalaliCell_d7309cff0fd8b91d41e933dc64444bb0,
+  "/components/Jalali#JalaliHint": JalaliHint_d7309cff0fd8b91d41e933dc64444bb0,
+  "/components/MediaUsage#MediaUsage": MediaUsage_f6650644f5d188bfe66735fac80447c8,
+  "/components/AuditCell#AuditCell": AuditCell_c321856105a8a13745d965b684593379,
+  "/components/AuditCell#ActorCell": ActorCell_c321856105a8a13745d965b684593379,
+  "/components/AuditCell#EntityCell": EntityCell_c321856105a8a13745d965b684593379,
+  "@payloadcms/next/client#QueryPresetsAccessCell": QueryPresetsAccessCell_2b8867833a34864a02ddf429b0728a40,
+  "@payloadcms/next/client#QueryPresetsWhereCell": QueryPresetsWhereCell_2b8867833a34864a02ddf429b0728a40,
+  "@payloadcms/next/client#QueryPresetsWhereField": QueryPresetsWhereField_2b8867833a34864a02ddf429b0728a40,
+  "@payloadcms/next/client#QueryPresetsColumnsCell": QueryPresetsColumnsCell_2b8867833a34864a02ddf429b0728a40,
+  "@payloadcms/next/client#QueryPresetsColumnField": QueryPresetsColumnField_2b8867833a34864a02ddf429b0728a40,
+  "@payloadcms/next/client#QueryPresetsGroupByCell": QueryPresetsGroupByCell_2b8867833a34864a02ddf429b0728a40,
+  "@payloadcms/next/client#QueryPresetsGroupByField": QueryPresetsGroupByField_2b8867833a34864a02ddf429b0728a40,
+  "/components/CoursesPreview#PreviewCoursesButton": PreviewCoursesButton_f57a318c0016c892287b977179b0fb5e,
+  "/components/CoursesPreview#FlagPanel": FlagPanel_f57a318c0016c892287b977179b0fb5e,
   "/components/Brand#Icon": Icon_42af45a2e169122dea8a98337d41efda,
   "/components/Brand#Logo": Logo_42af45a2e169122dea8a98337d41efda,
   "/components/NavLinks#NavLinks": NavLinks_81af12b52b4dd603ece34338c3ddc417,

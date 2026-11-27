@@ -86,6 +86,7 @@ export interface Config {
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
+    'payload-query-presets': PayloadQueryPreset;
   };
   collectionsJoins: {
     languages: {
@@ -113,6 +114,7 @@ export interface Config {
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+    'payload-query-presets': PayloadQueryPresetsSelect<false> | PayloadQueryPresetsSelect<true>;
   };
   db: {
     defaultIDType: number;
@@ -123,12 +125,14 @@ export interface Config {
     navigation: Navigation;
     'site-settings': SiteSetting;
     'feature-flags': FeatureFlag;
+    'payload-jobs-stats': PayloadJobsStat;
   };
   globalsSelect: {
     'home-layout': HomeLayoutSelect<false> | HomeLayoutSelect<true>;
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'feature-flags': FeatureFlagsSelect<false> | FeatureFlagsSelect<true>;
+    'payload-jobs-stats': PayloadJobsStatsSelect<false> | PayloadJobsStatsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -137,6 +141,7 @@ export interface Config {
   user: Staff;
   jobs: {
     tasks: {
+      cleanupEmptyDrafts: TaskCleanupEmptyDrafts;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -193,7 +198,7 @@ export interface Article {
    */
   slug: string;
   /**
-   * اگر خالی بماند، زمان اولین انتشار ثبت می‌شود.
+   * اگر خالی بماند، زمان اولین انتشار ثبت می‌شود. تاریخ آینده = انتشار در آن زمان.
    */
   publishedAt?: string | null;
   author?: (number | null) | Author;
@@ -683,7 +688,7 @@ export interface Course {
    */
   slug: string;
   /**
-   * اگر خالی بماند، زمان اولین انتشار ثبت می‌شود.
+   * اگر خالی بماند، زمان اولین انتشار ثبت می‌شود. تاریخ آینده = انتشار در آن زمان.
    */
   publishedAt?: string | null;
   workflowStatus?: ('draft' | 'pending_review' | 'approved' | 'published' | 'scheduled' | 'archived') | null;
@@ -778,7 +783,7 @@ export interface Event {
    */
   slug: string;
   /**
-   * اگر خالی بماند، زمان اولین انتشار ثبت می‌شود.
+   * اگر خالی بماند، زمان اولین انتشار ثبت می‌شود. تاریخ آینده = انتشار در آن زمان.
    */
   publishedAt?: string | null;
   speakerTeacher?: (number | null) | Teacher;
@@ -870,7 +875,7 @@ export interface Page {
    */
   slug: string;
   /**
-   * اگر خالی بماند، زمان اولین انتشار ثبت می‌شود.
+   * اگر خالی بماند، زمان اولین انتشار ثبت می‌شود. تاریخ آینده = انتشار در آن زمان.
    */
   publishedAt?: string | null;
   kind?: ('info' | 'legal' | 'contact') | null;
@@ -958,6 +963,8 @@ export interface Staff {
  */
 export interface AuditLog {
   id: number;
+  summary?: string | null;
+  actorName?: string | null;
   action: string;
   entity: string;
   entityId?: string | null;
@@ -1065,7 +1072,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'schedulePublish';
+        taskSlug: 'inline' | 'cleanupEmptyDrafts' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -1098,10 +1105,19 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'cleanupEmptyDrafts' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1207,6 +1223,55 @@ export interface PayloadMigration {
   id: number;
   name?: string | null;
   batch?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-query-presets".
+ */
+export interface PayloadQueryPreset {
+  id: number;
+  title: string;
+  isShared?: boolean | null;
+  access?: {
+    read?: {
+      constraint?: ('everyone' | 'onlyMe' | 'specificUsers') | null;
+      users?: (number | Staff)[] | null;
+    };
+    update?: {
+      constraint?: ('everyone' | 'onlyMe' | 'specificUsers') | null;
+      users?: (number | Staff)[] | null;
+    };
+    delete?: {
+      constraint?: ('everyone' | 'onlyMe' | 'specificUsers') | null;
+      users?: (number | Staff)[] | null;
+    };
+  };
+  where?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  columns?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  groupBy?: string | null;
+  relatedCollection: 'articles' | 'teachers' | 'courses' | 'events' | 'media' | 'audit-logs';
+  /**
+   * This is a temporary field used to determine if updating the preset would remove the user's access to it. When `true`, this record will be deleted after running the preset's `validate` function.
+   */
+  isTemp?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1743,6 +1808,8 @@ export interface StaffSelect<T extends boolean = true> {
  * via the `definition` "audit-logs_select".
  */
 export interface AuditLogsSelect<T extends boolean = true> {
+  summary?: T;
+  actorName?: T;
   action?: T;
   entity?: T;
   entityId?: T;
@@ -1793,6 +1860,7 @@ export interface PayloadJobsSelect<T extends boolean = true> {
   queue?: T;
   waitUntil?: T;
   processing?: T;
+  meta?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1830,6 +1898,43 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-query-presets_select".
+ */
+export interface PayloadQueryPresetsSelect<T extends boolean = true> {
+  title?: T;
+  isShared?: T;
+  access?:
+    | T
+    | {
+        read?:
+          | T
+          | {
+              constraint?: T;
+              users?: T;
+            };
+        update?:
+          | T
+          | {
+              constraint?: T;
+              users?: T;
+            };
+        delete?:
+          | T
+          | {
+              constraint?: T;
+              users?: T;
+            };
+      };
+  where?: T;
+  columns?: T;
+  groupBy?: T;
+  relatedCollection?: T;
+  isTemp?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-layout".
  */
 export interface HomeLayout {
@@ -1854,7 +1959,6 @@ export interface HomeLayout {
      * برای تغییر ترتیب بکشید و رها کنید.
      */
     picked?: (number | Course)[] | null;
-    visibleCards?: number | null;
     position?: ('afterClasses' | 'afterIntro' | 'beforeArticles') | null;
   };
   events?: {
@@ -1933,6 +2037,24 @@ export interface FeatureFlag {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats".
+ */
+export interface PayloadJobsStat {
+  id: number;
+  stats?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-layout_select".
  */
 export interface HomeLayoutSelect<T extends boolean = true> {
@@ -1951,7 +2073,6 @@ export interface HomeLayoutSelect<T extends boolean = true> {
         description?: T;
         selection?: T;
         picked?: T;
-        visibleCards?: T;
         position?: T;
       };
   events?:
@@ -2032,6 +2153,16 @@ export interface FeatureFlagsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats_select".
+ */
+export interface PayloadJobsStatsSelect<T extends boolean = true> {
+  stats?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -2039,6 +2170,14 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskCleanupEmptyDrafts".
+ */
+export interface TaskCleanupEmptyDrafts {
+  input?: unknown;
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

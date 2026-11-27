@@ -14,6 +14,9 @@ import { FeatureFlags } from './globals/FeatureFlags'
 import { HomeLayout, Navigation, SiteSettings } from './globals/site'
 import { publicEndpoints } from './public-api/endpoints'
 import { monitoringEndpoints } from './monitoring/endpoints'
+import { cleanupEmptyDrafts } from './jobs/cleanup'
+import { staffOnly } from './access/permissions'
+import { adminEndpoints } from './lib/admin-endpoints'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const isProd = process.env.NODE_ENV === 'production'
@@ -56,12 +59,15 @@ export default buildConfig({
   upload: { limits: { fileSize: 20 * 1024 * 1024 } },
   graphQL: { disable: true }, // not used; smaller attack surface
   telemetry: false,
-  endpoints: [...publicEndpoints, ...monitoringEndpoints],
+  endpoints: [...publicEndpoints, ...monitoringEndpoints, ...adminEndpoints],
+  // saved filters/columns/sort per list ("ذخیرهٔ فیلتر"), shared or private
+  queryPresets: { access: { read: staffOnly, create: staffOnly, update: staffOnly, delete: staffOnly }, constraints: {}, labels: { singular: 'فیلتر ذخیره‌شده', plural: 'فیلترهای ذخیره‌شده' } },
   jobs: {
     // runs scheduled publish/unpublish (versions.drafts.schedulePublish) every minute inside the CMS process
     autoRun: [{ cron: '* * * * *', queue: 'default', limit: 20 }],
     shouldAutoRun: () => process.env.DISABLE_JOBS !== '1',
     access: { run: ({ req }) => !!req.user },
+    tasks: [cleanupEmptyDrafts],
   },
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
 })

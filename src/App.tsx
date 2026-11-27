@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
+import { PreviewBar } from './content/PreviewBar'
 
 // Inner pages are split into their own chunks so the home page doesn't download them.
 // Prerendered/server-rendered HTML stays on screen while a chunk loads (React keeps server markup inside Suspense).
@@ -25,6 +26,7 @@ const NotFound = lazy(() => import('./pages/content/Gate').then((m) => ({ defaul
 export default function App() {
   return (
     <Suspense fallback={null}>
+      <PreviewBar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
