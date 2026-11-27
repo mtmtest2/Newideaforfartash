@@ -1,4 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { authApi, type MemberUser } from '../../auth/client'
+import { ChangePassword } from '../../staff/parts'
+import { useEffect, useState, type FormEvent } from 'react'
 import { fa } from '../../lib/fa'
 import { formatDate } from '../../lib/jalali'
 import { useTheme } from '../../lib/hooks'
@@ -24,6 +26,7 @@ export default function Profile({ onLogout }: { onLogout: () => void }) {
     if (!name) return fail('name', 'نام و نام‌خانوادگی را وارد کنید.')
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('email', 'ایمیل را کامل بنویسید؛ مثلاً name@example.com')
     setErr(null)
+    void authApi.profile('member', name) // the real account name (sign-in) follows the profile
     updateSession({ name, email, goal: String(f.get('goal')), notifySms: f.get('sms') === 'on', notifyEmail: f.get('mail') === 'on' })
     setSaved(true); window.setTimeout(() => setSaved(false), 3000)
   }
@@ -60,11 +63,19 @@ export default function Profile({ onLogout }: { onLogout: () => void }) {
         <button type="submit" className="btn btn-primary">ذخیرهٔ تغییرات</button>
       </form>
 
+      <MemberPassword />
+
       <ThemeSection />
 
       <button type="button" className="btn btn-ghost p-logout" onClick={onLogout}>{Icon.logout(20)} خروج از حساب کاربری</button>
     </div>
   )
+}
+
+function MemberPassword() {
+  const [set, setSet] = useState<boolean | null>(null)
+  useEffect(() => { void authApi.me<MemberUser>('member').then((r) => setSet(r.ok && r.data.user ? r.data.user.passwordSet : true)) }, [])
+  return set === null ? null : <ChangePassword aud="member" passwordSet={set} />
 }
 
 /** Day/night choice; shared with the teacher profile. */

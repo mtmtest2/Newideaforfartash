@@ -1,3 +1,4 @@
+import { ChangePassword } from '../../staff/parts'
 import { useState, type FormEvent } from 'react'
 import { fa } from '../../lib/fa'
 import { formatDate } from '../../lib/jalali'
@@ -46,6 +47,8 @@ export default function Profile({ onLogout }: { onLogout: () => void }) {
         {saved && <p className="ok" role="status">تغییرات ذخیره شد.</p>}
         <button type="submit" className="btn btn-primary">ذخیرهٔ تغییرات</button>
       </form>
+
+      <ChangePassword aud="staff" role="teacher" />
 
       <ThemeSection />
 

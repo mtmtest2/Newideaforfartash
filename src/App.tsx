@@ -6,6 +6,8 @@ import { PreviewBar } from './content/PreviewBar'
 // Inner pages are split into their own chunks so the home page doesn't download them.
 // Prerendered/server-rendered HTML stays on screen while a chunk loads (React keeps server markup inside Suspense).
 const Login = lazy(() => import('./pages/Login'))
+const StaffLogin = lazy(() => import('./pages/Login').then((m) => ({ default: m.StaffLogin })))
+const StaffPanel = lazy(() => import('./staff/StaffPanel'))
 const Teachers = lazy(() => import('./pages/Teachers'))
 const Placement = lazy(() => import('./pages/Placement'))
 const Panel = lazy(() => import('./panel/Panel'))
@@ -30,6 +32,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Login />} />
+        <Route path="/staff/login" element={<StaffLogin />} />
+        <Route path="/staff" element={<Navigate to="/staff/login" replace />} />
         <Route path="/teachers" element={<Teachers />} />
         <Route path="/teachers/:slug" element={<TeacherProfile />} />
         <Route path="/placement" element={<Placement />} />
@@ -44,6 +49,9 @@ export default function App() {
         <Route path="/panel/*" element={<Panel />} />
         <Route path="/teacher/*" element={<TeacherPanel />} />
         <Route path="/reception/*" element={<ReceptionPanel />} />
+        <Route path="/owner/*" element={<StaffPanel area="owner" />} />
+        <Route path="/support-desk/*" element={<StaffPanel area="support" />} />
+        <Route path="/supervisor/*" element={<StaffPanel area="supervisor" />} />
         <Route path="/:slug" element={<CmsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

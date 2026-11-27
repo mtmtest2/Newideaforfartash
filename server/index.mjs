@@ -19,8 +19,10 @@ const CMS = (process.env.CMS_INTERNAL_URL || '').replace(/\/$/, '')
 const SECRET = process.env.CONTENT_API_SECRET || ''
 const TTL = Number(process.env.CACHE_TTL || 300) * 1000
 
+const { createAuth, PROTECTED } = await import('./auth.mjs')
 const { render, THEME_PRELOADS, CONTACT, resourceFor, routeKey } = await import(pathToFileURL(path.join(root, 'dist-server/entry-server.js')).href)
 const buildPage = createPageBuilder({ dist, THEME_PRELOADS })
+const auth = createAuth({ SITE, CMS, SECRET, log: (...a) => console.log(new Date().toISOString(), ...a) })
 
 /* ---------------- CMS client ---------------- */
 async function cms(resource) {
@@ -119,7 +121,6 @@ async function loadRoute(pathname, search) {
 }
 
 /* ---------------- pages ---------------- */
-const PANEL = /^\/(panel|teacher|reception)(\/|$)/
 async function renderRoute(pathname, search, preview) {
   let loaded
   if (preview) {
@@ -202,9 +203,11 @@ const server = http.createServer(async (req, res) => {
       clearAll(); log('revalidate: cache cleared')
       return send(res, 200, JSON.stringify({ ok: true }), { 'Content-Type': 'application/json' })
     }
+    if (await auth.handle(req, res, pathname, url.searchParams)) return
+    if (pathname.startsWith('/api/')) return send(res, 404, '{"error":"not_found"}', { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'method not allowed', { Allow: 'GET, HEAD' })
     if (pathname === '/healthz') return send(res, 200, 'ok', { 'Cache-Control': 'no-store' })
-    if (pathname === '/robots.txt') return send(res, 200, `User-agent: *\nAllow: /\nDisallow: /panel\nDisallow: /teacher\nDisallow: /reception\nDisallow: /__data\n\nSitemap: ${SITE}/sitemap.xml\n`, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' })
+    if (pathname === '/robots.txt') return send(res, 200, `User-agent: *\nAllow: /\nDisallow: /panel\nDisallow: /teacher\nDisallow: /reception\nDisallow: /supervisor\nDisallow: /support-desk\nDisallow: /owner\nDisallow: /staff\nDisallow: /__data\n\nSitemap: ${SITE}/sitemap.xml\n`, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' })
     if (pathname === '/sitemap.xml') {
       const entries = await memoized('sitemap', 600000, async () => (await cms('/sitemap')).data?.entries ?? []).catch(() => [])
       const today = new Date().toISOString().slice(0, 10)
@@ -230,17 +233,20 @@ const server = http.createServer(async (req, res) => {
         return send(res, 503, '{"error":"unavailable"}', { 'Content-Type': 'application/json' })
       }
     }
+    // signed-in areas: the server checks the session (and role) before any panel HTML is sent; panels are client-only skeletons
+    if (PROTECTED.test(pathname)) {
+      const to = await auth.guard(req, pathname, search)
+      if (to) return send(res, 302, '', { Location: to, 'Cache-Control': 'no-store' })
+      const area = pathname.split('/')[1]
+      const f = path.join(dist, pathname.replace(/\/$/, ''), 'index.html')
+      const file = f.startsWith(path.join(dist, area)) && fs.existsSync(f) ? f : path.join(dist, area, 'index.html')
+      return send(res, 200, fs.readFileSync(file), { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex' })
+    }
     if (pathname !== '/' && serveStatic(req, res, pathname)) return
     // redirects managed in the Support Dashboard
     const redirects = await memoized('redirects', 60000, async () => (await cms('/redirects')).data?.items ?? []).catch(() => [])
     const rd = redirects.find((r) => r.from === pathname || r.from === pathname.replace(/\/$/, ''))
     if (rd) return send(res, rd.status === 302 ? 302 : 301, '', { Location: rd.to + (rd.to.startsWith('/') ? search : ''), 'Cache-Control': 'public, max-age=3600' })
-    // app panels are client-only: serve their prerendered skeletons
-    if (PANEL.test(pathname)) {
-      const f = path.join(dist, pathname.replace(/\/$/, ''), 'index.html')
-      const file = fs.existsSync(f) ? f : path.join(dist, pathname.split('/')[1], 'index.html')
-      return send(res, 200, fs.readFileSync(file), { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Robots-Tag': 'noindex' })
-    }
     const preview = url.searchParams.get('preview')
     const cleanSearch = (() => { const q = new URLSearchParams(search); q.delete('preview'); return q.size ? `?${q}` : '' })()
     const key = 'page:' + pathname + cleanSearch

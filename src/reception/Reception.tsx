@@ -3,7 +3,8 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { courseById, COURSES } from '../panel/data'
-import { getReception, getSession, signOutReception, useReception } from '../panel/session'
+import { getSession, useReception } from '../panel/session'
+import { ensureStaff, logoutStaff } from '../auth/client'
 import Shell, { Skeleton, type NavItem, type NoticeItem } from '../panel/Shell'
 import { Icon } from '../panel/ui'
 import { DESK, authorName, reader, studentName, unreadIn, useDb } from '../school/db'
@@ -12,6 +13,7 @@ import { ReceptionContext, type ReceptionCtx } from './context'
 const Home = lazy(() => import('./pages/Home'))
 const Classes = lazy(() => import('./pages/Classes'))
 const Groups = lazy(() => import('./pages/Groups'))
+const Account = lazy(() => import('../staff/Account'))
 
 export default function ReceptionPanel() {
   const session = useReception()
@@ -21,13 +23,17 @@ export default function ReceptionPanel() {
   const [now, setNow] = useState<Date | null>(null)
 
   useEffect(() => {
-    if (!getReception()) { navigate(`/login?role=reception&next=${encodeURIComponent(pathname)}`, { replace: true }); return }
-    setNow(new Date())
-    const id = window.setInterval(() => setNow(new Date()), 60000)
-    return () => window.clearInterval(id)
+    let live = true, id = 0
+    void ensureStaff('reception').then((u) => {
+      if (!live) return
+      if (!u) { navigate(`/staff/login?next=${encodeURIComponent(pathname)}`, { replace: true }); return }
+      setNow(new Date())
+      id = window.setInterval(() => setNow(new Date()), 60000)
+    })
+    return () => { live = false; window.clearInterval(id) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  useEffect(() => { if (now && !session) navigate('/login?role=reception', { replace: true }) }, [session, now, navigate])
+  useEffect(() => { if (now && !session) navigate('/staff/login', { replace: true }) }, [session, now, navigate])
 
   const ctx = useMemo<ReceptionCtx | null>(() => (session && now ? {
     session, db, now, name: (id: string) => studentName(db, id, getSession()?.name),
@@ -41,6 +47,7 @@ export default function ReceptionPanel() {
     { to: '/reception', label: 'پیشخوان', icon: Icon.dashboard, end: true },
     { to: '/reception/classes', label: 'همهٔ کلاس‌ها', short: 'کلاس‌ها', icon: Icon.users },
     { to: '/reception/groups', label: 'گروه‌های کلاس', short: 'گروه‌ها', icon: Icon.chat, badge: unread.length + missing },
+    { to: '/reception/account', label: 'حساب من', short: 'حساب', icon: Icon.user },
   ]
 
   const notices = useMemo<NoticeItem[] | null>(() => (ctx ? db.messages.filter((m) => !m.deleted && m.role !== 'reception').map((m) => {
@@ -49,11 +56,11 @@ export default function ReceptionPanel() {
     return { id: m.id, kind: 'message' as const, title: `گروه ${c.title} ${c.level}`, text: `${m.role === 'student' ? ctx.name(m.authorId) : authorName(db, m)}: ${m.text}`, date: new Date(m.at), href: `/reception/groups?t=${g.id}` }
   }) : null), [ctx, db])
 
-  const logout = () => { signOutReception(); navigate('/', { replace: true }) }
+  const logout = () => { void logoutStaff('reception').then(() => navigate('/staff/login', { replace: true })) }
 
   return (
     <Shell nav={nav} tabs={nav.map((n) => n.to)} user={session ? { name: session.name, role: 'پذیرش فرتاش' } : null}
-      profileHref="/reception" appName="پنل پذیرش فرتاش" notices={notices} noticeKey="fartash-seen-reception" now={now} onLogout={logout}>
+      profileHref="/reception/account" appName="پنل پذیرش فرتاش" notices={notices} noticeKey="fartash-seen-reception" now={now} onLogout={logout}>
       {ctx ? (
         <ReceptionContext.Provider value={ctx}>
           <Suspense fallback={<Skeleton />}>
@@ -61,6 +68,7 @@ export default function ReceptionPanel() {
               <Route index element={<Home />} />
               <Route path="classes" element={<Classes />} />
               <Route path="groups" element={<Groups />} />
+              <Route path="account" element={<Account />} />
               <Route path="*" element={<Navigate to="/reception" replace />} />
             </Routes>
           </Suspense>

@@ -3,7 +3,8 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { ME, authorName, avgScore, reader, studentName, submitTask, unreadIn, useDb } from '../school/db'
 import { buildDemo, courseById, COURSES, type Assignment, type Demo, type Ticket } from './data'
 import { PanelContext, type PanelCtx } from './context'
-import { getSession, signOut, useSession } from './session'
+import { useSession } from './session'
+import { ensureMember, logoutMember } from '../auth/client'
 import Shell, { Skeleton, type NavItem, type NoticeItem } from './Shell'
 import { Icon } from './ui'
 
@@ -29,13 +30,16 @@ export default function Panel() {
   const db = useDb()
 
   // Client only: data depends on "now" and the session lives in localStorage.
+  // the server already refused this page without a session; this re-checks it and copies the account into the demo store
   useEffect(() => {
-    if (!getSession()) {
-      navigate(`/login?next=${encodeURIComponent(pathname)}`, { replace: true })
-      return
-    }
-    const d = buildDemo()
-    setDemo(d); setTickets(d.tickets)
+    let live = true
+    void ensureMember().then((u) => {
+      if (!live) return
+      if (!u) { navigate(`/login?next=${encodeURIComponent(pathname)}`, { replace: true }); return }
+      const d = buildDemo()
+      setDemo(d); setTickets(d.tickets)
+    })
+    return () => { live = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   useEffect(() => { if (demo && !session) navigate('/login', { replace: true }) }, [session, demo, navigate])
@@ -95,7 +99,7 @@ export default function Panel() {
     ]
   }, [demo, db, session?.name]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const logout = () => { signOut(); navigate('/', { replace: true }) }
+  const logout = () => { void logoutMember().then(() => navigate('/', { replace: true })) }
 
   return (
     <Shell nav={nav} tabs={TABS} user={session ? { name: studentName(db, ME, session.name), role: 'زبان‌آموز' } : null}

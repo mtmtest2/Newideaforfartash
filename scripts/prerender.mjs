@@ -14,7 +14,9 @@ const ROUTES = [
   { url: '/teachers', title: 'همهٔ اساتید فرتاش', description: 'آشنایی با اساتید زبان انگلیسی، آلمانی، فرانسوی، عربی و ترکی استانبولی در آموزشگاه آنلاین فرتاش.' },
   { url: '/magazine', title: 'همهٔ مقالات | فرتاش', description: 'مقالات کاربردی و به‌روز فرتاش برای یادگیری بهتر زبان: مکالمه، گرامر، ابزارها و عادت‌های یادگیری.' },
   { url: '/placement', title: 'تعیین سطح رایگان | فرتاش', description: 'پیش از شروع کلاس، سطح زبانتان را رایگان بسنجید تا در کلاس مناسب خودتان قرار بگیرید.' },
-  { url: '/login', title: 'ورود / عضویت | فرتاش', description: 'ورود یا ساخت حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
+  { url: '/login', title: 'ورود | فرتاش', description: 'ورود به حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
+  { url: '/register', title: 'عضویت | فرتاش', description: 'ساخت حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
+  { url: '/staff/login', title: 'ورود کارکنان | فرتاش', description: 'ورود اساتید و کارکنان فرتاش.', noindex: true },
   // Student panel: private, so noindex and not in the sitemap. Prerendered as a skeleton (data is client-only).
   ...[['', 'داشبورد'], ['/courses', 'دوره‌های من'], ['/schedule', 'برنامهٔ کلاس‌ها'], ['/assignments', 'تکالیف و آزمون‌ها'], ['/messages', 'گروه‌های کلاس'],
     ['/recordings', 'جلسات ضبط‌شده'], ['/certificates', 'گواهی‌ها'], ['/payments', 'پرداخت‌ها'], ['/support', 'پشتیبانی'], ['/profile', 'پروفایل و تنظیمات']]
@@ -26,6 +28,9 @@ const ROUTES = [
   // Reception panel: same treatment.
   ...[['', 'پیشخوان'], ['/classes', 'همهٔ کلاس‌ها'], ['/groups', 'گروه‌های کلاس']]
     .map(([p, t]) => ({ url: '/reception' + p, title: `${t} | پنل پذیرش فرتاش`, description: 'پنل پذیرش فرتاش.', noindex: true })),
+  // Owner / support / supervisor dashboards: skeletons only, the server checks the role before sending them.
+  ...[['/owner', 'داشبورد مالک'], ['/support-desk', 'داشبورد پشتیبانی'], ['/supervisor', 'داشبورد سوپروایزر']]
+    .map(([u, t]) => ({ url: u, title: `${t} | فرتاش`, description: `${t} فرتاش.`, noindex: true })),
 ]
 
 // keep the untouched client template for the runtime server (server/index.mjs) before index.html is overwritten

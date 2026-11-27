@@ -1,6 +1,6 @@
 // Which CMS public-API resource feeds which site route. Shared by the SSR server and the client.
 // null = the route needs no CMS data beyond the site chrome (or is not a content route at all).
-const RESERVED = new Set(['login', 'placement', 'panel', 'teacher', 'reception', 'assets', '__data', '__revalidate', 'support', 'api'])
+const RESERVED = new Set(['login', 'register', 'staff', 'owner', 'support-desk', 'supervisor', 'placement', 'panel', 'teacher', 'reception', 'assets', '__data', '__revalidate', 'support', 'api'])
 
 export function resourceFor(pathname: string, search = ''): string | null {
   const p = pathname.replace(/\/+$/, '') || '/'

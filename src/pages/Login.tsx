@@ -1,67 +1,218 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { getReception, getSession, getTeacher, signIn, signInReception, signInTeacher } from '../panel/session'
-
-type Role = 'student' | 'teacher' | 'reception'
-const ROLES: Record<Role, { home: string; title: string; button: string; link: string; demo: string; signedIn: () => boolean }> = {
-  student: { home: '/panel', title: 'ورود زبان‌آموزان', button: 'ورود به پنل', link: 'ورود زبان‌آموزان', demo: '', signedIn: () => !!getSession() },
-  teacher: { home: '/teacher', title: 'ورود اساتید', button: 'ورود به پنل استاد', link: 'ورود اساتید', demo: 'آرمان کیانی', signedIn: () => !!getTeacher() },
-  reception: { home: '/reception', title: 'ورود پذیرش', button: 'ورود به پنل پذیرش', link: 'ورود پذیرش', demo: 'نرگس امیری (پذیرش)', signedIn: () => !!getReception() },
-}
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Bars, ChevronRight, Flag, Leaf, Phone, Star, User } from '../components/Icons'
 import { HERO } from '../assets'
 import { PROFS } from '../data'
 import avWoman from '../assets/img/av-woman.webp'
 import { Logo, ThemeToggle } from '../components/Header'
-import { fa, isIranMobile, toLatin } from '../lib/fa'
+import { fa, toLatin } from '../lib/fa'
+import { authApi, safeNext, type Audience, type StaffRole } from '../auth/client'
 
-type Mode = 'login' | 'signup'
+type Method = 'password' | 'otp'
+const isMobile = (v: string) => /^09\d{9}$/.test(toLatin(v).replace(/[\s-]/g, '').replace(/^\+98/, '0'))
 
-export default function Login() {
-  const [mode, setMode] = useState<Mode>('login')
+const EyeIcon = ({ off }: { off: boolean }) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{off && <path d="M4 4l16 16" />}
+  </svg>
+)
+const KeyIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+)
+
+function PasswordField({ name, label, autoComplete, value, onChange, hint }: { name: string; label: string; autoComplete: string; value: string; onChange: (v: string) => void; hint?: string }) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="pw-wrap">
+      <label className="field">
+        <span className="sr">{label}</span>
+        <input name={name} type={show ? 'text' : 'password'} value={value} onChange={(e) => onChange(e.target.value)} placeholder={label}
+          autoComplete={autoComplete} dir="ltr" className="ltr-in" maxLength={128} required aria-describedby={hint ? `${name}-hint` : undefined} />
+        <KeyIcon />
+      </label>
+      <button type="button" className="pw-eye" aria-label={show ? 'پنهان کردن رمز' : 'نمایش رمز'} aria-pressed={show} onClick={() => setShow((v) => !v)}><EyeIcon off={show} /></button>
+      {hint && <small id={`${name}-hint`} className="field-hint">{hint}</small>}
+    </div>
+  )
+}
+
+/** Username + password form (members and staff). */
+function PasswordForm({ aud, next, title, text, submit }: { aud: Audience; next: string; title: string; text: string; submit: string }) {
+  const navigate = useNavigate()
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [err, setErr] = useState('')
+  const [busy, setBusy] = useState(false)
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!username.trim() || !password) return setErr('نام کاربری و رمز عبور را وارد کنید.')
+    setBusy(true); setErr('')
+    const r = await authApi.login(aud, toLatin(username.trim()), password, next)
+    setBusy(false)
+    if (!r.ok) { setPassword(''); return setErr(r.message) }
+    navigate(r.data.redirect, { replace: true })
+  }
+  return (
+    <form onSubmit={onSubmit} noValidate aria-busy={busy}>
+      <h1>{title}</h1>
+      <p>{text}</p>
+      <label className="field"><span className="sr">{aud === 'staff' ? 'نام کاربری یا ایمیل' : 'نام کاربری'}</span>
+        <input name="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder={aud === 'staff' ? 'نام کاربری یا ایمیل' : 'نام کاربری'}
+          autoComplete="username" dir="ltr" className="ltr-in" autoCapitalize="none" spellCheck={false} maxLength={80} required /><User width={18} height={18} />
+      </label>
+      <PasswordField name="password" label="رمز عبور" autoComplete="current-password" value={password} onChange={setPassword} />
+      {err && <p className="err" role="alert">{err}</p>}
+      <button className="btn btn-primary btn-block" type="submit" disabled={busy}>{busy ? 'در حال ورود…' : submit} {!busy && <ArrowLeft width={18} height={18} />}</button>
+    </form>
+  )
+}
+
+/** Phone + one-time code. Members without an account get one; staff need a phone registered by the owner. */
+function OtpForm({ aud, next, onNewMember }: { aud: Audience; next: string; onNewMember: (redirect: string) => void }) {
+  const navigate = useNavigate()
   const [step, setStep] = useState<'phone' | 'code'>('phone')
   const [phone, setPhone] = useState('')
+  const [code, setCode] = useState('')
   const [err, setErr] = useState('')
-  const [name, setName] = useState('')
-  const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
-  const role: Role = params.get('role') === 'teacher' ? 'teacher' : params.get('role') === 'reception' ? 'reception' : 'student'
-  const staff = role !== 'student'
-  const R = ROLES[role]
-  const home = R.home
-  // only allow redirect targets inside the matching panel
-  const next = (params.get('next') || '').startsWith(home) ? params.get('next')! : home
-  useEffect(() => {
-    document.title = staff ? `${R.title} | فرتاش` : 'ورود / عضویت | فرتاش'
-    if (R.signedIn()) navigate(next, { replace: true }) // already signed in
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role])
-  const switchRole = (r: Role) => { setParams(r === 'student' ? {} : { role: r }, { replace: true }); setMode('login'); setStep('phone'); setErr('') }
-
-  const onPhone = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const f = new FormData(e.currentTarget)
-    const n = String(f.get('name') || '').trim()
-    if (mode === 'signup' && !n) return setErr('نام و نام‌خانوادگی را وارد کنید.')
-    setName(n)
-    if (!isIranMobile(phone)) return setErr('شمارهٔ موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.')
-    setErr(''); setStep('code')
+  const [busy, setBusy] = useState(false)
+  const [wait, setWait] = useState(0)
+  const [devCode, setDevCode] = useState('')
+  useEffect(() => { if (wait <= 0) return; const t = setTimeout(() => setWait((w) => w - 1), 1000); return () => clearTimeout(t) }, [wait])
+  const send = async () => {
+    if (!isMobile(phone)) return setErr('شمارهٔ موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.')
+    setBusy(true); setErr('')
+    const r = await authApi.otpRequest(aud, toLatin(phone))
+    setBusy(false)
+    if (!r.ok) { if (typeof r.data.retryAfter === 'number' && r.data.retryAfter < 120) setWait(r.data.retryAfter); return setErr(r.message) }
+    setDevCode(r.data.devCode ?? ''); setStep('code'); setCode(''); setWait(r.data.resendIn)
   }
-  const onCode = (e: FormEvent<HTMLFormElement>) => {
+  const verify = async (e: FormEvent) => {
     e.preventDefault()
-    const code = toLatin(String(new FormData(e.currentTarget).get('code') || ''))
-    if (!/^\d{5}$/.test(code)) return setErr('کد تأیید ۵ رقمی را وارد کنید.')
-    setErr('')
-    // Demo sign-in (no backend yet): a sample name is used for existing accounts.
-    const cleanPhone = toLatin(phone).replace(/[\s-]/g, '')
-    if (role === 'teacher') signInTeacher({ teacherId: 'arman', name: 'آرمان کیانی', phone: cleanPhone })
-    else if (role === 'reception') signInReception({ name: 'نرگس امیری', phone: cleanPhone })
-    else signIn({ name: mode === 'signup' && name ? name : 'سارا رضایی', phone: cleanPhone })
-    navigate(next, { replace: true })
+    const c = toLatin(code).trim()
+    if (!/^\d{6}$/.test(c)) return setErr('کد ۶ رقمی را وارد کنید.')
+    setBusy(true); setErr('')
+    const r = await authApi.otpVerify(aud, toLatin(phone), c, undefined, next)
+    setBusy(false)
+    if (!r.ok) { setCode(''); return setErr(r.message) }
+    if (r.data.isNew) return onNewMember(r.data.redirect)
+    navigate(r.data.redirect, { replace: true })
   }
-
+  if (step === 'phone') return (
+    <form onSubmit={(e) => { e.preventDefault(); void send() }} noValidate aria-busy={busy}>
+      <h1>{aud === 'staff' ? 'ورود با کد پیامکی' : 'ورود یا عضویت با موبایل'}</h1>
+      <p>{aud === 'staff' ? 'شمارهٔ موبایلی را وارد کنید که مدیر آموزشگاه برای حسابتان ثبت کرده است.' : 'کد ۶ رقمی به این شماره پیامک می‌شود. اگر حساب ندارید، همین‌جا ساخته می‌شود.'}</p>
+      <label className="field"><span className="sr">شمارهٔ موبایل</span><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="۰۹۱۲۳۴۵۶۷۸۹" dir="ltr" inputMode="tel" autoComplete="tel" className="ltr-in" maxLength={16} /><Phone width={18} height={18} /></label>
+      {err && <p className="err" role="alert">{err}</p>}
+      <button className="btn btn-primary btn-block" type="submit" disabled={busy || wait > 0}>{wait > 0 ? `ارسال دوباره تا ${fa(wait)} ثانیه` : busy ? 'در حال ارسال…' : 'دریافت کد'} {!busy && !wait && <ArrowLeft width={18} height={18} />}</button>
+    </form>
+  )
   return (
-    <main className="login-page">
+    <form onSubmit={verify} noValidate aria-busy={busy}>
+      <h1>کد تأیید</h1>
+      <p>کد ۶ رقمی پیامک‌شده به <bdi dir="ltr">{fa(toLatin(phone))}</bdi> را وارد کنید.</p>
+      <label className="field"><span className="sr">کد تأیید</span><input value={code} onChange={(e) => setCode(e.target.value)} placeholder="• • • • • •" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={6} className="ltr-in code-in" autoFocus /></label>
+      {devCode && <p className="demo-note">محیط آزمایشی (بدون سرویس پیامک): کد <b dir="ltr">{devCode}</b> است. در سرور اصلی این پیام نمایش داده نمی‌شود.</p>}
+      {err && <p className="err" role="alert">{err}</p>}
+      <button className="btn btn-primary btn-block" type="submit" disabled={busy}>{busy ? 'در حال بررسی…' : 'تأیید و ورود'}</button>
+      <div className="otp-links">
+        <button type="button" className="link-btn" onClick={() => { setStep('phone'); setErr('') }}>ویرایش شماره</button>
+        <button type="button" className="link-btn" disabled={wait > 0 || busy} onClick={() => void send()}>{wait > 0 ? `ارسال دوباره (${fa(wait)})` : 'ارسال دوبارهٔ کد'}</button>
+      </div>
+    </form>
+  )
+}
+
+function RegisterForm({ next }: { next: string }) {
+  const navigate = useNavigate()
+  const [f, setF] = useState({ name: '', username: '', password: '', confirm: '' })
+  const [err, setErr] = useState('')
+  const [busy, setBusy] = useState(false)
+  const set = (k: keyof typeof f) => (v: string) => setF((x) => ({ ...x, [k]: v }))
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (f.name.trim().length < 2) return setErr('نام و نام خانوادگی را وارد کنید.')
+    if (!/^[a-z][a-z0-9._]{3,29}$/i.test(toLatin(f.username.trim()))) return setErr('نام کاربری: ۴ تا ۳۰ حرف لاتین، عدد، نقطه یا _ و شروع با حرف.')
+    if (f.password.length < 10) return setErr('رمز عبور باید دست‌کم ۱۰ نویسه باشد.')
+    if (f.password !== f.confirm) return setErr('تکرار رمز عبور با خودش یکی نیست.')
+    setBusy(true); setErr('')
+    const r = await authApi.register(f.name.trim(), toLatin(f.username.trim()).toLowerCase(), f.password, next)
+    setBusy(false)
+    if (!r.ok) return setErr(r.message)
+    navigate(r.data.redirect, { replace: true })
+  }
+  return (
+    <form onSubmit={onSubmit} noValidate aria-busy={busy}>
+      <h1>ساخت حساب کاربری</h1>
+      <p>با یک حساب به کلاس‌ها، تکالیف و گروه‌های کلاس دسترسی دارید.</p>
+      <label className="field"><span className="sr">نام و نام خانوادگی</span><input value={f.name} onChange={(e) => set('name')(e.target.value)} placeholder="نام و نام خانوادگی" autoComplete="name" maxLength={80} required /><User width={18} height={18} /></label>
+      <div>
+        <label className="field"><span className="sr">نام کاربری</span><input value={f.username} onChange={(e) => set('username')(e.target.value)} placeholder="نام کاربری (لاتین)" autoComplete="username" dir="ltr" className="ltr-in" autoCapitalize="none" spellCheck={false} maxLength={30} required aria-describedby="un-hint" /><User width={18} height={18} /></label>
+        <small id="un-hint" className="field-hint">مثلاً sara.rezaei — حروف لاتین، عدد، نقطه یا _</small>
+      </div>
+      <PasswordField name="new-password" label="رمز عبور" autoComplete="new-password" value={f.password} onChange={set('password')} hint="دست‌کم ۱۰ نویسه؛ ترکیب حروف و عدد امن‌تر است." />
+      <PasswordField name="confirm-password" label="تکرار رمز عبور" autoComplete="new-password" value={f.confirm} onChange={set('confirm')} />
+      {err && <p className="err" role="alert">{err}</p>}
+      <button className="btn btn-primary btn-block" type="submit" disabled={busy}>{busy ? 'در حال ساخت حساب…' : 'ساخت حساب و ورود'} {!busy && <ArrowLeft width={18} height={18} />}</button>
+    </form>
+  )
+}
+
+/** After a first sign-in by phone code: ask for the real name (the account was created as «کاربر فرتاش»). */
+function CompleteProfile({ redirect }: { redirect: string }) {
+  const navigate = useNavigate()
+  const [name, setName] = useState('')
+  const [err, setErr] = useState('')
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (name.trim().length < 2) return setErr('نام و نام خانوادگی را وارد کنید.')
+    const r = await authApi.profile('member', name.trim())
+    if (!r.ok) return setErr(r.message)
+    navigate(redirect, { replace: true })
+  }
+  return (
+    <form onSubmit={onSubmit} noValidate>
+      <h1>خوش آمدید!</h1>
+      <p>حساب شما ساخته شد. نامتان را بنویسید تا در کلاس‌ها با همین نام شناخته شوید.</p>
+      <label className="field"><span className="sr">نام و نام خانوادگی</span><input value={name} onChange={(e) => setName(e.target.value)} placeholder="نام و نام خانوادگی" autoComplete="name" maxLength={80} autoFocus /><User width={18} height={18} /></label>
+      {err && <p className="err" role="alert">{err}</p>}
+      <button className="btn btn-primary btn-block" type="submit">ورود به پنل <ArrowLeft width={18} height={18} /></button>
+      <button type="button" className="link-btn" onClick={() => navigate(redirect, { replace: true })}>بعداً</button>
+    </form>
+  )
+}
+
+function MethodTabs({ method, setMethod, otp }: { method: Method; setMethod: (m: Method) => void; otp: boolean | null }) {
+  return (
+    <div className="seg seg-sm" role="tablist" aria-label="روش ورود">
+      <button type="button" role="tab" aria-selected={method === 'password'} className={method === 'password' ? 'on' : ''} onClick={() => setMethod('password')}>نام کاربری و رمز</button>
+      <button type="button" role="tab" aria-selected={method === 'otp'} className={method === 'otp' ? 'on' : ''} disabled={otp === false}
+        onClick={() => setMethod('otp')} title={otp === false ? 'به‌زودی فعال می‌شود' : undefined}>
+        کد پیامکی {otp === false && <span className="soon">به‌زودی</span>}
+      </button>
+    </div>
+  )
+}
+
+function useOtpEnabled() {
+  const [otp, setOtp] = useState<boolean | null>(null)
+  useEffect(() => { void authApi.config().then((r) => setOtp(r.ok ? r.data.otp : false)) }, [])
+  return otp
+}
+/** If already signed in (for the requested role, when a staff page asked for one), go straight to the panel. */
+function useRedirectIfSignedIn(aud: Audience, next: (home: string) => string, role?: StaffRole) {
+  const navigate = useNavigate()
+  const done = useRef(false)
+  useEffect(() => {
+    if (done.current) return
+    done.current = true
+    void authApi.me(aud, role).then((r) => { if (r.ok && r.data.user && r.data.home) navigate(next(r.data.home), { replace: true }) })
+  }, [aud, navigate, next, role])
+}
+const AREA_ROLE: Record<string, StaffRole> = { teacher: 'teacher', reception: 'reception', supervisor: 'supervisor', 'support-desk': 'support', owner: 'owner' }
+
+function Frame({ children, aside, staff }: { children: ReactNode; aside?: ReactNode; staff?: boolean }) {
+  return (
+    <main className={`login-page${staff ? ' login-staff' : ''}`}>
       <Leaf className="leaf leaf-login-a" />
       <Leaf className="leaf leaf-login-b" />
       <div className="bg-shape shape-circle-navy" />
@@ -70,45 +221,93 @@ export default function Login() {
         <ThemeToggle />
       </div>
       <div className="login-body container">
-      <div className="login-card card">
-        {!staff && <div className="seg" role="tablist" aria-label="ورود یا عضویت">
-          <button role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'on' : ''} onClick={() => { setMode('login'); setStep('phone'); setErr('') }}>ورود</button>
-          <button role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'on' : ''} onClick={() => { setMode('signup'); setStep('phone'); setErr('') }}>عضویت</button>
-        </div>}
-
-        {step === 'phone' && (
-          <form onSubmit={onPhone} noValidate>
-            <h1>{staff ? R.title : mode === 'login' ? 'ورود به حساب کاربری' : 'ساخت حساب کاربری'}</h1>
-            <p>{staff ? 'شمارهٔ موبایلی را وارد کنید که در آموزشگاه ثبت کرده‌اید.' : mode === 'login' ? 'شمارهٔ موبایلتان را وارد کنید تا کد تأیید برایتان پیامک شود.' : 'نام و شمارهٔ موبایلتان را وارد کنید تا حساب کاربری‌تان ساخته شود.'}</p>
-            {mode === 'signup' && (
-              <label className="field"><span className="sr">نام و نام‌خانوادگی</span><input name="name" placeholder="نام و نام‌خانوادگی" autoComplete="name" /><User width={18} height={18} /></label>
-            )}
-            <label className="field"><span className="sr">شمارهٔ موبایل</span><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="۰۹۱۲۳۴۵۶۷۸۹" dir="ltr" inputMode="tel" autoComplete="tel" className="ltr-in" /><Phone width={18} height={18} /></label>
-            {err && <p className="err" role="alert">{err}</p>}
-            <button className="btn btn-primary btn-block" type="submit">دریافت کد تأیید <ArrowLeft width={18} height={18} /></button>
-          </form>
-        )}
-        {step === 'code' && (
-          <form onSubmit={onCode} noValidate>
-            <h1>کد تأیید</h1>
-            <p>کد ۵ رقمی پیامک‌شده به <bdi dir="ltr">{fa(toLatin(phone))}</bdi> را وارد کنید.</p>
-            <label className="field"><span className="sr">کد تأیید</span><input name="code" placeholder="• • • • •" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={5} className="ltr-in code-in" autoFocus /></label>
-            {err && <p className="err" role="alert">{err}</p>}
-            <p className="demo-note">{staff ? `نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود و با حساب «${R.demo}» وارد می‌شوید.` : 'نسخهٔ نمایشی: هر کد ۵ رقمی پذیرفته می‌شود.'}</p>
-            <button className="btn btn-primary btn-block" type="submit">{staff ? R.button : mode === 'login' ? 'ورود به پنل' : 'ساخت حساب و ورود'}</button>
-            <button type="button" className="link-btn" onClick={() => { setStep('phone'); setErr('') }}>ویرایش شماره</button>
-          </form>
-        )}
-        <nav className="role-links" aria-label="ورود کارکنان">
-          {(Object.keys(ROLES) as Role[]).filter((r) => r !== role).map((r) => (
-            <button key={r} type="button" className="link-btn role-switch" onClick={() => switchRole(r)}>{ROLES[r].link}</button>
-          ))}
-        </nav>
-        <Link to="/" className="back-link"><ChevronRight width={16} height={16} /> بازگشت به صفحهٔ اصلی</Link>
-      </div>
-      <LoginAside />
+        <div className="login-card card">
+          {children}
+          <Link to="/" className="back-link"><ChevronRight width={16} height={16} /> بازگشت به صفحهٔ اصلی</Link>
+        </div>
+        {aside}
       </div>
     </main>
+  )
+}
+
+/** /login and /register — students and site users. */
+export default function Login() {
+  const { pathname } = useLocation()
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const signup = pathname.startsWith('/register')
+  const next = safeNext(params.get('next'), '/panel')
+  const otp = useOtpEnabled()
+  const [method, setMethod] = useState<Method>('password')
+  const [welcome, setWelcome] = useState<string | null>(null)
+  useEffect(() => { document.title = signup ? 'عضویت | فرتاش' : 'ورود | فرتاش' }, [signup])
+  useRedirectIfSignedIn('member', (home) => safeNext(next, home))
+  const go = (to: string) => navigate(to + (params.get('next') ? `?next=${encodeURIComponent(params.get('next')!)}` : ''), { replace: true })
+  return (
+    <Frame aside={<LoginAside />}>
+      {welcome ? <CompleteProfile redirect={welcome} /> : <>
+        <div className="seg" role="tablist" aria-label="ورود یا عضویت">
+          <button type="button" role="tab" aria-selected={!signup} className={!signup ? 'on' : ''} onClick={() => go('/login')}>ورود</button>
+          <button type="button" role="tab" aria-selected={signup} className={signup ? 'on' : ''} onClick={() => go('/register')}>عضویت</button>
+        </div>
+        {signup ? <>
+          <RegisterForm next={next} />
+          {otp && <p className="alt-line">یا <button type="button" className="link-btn" onClick={() => { go('/login'); setMethod('otp') }}>با شمارهٔ موبایل عضو شوید</button></p>}
+        </> : <>
+          <MethodTabs method={method} setMethod={setMethod} otp={otp} />
+          {method === 'password'
+            ? <PasswordForm aud="member" next={next} title="ورود به حساب کاربری" text="با نام کاربری و رمز عبوری که موقع عضویت انتخاب کردید وارد شوید." submit="ورود به پنل" />
+            : <OtpForm aud="member" next={next} onNewMember={setWelcome} />}
+          {otp === false && <p className="demo-note">ورود با کد پیامکی به‌زودی فعال می‌شود.</p>}
+        </>}
+      </>}
+    </Frame>
+  )
+}
+
+/** /staff/login — teachers, reception, supervisors, support and the owner. Not linked from the public site. */
+export function StaffLogin() {
+  const [params] = useSearchParams()
+  const otp = useOtpEnabled()
+  const [method, setMethod] = useState<Method>('password')
+  const rawNext = params.get('next')
+  useEffect(() => { document.title = 'ورود کارکنان | فرتاش' }, [])
+  const next = rawNext && /^\/(teacher|reception|supervisor|support-desk|owner)(\/|$)/.test(rawNext) ? rawNext : ''
+  useRedirectIfSignedIn('staff', (home) => safeNext(rawNext, home), next ? AREA_ROLE[next.split('/')[1]] : undefined)
+  return (
+    <Frame staff aside={<StaffAside />}>
+      <span className="pill staff-pill">بخش کارکنان</span>
+      <MethodTabs method={method} setMethod={setMethod} otp={otp} />
+      {method === 'password'
+        ? <PasswordForm aud="staff" next={next} title="ورود کارکنان فرتاش" text="با نام کاربری‌ای که مدیر آموزشگاه برایتان ساخته وارد شوید. بعد از ورود، پنل نقش شما باز می‌شود." submit="ورود" />
+        : <OtpForm aud="staff" next={next} onNewMember={() => undefined} />}
+      {otp === false && <p className="demo-note">ورود با کد پیامکی به‌زودی فعال می‌شود.</p>}
+      <p className="alt-line">زبان‌آموز هستید؟ <Link to="/login">ورود زبان‌آموزان</Link></p>
+    </Frame>
+  )
+}
+
+const STAFF_ROLES = [
+  ['استاد', 'کلاس‌ها، تکالیف، حضور و غیاب و گروه‌های کلاس'],
+  ['پذیرش', 'ساخت گروه کلاس‌ها و نظارت بر گفت‌وگوها'],
+  ['سوپروایزر', 'نظارت آموزشی بر کلاس‌ها و اساتید'],
+  ['پشتیبانی', 'محتوای سایت، کاربران و حساب اساتید و پذیرش'],
+  ['مالک', 'همهٔ حساب‌ها، نقش‌ها و گزارش‌های امنیتی'],
+]
+function StaffAside() {
+  return (
+    <aside className="login-aside staff-aside" aria-label="نقش‌های کارکنان">
+      <div className="la-copy">
+        <span className="pill">ورود امن کارکنان</span>
+        <h2>هر نقش، <span className="hl">پنل خودش</span></h2>
+        <p>حساب کارکنان را فقط مالک یا پشتیبانی می‌سازد. بعد از ورود، فقط بخش‌های مربوط به نقش شما باز می‌شود.</p>
+        <ul className="staff-roles">
+          {STAFF_ROLES.map(([t, d]) => <li key={t}><b>{t}</b><small>{d}</small></li>)}
+        </ul>
+        <p className="staff-note">نشست کارکنان پس از ۸ ساعت بسته می‌شود و پنج ورود ناموفق، حساب را ۱۵ دقیقه قفل می‌کند.</p>
+      </div>
+    </aside>
   )
 }
 
