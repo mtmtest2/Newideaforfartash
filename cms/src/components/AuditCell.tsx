@@ -12,7 +12,7 @@ export function ActorCell({ rowData }: { rowData?: Record<string, unknown> }) {
   return <span>{name || (label === 'server-cli' || label === 'system' ? 'سامانه' : label.startsWith('staff:') ? 'پشتیبانی' : '—')}</span>
 }
 const SECTION: Record<string, string> = { articles: 'مجله', teachers: 'اساتید', courses: 'دوره‌ها', events: 'رویدادها', languages: 'زبان‌ها', pages: 'صفحه‌ها',
-  media: 'رسانه‌ها', 'private-files': 'فایل‌های خصوصی', redirects: 'تغییر مسیرها', authors: 'نویسندگان', categories: 'دسته‌بندی‌ها', tags: 'برچسب‌ها', staff: 'کارکنان' }
+  media: 'رسانه‌ها', 'private-files': 'فایل‌های خصوصی', redirects: 'تغییر مسیرها', authors: 'نویسندگان', categories: 'دسته‌بندی‌ها', tags: 'برچسب‌ها', staff: 'کارکنان', members: 'کاربران سایت', auth: 'ورود و امنیت' }
 export function EntityCell({ cellData }: { cellData?: string }) {
   const k = String(cellData ?? '')
   return <span>{SECTION[k] ?? ENTITY[k] ?? k}</span>

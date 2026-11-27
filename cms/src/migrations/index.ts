@@ -1,14 +1,39 @@
-// Applied in this order (filename timestamps). Generated migrations are reviewed before commit.
-import * as m0 from './20261127_165733_initial';
-import * as m1 from './20261127_165910_home_section_tags';
-import * as m2 from './20261127_170000_audit_append_only';
-import * as m3 from './20261127_214223_dashboard_review';
-import * as m4 from './20261127_214454_drop_visible_cards';
+import * as migration_20261127_165733_initial from './20261127_165733_initial';
+import * as migration_20261127_165910_home_section_tags from './20261127_165910_home_section_tags';
+import * as migration_20261127_170000_audit_append_only from './20261127_170000_audit_append_only';
+import * as migration_20261127_214223_dashboard_review from './20261127_214223_dashboard_review';
+import * as migration_20261127_214454_drop_visible_cards from './20261127_214454_drop_visible_cards';
+import * as migration_20261127_222909_identity from './20261127_222909_identity';
 
 export const migrations = [
-  { up: m0.up, down: m0.down, name: '20261127_165733_initial' },
-  { up: m1.up, down: m1.down, name: '20261127_165910_home_section_tags' },
-  { up: m2.up, down: m2.down, name: '20261127_170000_audit_append_only' },
-  { up: m3.up, down: m3.down, name: '20261127_214223_dashboard_review' },
-  { up: m4.up, down: m4.down, name: '20261127_214454_drop_visible_cards' },
+  {
+    up: migration_20261127_165733_initial.up,
+    down: migration_20261127_165733_initial.down,
+    name: '20261127_165733_initial',
+  },
+  {
+    up: migration_20261127_165910_home_section_tags.up,
+    down: migration_20261127_165910_home_section_tags.down,
+    name: '20261127_165910_home_section_tags',
+  },
+  {
+    up: migration_20261127_170000_audit_append_only.up,
+    down: migration_20261127_170000_audit_append_only.down,
+    name: '20261127_170000_audit_append_only',
+  },
+  {
+    up: migration_20261127_214223_dashboard_review.up,
+    down: migration_20261127_214223_dashboard_review.down,
+    name: '20261127_214223_dashboard_review',
+  },
+  {
+    up: migration_20261127_214454_drop_visible_cards.up,
+    down: migration_20261127_214454_drop_visible_cards.down,
+    name: '20261127_214454_drop_visible_cards',
+  },
+  {
+    up: migration_20261127_222909_identity.up,
+    down: migration_20261127_222909_identity.down,
+    name: '20261127_222909_identity'
+  },
 ];

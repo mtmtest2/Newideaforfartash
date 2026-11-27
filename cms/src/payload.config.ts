@@ -9,13 +9,15 @@ import { AuditLogs } from './collections/AuditLogs'
 import { Media } from './collections/Media'
 import { PrivateFiles } from './collections/PrivateFiles'
 import { Staff } from './collections/Staff'
+import { Members, OtpChallenges } from './collections/Members'
+import { identityEndpoints } from './identity/endpoints'
 import { Articles, Authors, Categories, Courses, Events, Languages, Pages, Redirects, Tags, Teachers } from './collections/content'
 import { FeatureFlags } from './globals/FeatureFlags'
 import { HomeLayout, Navigation, SiteSettings } from './globals/site'
 import { publicEndpoints } from './public-api/endpoints'
 import { monitoringEndpoints } from './monitoring/endpoints'
 import { cleanupEmptyDrafts } from './jobs/cleanup'
-import { staffOnly } from './access/permissions'
+import { can, staffOnly } from './access/permissions'
 import { adminEndpoints } from './lib/admin-endpoints'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -43,7 +45,7 @@ export default buildConfig({
   i18n: { supportedLanguages: { fa }, fallbackLanguage: 'fa' },
   collections: [
     Articles, Teachers, Courses, Events, Languages, Pages, Authors, Categories, Tags, Media, PrivateFiles, Redirects,
-    Staff, AuditLogs,
+    Staff, Members, OtpChallenges, AuditLogs,
   ],
   globals: [HomeLayout, Navigation, SiteSettings, FeatureFlags],
   editor: articleEditor,
@@ -59,14 +61,14 @@ export default buildConfig({
   upload: { limits: { fileSize: 20 * 1024 * 1024 } },
   graphQL: { disable: true }, // not used; smaller attack surface
   telemetry: false,
-  endpoints: [...publicEndpoints, ...monitoringEndpoints, ...adminEndpoints],
+  endpoints: [...identityEndpoints, ...publicEndpoints, ...monitoringEndpoints, ...adminEndpoints],
   // saved filters/columns/sort per list ("ذخیرهٔ فیلتر"), shared or private
   queryPresets: { access: { read: staffOnly, create: staffOnly, update: staffOnly, delete: staffOnly }, constraints: {}, labels: { singular: 'فیلتر ذخیره‌شده', plural: 'فیلترهای ذخیره‌شده' } },
   jobs: {
     // runs scheduled publish/unpublish (versions.drafts.schedulePublish) every minute inside the CMS process
     autoRun: [{ cron: '* * * * *', queue: 'default', limit: 20 }],
     shouldAutoRun: () => process.env.DISABLE_JOBS !== '1',
-    access: { run: ({ req }) => !!req.user },
+    access: { run: ({ req }) => can(req, 'settings.write') },
     tasks: [cleanupEmptyDrafts],
   },
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },

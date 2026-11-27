@@ -64,6 +64,7 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     staff: StaffAuthOperations;
+    members: MemberAuthOperations;
   };
   blocks: {};
   collections: {
@@ -80,6 +81,8 @@ export interface Config {
     'private-files': PrivateFile;
     redirects: Redirect;
     staff: Staff;
+    members: Member;
+    'otp-challenges': OtpChallenge;
     'audit-logs': AuditLog;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -108,6 +111,8 @@ export interface Config {
     'private-files': PrivateFilesSelect<false> | PrivateFilesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     staff: StaffSelect<false> | StaffSelect<true>;
+    members: MembersSelect<false> | MembersSelect<true>;
+    'otp-challenges': OtpChallengesSelect<false> | OtpChallengesSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -138,7 +143,7 @@ export interface Config {
   widgets: {
     collections: CollectionsWidget;
   };
-  user: Staff;
+  user: Staff | Member;
   jobs: {
     tasks: {
       cleanupEmptyDrafts: TaskCleanupEmptyDrafts;
@@ -152,21 +157,49 @@ export interface Config {
   };
 }
 export interface StaffAuthOperations {
-  forgotPassword: {
-    email: string;
+  forgotPassword:
+    | {
+        email: string;
+      }
+    | {
+        username: string;
+      };
+  login:
+    | {
+        email: string;
+        password: string;
+      }
+    | {
+        password: string;
+        username: string;
+      };
+  registerFirstUser: {
     password: string;
+    username: string;
+    email?: string;
+  };
+  unlock:
+    | {
+        email: string;
+      }
+    | {
+        username: string;
+      };
+}
+export interface MemberAuthOperations {
+  forgotPassword: {
+    username: string;
   };
   login: {
-    email: string;
     password: string;
+    username: string;
   };
   registerFirstUser: {
-    email: string;
     password: string;
+    username: string;
   };
   unlock: {
-    email: string;
-    password: string;
+    username: string;
   };
 }
 /**
@@ -921,7 +954,7 @@ export interface Redirect {
   createdAt: string;
 }
 /**
- * حساب‌های ورود به داشبورد پشتیبانی. ساخت حساب تازه فقط از سرور انجام می‌شود.
+ * حساب‌های کارکنان. ساخت و تغییر نقش فقط از داشبورد مالک/پشتیبانی در سایت انجام می‌شود.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "staff".
@@ -929,18 +962,18 @@ export interface Redirect {
 export interface Staff {
   id: number;
   name: string;
-  /**
-   * نقش «مالک» در سامانهٔ احراز هویت مرکزی آینده تعریف می‌شود و از اینجا قابل تعیین نیست.
-   */
-  role: 'support';
+  role: 'owner' | 'support' | 'supervisor' | 'reception' | 'teacher';
   active?: boolean | null;
+  phone?: string | null;
+  lastLoginAt?: string | null;
   /**
-   * برای اتصال آیندهٔ این حساب به احراز هویت مرکزی (فعلاً خالی).
+   * برای اتصال آینده (فعلاً خالی).
    */
   fartashUserId?: string | null;
   updatedAt: string;
   createdAt: string;
-  email: string;
+  email?: string | null;
+  username: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;
   salt?: string | null;
@@ -957,6 +990,55 @@ export interface Staff {
     | null;
   password?: string | null;
   collection: 'staff';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members".
+ */
+export interface Member {
+  id: number;
+  name: string;
+  phone?: string | null;
+  phoneVerifiedAt?: string | null;
+  active?: boolean | null;
+  passwordSet?: boolean | null;
+  lastLoginAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email?: string | null;
+  username: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'members';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "otp-challenges".
+ */
+export interface OtpChallenge {
+  id: number;
+  audience: 'member' | 'staff';
+  phoneHash: string;
+  codeHash: string;
+  ipHash?: string | null;
+  expiresAt: string;
+  attempts?: number | null;
+  consumedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * هر تغییر محتوا و تنظیمات این‌جا ثبت می‌شود و قابل ویرایش یا حذف نیست.
@@ -1184,14 +1266,27 @@ export interface PayloadLockedDocument {
         value: number | Staff;
       } | null)
     | ({
+        relationTo: 'members';
+        value: number | Member;
+      } | null)
+    | ({
+        relationTo: 'otp-challenges';
+        value: number | OtpChallenge;
+      } | null)
+    | ({
         relationTo: 'audit-logs';
         value: number | AuditLog;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'staff';
-    value: number | Staff;
-  };
+  user:
+    | {
+        relationTo: 'staff';
+        value: number | Staff;
+      }
+    | {
+        relationTo: 'members';
+        value: number | Member;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -1201,10 +1296,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: number;
-  user: {
-    relationTo: 'staff';
-    value: number | Staff;
-  };
+  user:
+    | {
+        relationTo: 'staff';
+        value: number | Staff;
+      }
+    | {
+        relationTo: 'members';
+        value: number | Member;
+      };
   key?: string | null;
   value?:
     | {
@@ -1787,10 +1887,13 @@ export interface StaffSelect<T extends boolean = true> {
   name?: T;
   role?: T;
   active?: T;
+  phone?: T;
+  lastLoginAt?: T;
   fartashUserId?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
+  username?: T;
   resetPasswordToken?: T;
   resetPasswordExpiration?: T;
   salt?: T;
@@ -1805,6 +1908,51 @@ export interface StaffSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members_select".
+ */
+export interface MembersSelect<T extends boolean = true> {
+  name?: T;
+  phone?: T;
+  phoneVerifiedAt?: T;
+  active?: T;
+  passwordSet?: T;
+  lastLoginAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  username?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "otp-challenges_select".
+ */
+export interface OtpChallengesSelect<T extends boolean = true> {
+  audience?: T;
+  phoneHash?: T;
+  codeHash?: T;
+  ipHash?: T;
+  expiresAt?: T;
+  attempts?: T;
+  consumedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2216,10 +2364,15 @@ export interface TaskSchedulePublish {
           value: number | Page;
         } | null);
     global?: string | null;
-    user?: {
-      relationTo: 'staff';
-      value: number | Staff;
-    } | null;
+    user?:
+      | ({
+          relationTo: 'staff';
+          value: number | Staff;
+        } | null)
+      | ({
+          relationTo: 'members';
+          value: number | Member;
+        } | null);
   };
   output?: unknown;
 }

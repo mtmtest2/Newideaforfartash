@@ -315,7 +315,7 @@ export const Pages = publishable({
   ],
   hooks: {
     beforeValidate: [({ data }) => {
-      const reserved = ['magazine', 'blog', 'teachers', 'events', 'languages', 'courses', 'login', 'placement', 'panel', 'teacher', 'reception', 'api', 'assets', 'support']
+      const reserved = ['magazine', 'blog', 'teachers', 'events', 'languages', 'courses', 'login', 'register', 'staff', 'owner', 'support-desk', 'supervisor', 'placement', 'panel', 'teacher', 'reception', 'api', 'assets', 'support']
       if (data?.slug && reserved.includes(String(data.slug))) throw new APIError('این نشانی برای بخش‌های سایت رزرو شده است؛ نشانی دیگری انتخاب کنید.', 400, undefined, true)
       return data
     }],

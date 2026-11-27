@@ -12,7 +12,8 @@
     "generate:types": "payload generate:types",
     "migrate": "payload migrate",
     "migrate:create": "payload migrate:create",
-    "create-support-admin": "payload run scripts/create-support-admin.ts",
+    "create-staff": "payload run scripts/create-staff.ts",
+    "create-support-admin": "payload run scripts/create-staff.ts",
     "seed": "payload run scripts/seed.ts",
     "test": "node --test tests/"
   },

@@ -2,7 +2,7 @@
 export const ENTITY: Record<string, string> = {
   articles: 'مقالهٔ', teachers: 'استادِ', courses: 'دورهٔ', events: 'رویدادِ', languages: 'صفحهٔ زبانِ', pages: 'صفحهٔ',
   authors: 'نویسندهٔ', categories: 'دسته‌بندیِ', tags: 'برچسبِ', media: 'رسانهٔ', 'private-files': 'فایل خصوصیِ', redirects: 'تغییر مسیرِ',
-  staff: 'حساب کارمندِ', 'global:home-layout': 'تنظیمات صفحهٔ اصلی', 'global:navigation': 'منوی سایت', 'global:site-settings': 'اطلاعات آموزشگاه',
+  staff: 'حساب کارمندِ', members: 'حساب کاربرِ', auth: 'ورود', 'global:home-layout': 'تنظیمات صفحهٔ اصلی', 'global:navigation': 'منوی سایت', 'global:site-settings': 'اطلاعات آموزشگاه',
   'global:feature-flags': 'قابلیت‌های سایت', 'site-cache': 'حافظهٔ سایت', jobs: 'صف انتشار', content: 'محتوای اولیه',
 }
 const VERB: Record<string, string> = {

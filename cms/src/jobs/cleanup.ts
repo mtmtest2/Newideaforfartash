@@ -19,6 +19,9 @@ export const cleanupEmptyDrafts = {
         removed++
       }
     }
+    // one-time codes are useless after a few minutes; keep one day for rate limiting, then delete
+    const otp = await req.payload.db.deleteMany({ collection: 'otp-challenges', req, where: { createdAt: { less_than: new Date(Date.now() - 864e5).toISOString() } } })
+    void otp
     return { output: { removed } }
   },
 } as unknown as TaskConfig
