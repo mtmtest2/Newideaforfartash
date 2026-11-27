@@ -7,6 +7,7 @@
 import fs from 'node:fs'
 import http from 'node:http'
 import path from 'node:path'
+import zlib from 'node:zlib'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createPageBuilder, esc } from '../scripts/page.mjs'
 
@@ -122,7 +123,8 @@ const PANEL = /^\/(panel|teacher|reception)(\/|$)/
 async function renderRoute(pathname, search, preview) {
   let loaded
   if (preview) {
-    const r = await cms(`/preview?token=${encodeURIComponent(preview)}`)
+    // an invalid/expired token is a plain 404 (never the published page, never an error page)
+    const r = await cms(`/preview?token=${encodeURIComponent(preview)}`).catch(() => ({ status: 403 }))
     if (r.status !== 200) return { status: 404, html: await notFoundPage(pathname) }
     const site = await memoized('site', 30000, async () => (await cms('/site')).data)
     loaded = { site, data: r.data.data, status: 200, resource: resourceFor(pathname, search) }
@@ -176,6 +178,18 @@ function serveStatic(req, res, pathname) {
 
 /* ---------------- HTTP ---------------- */
 const send = (res, status, body, headers = {}) => { res.writeHead(status, { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', ...headers }); res.end(body) }
+// HTML/JSON responses: brotli or gzip (compressed once per cache entry, not per request)
+const zip = new WeakMap()
+function sendText(req, res, status, entry, headers) {
+  const ae = String(req.headers['accept-encoding'] || '')
+  const enc = ae.includes('br') ? 'br' : ae.includes('gzip') ? 'gzip' : null
+  if (!enc || entry.body.length < 1024) return send(res, status, entry.body, headers)
+  let z = zip.get(entry); if (!z) { z = {}; zip.set(entry, z) }
+  z[enc] ??= enc === 'br'
+    ? zlib.brotliCompressSync(Buffer.from(entry.body), { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 9 } })
+    : zlib.gzipSync(Buffer.from(entry.body), { level: 9 })
+  return send(res, status, z[enc], { ...headers, 'Content-Encoding': enc, Vary: 'Accept-Encoding' })
+}
 const log = (...a) => console.log(new Date().toISOString(), ...a)
 
 const server = http.createServer(async (req, res) => {
@@ -202,13 +216,14 @@ const server = http.createServer(async (req, res) => {
       const p = new URL(url.searchParams.get('path') || '/', 'http://x')
       const key = 'data:' + p.pathname + p.search
       const hit = cache.get(key)
-      if (hit && Date.now() - hit.at < TTL) return send(res, hit.status, hit.body, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' })
+      if (hit && Date.now() - hit.at < TTL) return sendText(req, res, hit.status, hit, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' })
       try {
         const l = await loadRoute(p.pathname, p.search)
         if (!l.resource || l.site === null) return send(res, 404, '{"error":"not_found"}', { 'Content-Type': 'application/json' })
         const body = JSON.stringify({ site: l.site, data: l.data })
-        cache.set(key, { at: Date.now(), status: l.status, body })
-        return send(res, l.status, body, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' })
+        const entry = { at: Date.now(), status: l.status, body }
+        cache.set(key, entry)
+        return sendText(req, res, l.status, entry, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' })
       } catch (e) {
         log('data error', p.pathname, e.message)
         if (hit) return send(res, hit.status, hit.body, { 'Content-Type': 'application/json' })
@@ -230,11 +245,12 @@ const server = http.createServer(async (req, res) => {
     const cleanSearch = (() => { const q = new URLSearchParams(search); q.delete('preview'); return q.size ? `?${q}` : '' })()
     const key = 'page:' + pathname + cleanSearch
     const hit = !preview && cache.get(key)
-    if (hit && Date.now() - hit.at < TTL) return send(res, hit.status, hit.body, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Cache': 'hit' })
+    if (hit && Date.now() - hit.at < TTL) return sendText(req, res, hit.status, hit, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Cache': 'hit' })
     try {
       const { status, html } = await renderRoute(pathname, cleanSearch, preview)
-      if (!preview) cache.set(key, { at: Date.now(), status, body: html })
-      return send(res, status, html, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': preview ? 'no-store' : 'no-cache', ...(preview ? { 'X-Robots-Tag': 'noindex' } : {}), 'X-Cache': 'miss' })
+      const entry = { at: Date.now(), status, body: html }
+      if (!preview) cache.set(key, entry)
+      return sendText(req, res, status, entry, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': preview ? 'no-store' : 'no-cache', ...(preview ? { 'X-Robots-Tag': 'noindex' } : {}), 'X-Cache': 'miss' })
     } catch (e) {
       log('render error', pathname, e.message)
       if (hit) return send(res, hit.status, hit.body, { 'Content-Type': 'text/html; charset=utf-8', 'X-Cache': 'stale' })

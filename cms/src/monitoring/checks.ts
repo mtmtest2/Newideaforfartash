@@ -60,7 +60,7 @@ export async function runChecks(payload: Payload): Promise<Check[]> {
   // 5. media storage
   for (const [key, label, dir] of [['media', 'فضای رسانه‌ها', process.env.MEDIA_DIR || 'media'], ['private', 'فضای فایل‌های خصوصی', process.env.PRIVATE_FILES_DIR || 'private']] as const) {
     try {
-      const p = path.resolve(dir)
+      const p = path.resolve(/* turbopackIgnore: true */ dir)
       await fs.access(p, fs.constants.W_OK)
       const s = await fs.statfs(p)
       const freeGb = (s.bavail * s.bsize) / 1e9

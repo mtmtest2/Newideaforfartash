@@ -84,7 +84,7 @@ export const Teachers = publishable({
     description: 'ترتیب این فهرست (با کشیدن و رها کردن) همان ترتیب کاروسل صفحهٔ اصلی و صفحهٔ اساتید است.' },
   fields: [
     { type: 'row', fields: [{ name: 'firstName', label: 'نام', type: 'text', required: true }, { name: 'lastName', label: 'نام خانوادگی', type: 'text', required: true }] },
-    { name: 'displayName', type: 'text', admin: { hidden: true },
+    { name: 'displayName', label: 'نام نمایشی', type: 'text', admin: { hidden: true },
       hooks: { beforeChange: [({ siblingData }) => `استاد ${siblingData.firstName ?? ''} ${siblingData.lastName ?? ''}`.trim()] } },
     { name: 'title', label: 'عنوان حرفه‌ای', type: 'text', required: true, admin: { description: 'مثلاً «مدرس آیلتس و مکالمه»' } },
     { name: 'photo', label: 'تصویر', type: 'upload', relationTo: 'media', required: true },

@@ -6,7 +6,8 @@
 html[data-theme='light'] { --theme-bg: #fbf7f0; --theme-elevation-0: #fffdf9; }
 html[data-theme='dark'] { --theme-bg: #111c36; --theme-elevation-0: #111c36; }
 body, input, textarea, select, button { font-family: var(--font-body) !important; letter-spacing: 0 !important; }
-html[data-theme='light'] .btn--style-primary { background: var(--fx-navy); }
+html[data-theme='light'] .btn--style-primary { background: var(--fx-navy); color: #f8f1e7; }
+html[data-theme='light'] .btn--style-primary:hover { background: #2b3b66; color: #fff; }
 html[data-theme='dark'] .btn--style-primary { background: var(--fx-lime); color: #13210a; }
 
 .fx-logo { display: grid; justify-items: center; gap: 8px; }

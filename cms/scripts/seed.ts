@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url'
 import { commitTransaction, createLocalReq, getPayload, initTransaction, killTransaction } from 'payload'
 import config from '@payload-config'
 
-const img = (f: string) => path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../src/assets/img', f)
+// images of the current website (mounted read-only into the tools container in production: SEED_ASSETS_DIR)
+const img = (f: string) => path.resolve(process.env.SEED_ASSETS_DIR || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../src/assets/img'), f)
 const para = (text: string) => ({ root: { type: 'root', format: '', indent: 0, version: 1, direction: 'rtl', children: [
   { type: 'paragraph', format: '', indent: 0, version: 1, direction: 'rtl', textFormat: 0, textStyle: '', children: [{ type: 'text', text, format: 0, detail: 0, mode: 'normal', style: '', version: 1 }] }] } })
 const CEFR = [['A1', 'مبتدی'], ['A2', 'مقدماتی'], ['B1', 'متوسط'], ['B2', 'فوق‌متوسط'], ['C1', 'پیشرفته'], ['C2', 'تسلط کامل']] as const

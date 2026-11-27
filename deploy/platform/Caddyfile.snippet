@@ -1,0 +1,17 @@
+# Add to your EXISTING Caddy (the reverse proxy on the "caddy" network). Replace the current site block
+# for the domain only when you switch from the static image to the live platform (docs/CMS-DEPLOYMENT.md).
+
+mrmdev.xyz, www.mrmdev.xyz {
+	encode zstd gzip
+	reverse_proxy fartash-web:3000
+}
+
+# Support Dashboard + media files. Optionally restrict /support to your office IPs:
+#   @staff not remote_ip 1.2.3.4/32
+#   respond @staff /support* 403
+cms.mrmdev.xyz {
+	encode zstd gzip
+	# the public content API is server-to-server only (the website calls it inside Docker); never expose it
+	respond /api/public/* 404
+	reverse_proxy fartash-cms:3001
+}

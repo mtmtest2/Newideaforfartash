@@ -1,0 +1,80 @@
+# Fartash platform: website (live CMS content) + CMS (Support Dashboard) + PostgreSQL.
+# Separate from the current static deployment (../../docker-compose.yml), which is left untouched.
+# See docs/CMS-DEPLOYMENT.md before using it on the production server.
+#
+#   cp deploy/platform/.env.example deploy/platform/.env   # fill in every CHANGE_ME
+#   docker compose -f deploy/platform/docker-compose.yml --env-file deploy/platform/.env up -d --build
+name: fartash
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fartash-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fartash
+      POSTGRES_USER: fartash
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    networks: [internal]          # never published to the host or the proxy network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fartash -d fartash"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # one-off: applies reviewed migrations (schema "cms") before the CMS starts; also used for seed/admin scripts
+  cms-migrate:
+    build: { context: ../../cms, target: build }
+    image: fartash-cms-tools:${IMAGE_TAG:-platform}
+    environment: &cmsenv
+      DATABASE_URL: postgres://fartash:${POSTGRES_PASSWORD}@postgres:5432/fartash
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?set PAYLOAD_SECRET}
+      CMS_PUBLIC_URL: ${CMS_PUBLIC_URL:?set CMS_PUBLIC_URL}
+      SITE_URL: ${SITE_URL:?set SITE_URL}
+      CONTENT_API_SECRET: ${CONTENT_API_SECRET:?set CONTENT_API_SECRET}
+      SITE_REVALIDATE_URL: http://fartash-web:3000/__revalidate
+      MEDIA_DIR: /data/media
+      PRIVATE_FILES_DIR: /data/private
+      OFFLINE_COURSES_FORCE_OFF: ${OFFLINE_COURSES_FORCE_OFF:-0}
+      SEED_ASSETS_DIR: /seed-assets
+      NODE_ENV: production
+    command: ["npx", "payload", "migrate"]
+    # the seed script reads the current website images from here (read-only)
+    volumes: [media:/data/media, private:/data/private, ../../src/assets/img:/seed-assets:ro]
+    networks: [internal]
+    depends_on: { postgres: { condition: service_healthy } }
+    restart: "no"
+
+  cms:
+    build: { context: ../../cms, target: runtime }
+    image: fartash-cms:${IMAGE_TAG:-platform}
+    container_name: fartash-cms
+    restart: unless-stopped
+    environment: *cmsenv
+    volumes: [media:/data/media, private:/data/private]
+    networks: [internal, proxy]
+    depends_on:
+      postgres: { condition: service_healthy }
+      cms-migrate: { condition: service_completed_successfully }
+
+  web:
+    build: { context: ../.., dockerfile: Dockerfile.web, args: { SITE_URL: "${SITE_URL}" } }
+    image: fartash-web-live:${IMAGE_TAG:-platform}
+    container_name: fartash-web
+    restart: unless-stopped
+    environment:
+      SITE_URL: ${SITE_URL}
+      CMS_INTERNAL_URL: http://fartash-cms:3001
+      CONTENT_API_SECRET: ${CONTENT_API_SECRET}
+      CACHE_TTL: ${CACHE_TTL:-300}
+    networks: [internal, proxy]
+    depends_on: [cms]
+
+volumes:
+  pgdata:
+  media:
+  private:
+
+networks:
+  internal: { internal: true }
+  proxy: { name: "${CADDY_NETWORK:-caddy}", external: true }
