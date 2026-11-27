@@ -299,6 +299,9 @@ export interface Author {
    */
   slug: string;
   role?: string | null;
+  /**
+   * به‌صورت دایره کنار نام نویسنده در بالای مقاله نمایش داده می‌شود. عکس مربع با چهرهٔ وسط کادر بهترین نتیجه را می‌دهد.
+   */
   avatar?: (number | null) | Media;
   bio?: string | null;
   /**
