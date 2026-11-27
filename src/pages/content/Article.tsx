@@ -11,8 +11,18 @@ export default function Article() {
     <Gate<ArticleDTO>>{(a) => (
       <PageShell tag={a.category?.name ?? 'مجلهٔ آموزشی'} title={a.title} text={a.excerpt} docTitle={a.seo.title}>
         <article className="c-article">
+          {a.author && (
+            <div className="c-byline">
+              {a.author.avatar?.src
+                ? <Img img={{ ...a.author.avatar, alt: '' }} sizes="64px" className="c-avatar" />
+                : <span className="c-avatar c-avatar-empty" aria-hidden="true">{a.author.name.trim().charAt(0)}</span>}
+              <span className="c-byline-txt">
+                <b>{a.author.name}</b>
+                {a.author.role && <small>{a.author.role}</small>}
+              </span>
+            </div>
+          )}
           <p className="c-meta">
-            {a.author && <span>{a.author.name}</span>}
             {a.publishedAt && <time dateTime={a.publishedAt}>{faDate(a.publishedAt)}</time>}
             {a.readingTime != null && <span>{faNum(a.readingTime)} دقیقه مطالعه</span>}
             {a.updatedAt && a.publishedAt && a.updatedAt.slice(0, 10) > a.publishedAt.slice(0, 10) && <span>به‌روزرسانی: {faDate(a.updatedAt)}</span>}

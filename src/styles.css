@@ -1355,6 +1355,12 @@ html:has(.panel) { scroll-padding-top: 96px; }
 :root[data-theme='dark'] .c-chips a.on, :root[data-theme='dark'] .c-pages a.on { background: var(--accent); color: var(--on-accent); }
 .c-article { max-width: 860px; margin: 0 auto; display: grid; gap: 22px; }
 .c-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; color: var(--muted); font-size: 14.5px; }
+.c-byline { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.c-avatar { width: 64px; height: 64px; flex: none; border-radius: 50%; object-fit: cover; background: var(--surface-2); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px var(--line); }
+.c-avatar-empty { display: grid; place-items: center; font-size: 26px; font-weight: 700; color: var(--navy); background: var(--accent); }
+.c-byline-txt { display: grid; gap: 2px; text-align: start; }
+.c-byline-txt b { font-size: 19px; color: var(--fg); }
+.c-byline-txt small { font-size: 14px; color: var(--muted); }
 .c-cover { width: 100%; height: auto; border-radius: var(--radius); }
 .c-toc { padding: 16px 20px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line); }
 .c-toc ol { margin: 8px 0 0; padding-inline-start: 20px; display: grid; gap: 4px; }

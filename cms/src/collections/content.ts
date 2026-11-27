@@ -17,7 +17,7 @@ export const Authors = reference({
   admin: { group: G, useAsTitle: 'name' },
   fields: [
     { name: 'name', label: 'نام', type: 'text', required: true }, slugField('name'),
-    { name: 'role', label: 'سمت', type: 'text' }, { name: 'avatar', label: 'تصویر', type: 'upload', relationTo: 'media' },
+    { name: 'role', label: 'سمت', type: 'text' }, { name: 'avatar', label: 'تصویر نویسنده', type: 'upload', relationTo: 'media', admin: { description: 'به‌صورت دایره کنار نام نویسنده در بالای مقاله نمایش داده می‌شود. عکس مربع با چهرهٔ وسط کادر بهترین نتیجه را می‌دهد.' } },
     { name: 'bio', label: 'معرفی', type: 'textarea' },
     { name: 'teacher', label: 'استاد مرتبط', type: 'relationship', relationTo: 'teachers', admin: { description: 'اگر نویسنده یکی از اساتید است.' } },
   ],
