@@ -4,32 +4,31 @@ const { chromium } = require('playwright')
 const base = process.argv[2] || 'http://localhost:8088'
 const results = []
 const ok = (name, cond, extra = '') => results.push(`${cond ? 'PASS' : 'FAIL'}  ${name}${cond || !extra ? '' : '  -- ' + extra}`)
+const { accounts, signIn, testIp } = require('./e2e-accounts.cjs')
 const ready = (p) => p.waitForSelector('#panel-content .p-page', { timeout: 10000 })
 
 ;(async () => {
   const b = await chromium.launch()
   for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const T = (n) => `[${vp.width < 500 ? 'phone' : 'desktop'}] ${n}`
-    const ctx = await b.newContext({ viewport: vp })
+    const ctx = await b.newContext({ viewport: vp, extraHTTPHeaders: { 'x-forwarded-for': testIp() } })
     const errs = []
     const watch = (p) => { p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => m.type() === 'error' && errs.push(m.text())) }
 
     // guard + teacher login through the form
     const t = await ctx.newPage(); watch(t)
-    await t.goto(base + '/teacher/assignments'); await t.waitForURL(/\/login\?role=teacher/, { timeout: 8000 }).catch(() => {})
-    ok(T('teacher guard -> /login?role=teacher'), /role=teacher/.test(t.url()))
-    ok(T('teacher login has no signup tab'), !(await t.isVisible('.seg')))
-    await t.fill('input[inputmode=tel]', '09121112233'); await t.click('form button[type=submit]')
-    await t.fill('input[name=code]', '12345'); await t.click('form button[type=submit]')
+    const acc = await accounts(base)
+    await t.goto(base + '/teacher/assignments'); await t.waitForURL(/\/staff\/login/, { timeout: 8000 }).catch(() => {})
+    ok(T('teacher guard -> /staff/login'), new URL(t.url()).pathname === '/staff/login')
+    ok(T('staff login has no signup tab'), !(await t.isVisible('text=عضویت')))
+    await signIn(t, acc.teacher)
     await ready(t)
     ok(T('teacher login -> back to /teacher/assignments'), new URL(t.url()).pathname.startsWith('/teacher/assignments'))
 
     // student login in a second tab
     const s = await ctx.newPage(); watch(s)
     await s.goto(base + '/login?next=/panel/assignments')
-    await s.click('.seg button:nth-child(2)')
-    await s.fill('input[name=name]', 'مریم کاظمی'); await s.fill('input[inputmode=tel]', '09121234567'); await s.click('form button[type=submit]')
-    await s.fill('input[name=code]', '12345'); await s.click('form button[type=submit]')
+    await signIn(s, acc.student)
     await ready(s)
     ok(T('both panels signed in side by side'), new URL(s.url()).pathname.startsWith('/panel'))
 
@@ -121,10 +120,9 @@ const ready = (p) => p.waitForSelector('#panel-content .p-page', { timeout: 1000
 
     // 7. reception: guard, login, create the missing group, moderate, close, join
     const r = await ctx.newPage(); watch(r)
-    await r.goto(base + '/reception/groups'); await r.waitForURL(/role=reception/, { timeout: 8000 }).catch(() => {})
-    ok(T('reception guard -> /login?role=reception'), /role=reception/.test(r.url()))
-    await r.fill('input[inputmode=tel]', '09121113344'); await r.click('form button[type=submit]')
-    await r.fill('input[name=code]', '12345'); await r.click('form button[type=submit]')
+    await r.goto(base + '/reception/groups'); await r.waitForURL(/\/staff\/login/, { timeout: 8000 }).catch(() => {})
+    ok(T('reception guard -> /staff/login'), new URL(r.url()).pathname === '/staff/login')
+    await signIn(r, acc.reception)
     await ready(r)
     ok(T('reception login -> groups'), new URL(r.url()).pathname.startsWith('/reception/groups'))
     ok(T('reception sees all class groups'), (await r.locator('.p-chat-list li').count()) === 2)

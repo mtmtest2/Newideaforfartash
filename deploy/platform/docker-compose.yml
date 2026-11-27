@@ -36,6 +36,8 @@ services:
       MEDIA_DIR: /data/media
       PRIVATE_FILES_DIR: /data/private
       OFFLINE_COURSES_FORCE_OFF: ${OFFLINE_COURSES_FORCE_OFF:-0}
+      # SMS for one-time sign-in codes: empty = OTP sign-in shown as "coming soon" (see docs/AUTH.md to add a provider)
+      SMS_PROVIDER: ${SMS_PROVIDER:-}
       SEED_ASSETS_DIR: /seed-assets
       NODE_ENV: production
     command: ["npx", "payload", "migrate"]
@@ -66,6 +68,10 @@ services:
       SITE_URL: ${SITE_URL}
       CMS_INTERNAL_URL: http://fartash-cms:3001
       CONTENT_API_SECRET: ${CONTENT_API_SECRET}
+      # encrypts the sign-in cookies; changing it signs everyone out
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET}
+      # the web container is reached only through Caddy, which sets X-Forwarded-For (used for per-IP rate limits)
+      TRUST_PROXY: "1"
       CACHE_TTL: ${CACHE_TTL:-300}
     networks: [internal, proxy]
     depends_on: [cms]

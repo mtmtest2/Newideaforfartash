@@ -3,8 +3,11 @@
 ## Implemented
 - **Server-side authorization** on every CMS collection/global/endpoint (`cms/src/access`). Raw collections are
   staff-only; the public reads only `/api/public/*`, which requires a server key and returns published DTOs.
-- **No sign-up / no escalation:** staff accounts only via `npm run create-support-admin` on the server; role and
-  active flags are field-locked; no `owner` option exists.
+- **Sign-in for everyone:** see `docs/AUTH.md`.
+  - Members sign up on `/register`; staff accounts are created only by owner/support through server-checked
+    endpoints. The first owner comes from `npm run create-staff`.
+  - Role, active, username and phone are field-locked for every API caller.
+  - Only owner/support can enter the Content Hub.
 - **Sessions:** Payload sessions, 8 h, httpOnly cookie, `Secure` in production, `SameSite=Lax`; lockout after 5 failed
   logins for 15 min; CSRF/CORS limited to `CMS_PUBLIC_URL` and `SITE_URL`.
 - **Audit:** every content/settings/tool action is written in the same transaction; `audit_logs` is append-only via
@@ -19,7 +22,12 @@
 - **Web server:** path-traversal-safe static serving, `/__revalidate` requires the shared key, panel routes `noindex`.
 - **Headers:** `nosniff`, `Referrer-Policy`, `X-Frame-Options: SAMEORIGIN` and `X-Robots-Tag: noindex` on the CMS.
 
-## Verified by tests (`cms/tests/integration.mjs`, 66 checks)
+## Verified by tests (`cms/tests/integration.mjs`, 66 checks; `cms/tests/identity.mjs`, 81 checks)
+Identity: cookie theft/tampering/slot swap, CSRF, open redirect, audience injection, role escalation by support and
+teachers, last-owner protection, lockout, session revocation (logout, password change, deactivation), OTP attempt
+limits and replay, rate limits, enumeration (message + timing), static-file bypass of page guards.
+
+Content Hub:
 Anonymous access to drafts/staff/audit/private files, public API without key, privilege escalation (role → owner),
 staff creation, audit edit/delete, diagnostics without auth, revalidation without key, path traversal, SVG/EXE
 uploads, forged preview tokens, private fields in DTOs.
@@ -31,5 +39,8 @@ uploads, forged preview tokens, private fields in DTOs.
 - Nightly backups (`deploy/platform/backup.sh`) and periodic restore tests.
 
 ## Not yet in scope
-Central authentication, rate limiting of public sign-in/OTP, payment security and member-data access policies belong
-to the future phases (contracts in `contracts/`).
+- SMS provider for one-time codes: the code path is ready; it needs a provider account.
+- Two-factor sign-in for owner/support.
+- Password reset by email or SMS: until then, owner/support set a new password from the dashboard.
+- Payment security and server-side storage of panel data (classes, homework, chats) are later phases (contracts in
+  `contracts/`).

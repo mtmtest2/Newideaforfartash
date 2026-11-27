@@ -4,20 +4,26 @@ const { chromium } = require('playwright')
 const fs = require('fs')
 const axeSrc = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8')
 const base = process.argv[2] || 'http://localhost:8088'
+const { accounts, sessionCookies, testIp } = require('./e2e-accounts.cjs')
 ;(async () => {
   const b = await chromium.launch(); let total = 0
+  // real sessions (the panels are guarded by the server now)
+  const acc = await accounts(base)
+  const jar = {
+    member: await sessionCookies(base, acc.student), teacher: await sessionCookies(base, acc.teacher, true), reception: await sessionCookies(base, acc.reception, true),
+    owner: await sessionCookies(base, { username: process.env.E2E_OWNER_USERNAME || 'owner.demo', password: process.env.E2E_OWNER_PASSWORD || 'Malek-Fartash-2026' }, true),
+    support: await sessionCookies(base, acc.support, true), supervisor: await sessionCookies(base, acc.supervisor, true),
+  }
   for (const [w, h] of [[1440, 900], [390, 844]]) for (const theme of ['light', 'dark']) for (const path of ['/', '/teachers', '/magazine', '/magazine/english-speaking-skills', '/teachers/arman-kiani', '/languages/english', '/events', '/no-such-page', '/placement', '/login', '/panel', '/panel/courses', '/panel/schedule', '/panel/assignments', '/panel/recordings', '/panel/certificates', '/panel/payments', '/panel/support', '/panel/profile', '/panel/messages?t=g-en-b1',
-    '/teacher', '/teacher/classes', '/teacher/classes?id=en-b1', '/teacher/schedule', '/teacher/assignments', '/teacher/assignments?task=a4', '/teacher/attendance', '/teacher/messages?t=g-en-b1', '/teacher/profile', '/reception', '/reception/classes', '/reception/classes?id=en-b1', '/reception/groups?t=g-en-b1']) {
-    const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' })
+    '/teacher', '/teacher/classes', '/teacher/classes?id=en-b1', '/teacher/schedule', '/teacher/assignments', '/teacher/assignments?task=a4', '/teacher/attendance', '/teacher/messages?t=g-en-b1', '/teacher/profile', '/reception', '/reception/classes', '/reception/classes?id=en-b1', '/reception/groups?t=g-en-b1', '/reception/account',
+    '/register', '/staff/login', '/owner', '/owner/staff', '/owner/members', '/owner/account', '/support-desk', '/support-desk/staff', '/supervisor']) {
+    const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce', extraHTTPHeaders: { 'x-forwarded-for': testIp() } })
     await ctx.addInitScript((t) => localStorage.setItem('fartash-theme', t), theme)
-    // panel pages need a (demo) session; /login would redirect away with one, so only set it for the panel
-    const isTeacher = /^\/teacher(\/|\?|$)/.test(path)
-    const isReception = path.startsWith('/reception')
-    if (isReception) await ctx.addInitScript(() => localStorage.setItem('fartash-reception', JSON.stringify({ name: 'نرگس امیری', phone: '09121113344', joined: '2025-09-01T00:00:00Z' })))
-    if (isTeacher) await ctx.addInitScript(() => localStorage.setItem('fartash-teacher', JSON.stringify({ teacherId: 'arman', name: 'آرمان کیانی', phone: '09121112233', joined: '2025-09-01T00:00:00Z' })))
-    if (path.startsWith('/panel')) await ctx.addInitScript(() => localStorage.setItem('fartash-session', JSON.stringify({ name: 'مریم کاظمی', phone: '09121234567', joined: Date.now() })))
+    // panel pages need a real session; /login and /staff/login would redirect away with one, so only set it there
+    const area = { panel: 'member', teacher: 'teacher', reception: 'reception', owner: 'owner', 'support-desk': 'support', supervisor: 'supervisor' }[path.split(/[/?]/)[1]]
+    if (area) await ctx.addCookies(jar[area])
     const p = await ctx.newPage(); await p.goto(base + path, { waitUntil: 'networkidle' })
-    if (path.startsWith('/panel') || isTeacher || isReception) await p.waitForSelector('#panel-content .p-page')
+    if (area) await p.waitForSelector('#panel-content .p-page')
     await p.addStyleTag({ content: '.rv{opacity:1!important;transform:none!important}*{animation:none!important;transition:none!important}' })
     await p.waitForTimeout(300)
     await p.addScriptTag({ content: axeSrc })

@@ -13,5 +13,11 @@ cms.mrmdev.xyz {
 	encode zstd gzip
 	# the public content API is server-to-server only (the website calls it inside Docker); never expose it
 	respond /api/public/* 404
+	# sign-in / accounts API: only the website server calls it, inside Docker
+	respond /api/identity/* 404
+	# accounts are created only from the website dashboards / server script (also enforced in the CMS)
+	respond /api/staff/first-register 404
+	respond /support/create-first-user* 404
+	respond /api/staff/forgot-password 404
 	reverse_proxy fartash-cms:3001
 }

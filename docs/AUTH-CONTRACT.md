@@ -1,4 +1,8 @@
-# Central authentication — integration contract (not implemented)
+# Central authentication — integration contract
+
+> **Status:** the first version is implemented inside the CMS (schema `cms`, collections `members` and `staff`). See
+> `docs/AUTH.md` for the design. The points below remain the long-term direction: one identity store, SMS codes,
+> a second factor for privileged staff, and owner approval for privileged roles.
 
 Types: `contracts/identity.ts`.
 

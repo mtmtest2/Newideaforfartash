@@ -1,12 +1,13 @@
 // End-to-end check of interactive features on the production build. usage: node scripts/e2e.cjs http://localhost:8088
 const { chromium } = require('playwright')
 const base = process.argv[2] || 'http://localhost:8088'
+const { accounts, signIn, testIp } = require('./e2e-accounts.cjs')
 const results = []
 const ok = (name, cond, extra = '') => results.push(`${cond ? 'PASS' : 'FAIL'}  ${name}${extra ? '  (' + extra + ')' : ''}`)
 ;(async () => {
   const b = await chromium.launch()
   for (const [w, h, tag] of [[1440, 900, 'desktop'], [390, 844, 'phone']]) {
-    const ctx = await b.newContext({ viewport: { width: w, height: h } })
+    const ctx = await b.newContext({ viewport: { width: w, height: h }, extraHTTPHeaders: { 'x-forwarded-for': testIp() } })
     const p = await ctx.newPage(); const errs = []
     p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => m.type() === 'error' && errs.push(m.text()))
     const T = (n) => `[${tag}] ${n}`
@@ -81,11 +82,12 @@ const ok = (name, cond, extra = '') => results.push(`${cond ? 'PASS' : 'FAIL'}  
     ok(T('placement form submits'), await p.isVisible('.ok-box'))
 
     // login flow
-    await p.goto(base + '/login'); await p.waitForTimeout(600)
-    await p.fill('input[inputmode=tel]', '09121234567'); await p.click('form button[type=submit]'); await p.waitForTimeout(200)
-    await p.fill('input[name=code]', '12345'); await p.click('form button[type=submit]')
+    const acc = await accounts(base)
+    await p.goto(base + '/panel'); await p.waitForURL(/\/login/, { timeout: 5000 }).catch(() => {})
+    ok(T('panel guard (server) -> /login'), new URL(p.url()).pathname === '/login')
+    await signIn(p, acc.student)
     await p.waitForSelector('#panel-content .p-page', { timeout: 8000 }).catch(() => {})
-    ok(T('login phone -> code -> panel'), new URL(p.url()).pathname.startsWith('/panel') && await p.isVisible('#panel-content .p-page'))
+    ok(T('login username/password -> panel'), new URL(p.url()).pathname.startsWith('/panel') && await p.isVisible('#panel-content .p-page'))
     for (const sec of ['courses', 'schedule', 'assignments', 'recordings', 'certificates', 'payments', 'support', 'profile']) {
       await p.goto(base + '/panel/' + sec); await p.waitForSelector('#panel-content .p-page', { timeout: 8000 }).catch(() => {})
       const wide = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)
