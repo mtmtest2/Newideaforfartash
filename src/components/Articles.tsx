@@ -2,11 +2,16 @@ import { Link } from 'react-router-dom'
 import SectionHead from './SectionHead'
 import { ArrowLeft, ChevronLeft, ChevronRight, Leaf } from './Icons'
 import { PostCard } from './Cards'
-import { POSTS } from '../data'
+import { useRouteData } from '../content/context'
+import { FALLBACK_HOME } from '../content/fallback'
+import { toPost } from '../content/adapters'
+import type { HomeDTO } from '../content/types'
 import { fa } from '../lib/fa'
 import { useAutoplay, useNearViewport, useReveal, useCarouselPause } from '../lib/hooks'
 
 export default function Articles() {
+  const home = useRouteData<HomeDTO>()
+  const POSTS = (home.status === 'ready' ? home.data.articles : FALLBACK_HOME.articles).map(toPost)
   const ref = useReveal<HTMLElement>()
   const [hover, pauseHandlers] = useCarouselPause()
   const N = POSTS.length
@@ -29,7 +34,7 @@ export default function Articles() {
               const vis = Math.abs(off) <= 1
               return (
                 <PostCard
-                  key={p.title}
+                  key={p.key}
                   p={p}
                   linkable={off === 0}
                   load={near}
@@ -42,10 +47,10 @@ export default function Articles() {
             })}
           </div>
           <div className="dots" role="tablist" aria-label="انتخاب مقاله">
-            {POSTS.map((p, i) => <button key={p.title} role="tab" aria-selected={i === index} aria-label={`مقالهٔ ${fa(i + 1)}`} className={i === index ? 'on' : ''} onClick={() => go(i)} />)}
+            {POSTS.map((p, i) => <button key={p.key} role="tab" aria-selected={i === index} aria-label={`مقالهٔ ${fa(i + 1)}`} className={i === index ? 'on' : ''} onClick={() => go(i)} />)}
           </div>
         </div>
-        <div className="center rv"><Link to="/blog" className="btn btn-dark">مشاهدهٔ همهٔ مقالات <ArrowLeft /></Link></div>
+        <div className="center rv"><Link to="/magazine" className="btn btn-dark">مشاهدهٔ همهٔ مقالات <ArrowLeft /></Link></div>
       </div>
     </section>
   )

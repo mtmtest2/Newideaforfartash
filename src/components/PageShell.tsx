@@ -7,12 +7,13 @@ import { Leaf } from './Icons'
 import { useReveal } from '../lib/hooks'
 
 /** Layout for the inner pages: header, a titled section, footer and the phone tab bar. */
-export default function PageShell({ tag, title, text, children }: { tag: string; title: string; text?: string; children: ReactNode }) {
+export default function PageShell({ tag, title, text, docTitle, children }: { tag: string; title: string; text?: string; docTitle?: string; children: ReactNode }) {
   const ref = useReveal<HTMLElement>()
   useEffect(() => {
     window.scrollTo({ top: 0 })
-    document.title = title.includes('فرتاش') ? title : `${title} | فرتاش`
-  }, [title])
+    const t = docTitle ?? title
+    document.title = t.includes('فرتاش') ? t : `${t} | فرتاش`
+  }, [title, docTitle])
   return (
     <>
       <Header />

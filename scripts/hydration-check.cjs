@@ -3,7 +3,7 @@ const { chromium } = require('playwright')
 const base = process.argv[2] || 'http://localhost:4173'
 ;(async () => {
   const b = await chromium.launch(); let bad = 0
-  for (const theme of ['light', 'dark']) for (const path of ['/', '/teachers', '/teachers/', '/blog/', '/placement/', '/login/', '/login']) {
+  for (const theme of ['light', 'dark']) for (const path of ['/', '/teachers', '/teachers/', '/magazine', '/magazine/english-speaking-skills', '/teachers/arman-kiani', '/languages/english', '/events', '/placement/', '/login/', '/login']) {
     const p = await b.newPage(); const msgs = []
     p.on('console', (m) => { if (['error', 'warning'].includes(m.type())) msgs.push(m.text().slice(0, 140)) })
     p.on('pageerror', (e) => msgs.push('PAGEERROR ' + e.message.slice(0, 140)))

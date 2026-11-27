@@ -5,7 +5,7 @@
 import type { Endpoint, PayloadRequest, Where } from 'payload'
 import { offlineCoursesOn } from '../globals/FeatureFlags'
 import { verifyPreview } from '../lib/preview'
-import { headingId, richTextToHtml } from './html'
+import { embedUrl, headingId, richTextToHtml } from './html'
 
 type Doc = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 const nowIso = () => new Date().toISOString()
@@ -99,7 +99,7 @@ const teacherDetail = (t: Doc) => ({
   languages: (t.languages ?? []).filter((l: Doc) => l && typeof l === 'object' && l._status === 'published').map((l: Doc) => ({ name: l.name, slug: l.slug, flag: l.flag })),
   levels: t.levels ?? [], specializations: (t.specializations ?? []).map((s: Doc) => s.label),
   qualifications: (t.qualifications ?? []).map((s: Doc) => s.label), certificates: (t.certificates ?? []).map((s: Doc) => ({ label: s.label, year: s.year ?? null })),
-  experienceYears: t.experienceYears ?? null, introVideo: t.introVideo ?? null,
+  experienceYears: t.experienceYears ?? null, introVideo: t.introVideo ? embedUrl(t.introVideo) : null,
   seo: seo(t, `${t.displayName} — ${t.title}`, t.cardText ?? ''),
 })
 const eventDetail = (e: Doc) => ({
@@ -114,7 +114,7 @@ const eventDetail = (e: Doc) => ({
 const courseDetail = (c: Doc) => ({
   ...courseCard(c), description: richTextToHtml(c.description, (m) => mediaUrl(m, 'wide')).html,
   audience: c.audience ?? null, prerequisites: c.prerequisites ?? null, objectives: (c.objectives ?? []).map((o: Doc) => o.text),
-  promoVideo: c.promoVideo ?? null, estimatedWeeks: c.estimatedWeeks ?? null, difficulty: c.difficulty ?? null,
+  promoVideo: c.promoVideo ? embedUrl(c.promoVideo) : null, estimatedWeeks: c.estimatedWeeks ?? null, difficulty: c.difficulty ?? null,
   // curriculum outline only: titles, durations, preview flags. Video asset ids and private files are never exposed.
   modules: (c.modules ?? []).map((m: Doc) => ({ title: m.title, description: m.description ?? null, chapters: (m.chapters ?? []).map((ch: Doc) => ({
     title: ch.title, lessons: (ch.lessons ?? []).map((l: Doc) => ({ id: l.id, title: l.title, minutes: l.minutes ?? null, preview: !!l.preview })) })) })),

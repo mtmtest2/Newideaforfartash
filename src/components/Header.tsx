@@ -4,14 +4,8 @@ import { Moon, Sun, User } from './Icons'
 import { useTheme } from '../lib/hooks'
 import { LOGO } from '../assets'
 import { useReception, useSession, useTeacher } from '../panel/session'
+import { useSite } from '../content/context'
 
-const NAV = [
-  { href: '/#home', label: 'خانه' },
-  { href: '/#steps', label: 'مسیر یادگیری' },
-  { href: '/teachers', label: 'اساتید' },
-  { href: '/blog', label: 'مقالات' },
-  { href: '/#contact', label: 'تماس با ما' },
-]
 
 export function Logo({ small = false }: { small?: boolean }) {
   return (
@@ -43,13 +37,14 @@ export function ThemeToggle() {
 }
 
 export default function Header() {
+  const NAV = useSite().nav.header
   const student = !!useSession()
   const teacher = !!useTeacher()
   const reception = !!useReception()
   const account = student ? { to: '/panel', label: 'پنل کاربری' } : teacher ? { to: '/teacher', label: 'پنل استاد' } : reception ? { to: '/reception', label: 'پنل پذیرش' } : null
   const [scrolled, setScrolled] = useState(false)
   const { pathname, hash } = useLocation()
-  const current = pathname === '/' ? `/${hash || '#home'}` : pathname
+  const current = pathname === '/' ? `/${hash || '#home'}` : pathname.replace(/^\/(magazine|teachers|events|courses|languages)\/.+/, '/$1')
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 12)

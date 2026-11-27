@@ -4,12 +4,15 @@ import { BrowserRouter } from 'react-router-dom'
 import '@fontsource-variable/vazirmatn'
 import './styles.css'
 import App from './App'
+import { ContentProvider, readEmbedded } from './content/context'
 
 const container = document.getElementById('root')!
 const app = (
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <ContentProvider initial={readEmbedded()}>
+        <App />
+      </ContentProvider>
     </BrowserRouter>
   </StrictMode>
 )

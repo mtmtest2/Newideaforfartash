@@ -28,7 +28,7 @@ const ok = (name, cond, extra = '') => results.push(`${cond ? 'PASS' : 'FAIL'}  
 
     // navigation: header (desktop) / bottom bar (phone), then logo back home
     const navSel = tag === 'desktop' ? 'header nav' : '.bottom-nav'
-    for (const [href, check] of [['/teachers', '.prof-grid .prof-card'], ['/blog', '.post-grid .post'], ['/#contact', '#contact'], ['/#steps', '#steps']]) {
+    for (const [href, check] of [['/teachers', '.prof-grid .prof-card'], ['/magazine', '.post-grid .post'], ['/#contact', '#contact'], ['/#steps', '#steps']]) {
       await p.click(`${navSel} a[href="${href}"]`); await p.waitForTimeout(300); await settle()
       const r = await p.evaluate((c) => [location.pathname + location.hash, document.querySelectorAll(c).length, Math.round(document.querySelector(c)?.getBoundingClientRect().top ?? -1)], check)
       ok(T(`nav ${href}`), r[1] > 0 && (href.includes('#') ? Math.abs(r[2]) < 200 : true), r.join(' '))

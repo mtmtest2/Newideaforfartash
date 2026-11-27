@@ -3,17 +3,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import Beasties from 'beasties'
+import { createPageBuilder } from './page.mjs'
 
 const SITE = (process.env.SITE_URL || 'https://mrmdev.xyz').replace(/\/$/, '')
 const dist = path.resolve('dist')
 const { render, THEME_PRELOADS, CONTACT } = await import(pathToFileURL(path.resolve('dist-server/entry-server.js')).href)
-const template = fs.readFileSync(path.join(dist, 'index.html'), 'utf8')
 
 const ROUTES = [
   { url: '/', title: 'فرتاش | آموزشگاه آنلاین زبان', description: 'کلاس‌های زنده و دوره‌های آفلاین زبان انگلیسی، آلمانی، فرانسوی، عربی و ترکی استانبولی با اساتید مجرب فرتاش. تعیین سطح رایگان.' },
   { url: '/teachers', title: 'همهٔ اساتید فرتاش', description: 'آشنایی با اساتید زبان انگلیسی، آلمانی، فرانسوی، عربی و ترکی استانبولی در آموزشگاه آنلاین فرتاش.' },
-  { url: '/blog', title: 'همهٔ مقالات | فرتاش', description: 'مقالات کاربردی و به‌روز فرتاش برای یادگیری بهتر زبان: مکالمه، گرامر، ابزارها و عادت‌های یادگیری.' },
+  { url: '/magazine', title: 'همهٔ مقالات | فرتاش', description: 'مقالات کاربردی و به‌روز فرتاش برای یادگیری بهتر زبان: مکالمه، گرامر، ابزارها و عادت‌های یادگیری.' },
   { url: '/placement', title: 'تعیین سطح رایگان | فرتاش', description: 'پیش از شروع کلاس، سطح زبانتان را رایگان بسنجید تا در کلاس مناسب خودتان قرار بگیرید.' },
   { url: '/login', title: 'ورود / عضویت | فرتاش', description: 'ورود یا ساخت حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
   // Student panel: private, so noindex and not in the sitemap. Prerendered as a skeleton (data is client-only).
@@ -29,85 +28,19 @@ const ROUTES = [
     .map(([p, t]) => ({ url: '/reception' + p, title: `${t} | پنل پذیرش فرتاش`, description: 'پنل پذیرش فرتاش.', noindex: true })),
 ]
 
-// Inline (in the theme script, which already knows the theme before first paint): preload the active
-// theme's logo on every page and its hero on the home page, with the same srcset/sizes as the <img>.
-const preloadJs = (isHome) => `var P=${JSON.stringify({ logo: THEME_PRELOADS.logo, hero: isHome ? THEME_PRELOADS.hero : null })};` +
-  `var pl=function(o){var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriority='high';` +
-  `if(typeof o==='string'){l.href=o}else{l.setAttribute('imagesrcset',o.srcset);l.setAttribute('imagesizes',o.sizes)}document.head.appendChild(l)};` +
-  `pl(P.logo[t]);if(P.hero)pl(P.hero[t]);`
-
-// Preload the Vazirmatn subsets so they download alongside the CSS instead of after CSS + layout
-// (HTML -> CSS -> font chain).
-// Both subsets are needed for first paint: the Arabic-script subset has no space or basic punctuation, which
-// come from the Latin subset. (latin-ext is only used for rare characters and stays on-demand.)
-const assetFiles = fs.readdirSync(path.join(dist, 'assets'))
-const fontFiles = ['arabic', 'latin'].map((sub) => assetFiles.find((f) => new RegExp(`^vazirmatn-${sub}-wght-normal-.*\\.woff2$`).test(f)))
-if (fontFiles.some((f) => !f)) throw new Error('Vazirmatn woff2 files not found in dist/assets')
-const fontPreload = fontFiles.map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`).join('\n    ')
-
-// The font family is applied through var(--font), which beasties can't trace, so it would leave every
-// @font-face in the async stylesheet and the first paint would use a fallback font. Inline them (unicode-range
-// still makes the browser fetch only the subsets a page uses).
-const cssFile = fs.readdirSync(path.join(dist, 'assets')).find((f) => /^index-.*\.css$/.test(f))
-const fontFaces = (fs.readFileSync(path.join(dist, 'assets', cssFile), 'utf8').match(/@font-face\{[^}]*\}/g) || [])
-  .map((r) => r.replace(/url\((['"]?)(?:\.\/|\/assets\/|assets\/)?([^)'"]+\.woff2)\1\)/g, 'url(/assets/$2)'))
-  .join('')
-if (!fontFaces.includes('vazirmatn-arabic')) throw new Error('could not extract @font-face rules')
-
-// Critical CSS: inline the rules each prerendered page needs for first paint and load the full stylesheet
-// without blocking render. Theme rules are always kept because data-theme is set at runtime.
-const beasties = new Beasties({
-  path: dist,
-  publicPath: '/',
-  preload: 'swap',
-  noscriptFallback: true,
-  inlineFonts: true,
-  preloadFonts: false,
-  keyframes: 'critical',
-  allowRules: [/data-theme/, /theme-anim/, /prefers-reduced-motion/],
-  logLevel: 'warn',
-})
-
-const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+// keep the untouched client template for the runtime server (server/index.mjs) before index.html is overwritten
+if (!fs.existsSync(path.join(dist, 'index.template.html'))) fs.copyFileSync(path.join(dist, 'index.html'), path.join(dist, 'index.template.html'))
+const buildPage = createPageBuilder({ dist, THEME_PRELOADS })
+const orgLd = {
+  '@context': 'https://schema.org', '@type': 'EducationalOrganization', name: 'فرتاش', alternateName: 'آموزشگاه آنلاین زبان فرتاش', url: SITE + '/',
+  telephone: '+98' + CONTACT.phone.replace(/^0/, ''),
+  address: { '@type': 'PostalAddress', streetAddress: CONTACT.address.replace(/^مشهد، /, ''), addressLocality: 'مشهد', addressCountry: 'IR' },
+}
 
 for (const r of ROUTES) {
-  // React 19 hoists a <link rel=preload as=image> for every eager <img>, which would fetch both theme
-  // variants (logos, hero people) at high priority. Drop them; the page declares its own preloads.
-  const app = (await render(r.url)).replace(/<link rel="preload" as="image"[^>]*\/>/g, '')
-  const canonical = SITE + r.url
-  const head = [
-    `<title>${esc(r.title)}</title>`,
-    `<meta name="description" content="${esc(r.description)}" />`,
-    `<link rel="canonical" href="${canonical}" />`,
-    r.noindex ? '<meta name="robots" content="noindex" />' : '',
-    `<meta property="og:type" content="website" />`,
-    `<meta property="og:locale" content="fa_IR" />`,
-    `<meta property="og:site_name" content="فرتاش" />`,
-    `<meta property="og:title" content="${esc(r.title)}" />`,
-    `<meta property="og:description" content="${esc(r.description)}" />`,
-    `<meta property="og:url" content="${canonical}" />`,
-    fontPreload,
-    r.url === '/' ? `<script type="application/ld+json">${JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'EducationalOrganization',
-      name: 'فرتاش',
-      alternateName: 'آموزشگاه آنلاین زبان فرتاش',
-      url: SITE + '/',
-      telephone: '+98' + CONTACT.phone.replace(/^0/, ''),
-      address: { '@type': 'PostalAddress', streetAddress: CONTACT.address.replace(/^مشهد، /, ''), addressLocality: 'مشهد', addressCountry: 'IR' },
-    })}</script>` : '',
-  ].filter(Boolean).join('\n    ')
-  let html = template
-    .replace(/<title>[\s\S]*?<\/title>\s*/, '')
-    .replace(/<meta name="description"[^>]*>\s*/, '')
-    .replace('<!--head-->', head)
-    .replace('/*__THEME_PRELOADS__*/', preloadJs(r.url === '/'))
-    .replace('<div id="root"></div>', `<div id="root" data-route="${r.url}">${app}</div>`)
-  if (!html.includes(app)) throw new Error('root placeholder not found in dist/index.html')
-  html = await beasties.process(html)
-  // Added after beasties so it isn't merged with the critical <style> (noscript content is ignored with JS on).
-  html = html.replace('</head>', `<style>${fontFaces}</style>\n</head>`)
-  html = html.replace('</head>', '<noscript><style>.rv{opacity:1!important;transform:none!important}</style></noscript>\n</head>')
+  // Static fallback pages carry no embedded content: the client then uses the built-in content (src/content/fallback.ts).
+  const html = await buildPage({ url: r.url, route: r.url, app: await render(r.url), title: r.title, description: r.description,
+    canonical: SITE + r.url, noindex: r.noindex, jsonLd: r.url === '/' ? [orgLd] : [], payload: null })
   const out = r.url === '/' ? path.join(dist, 'index.html') : path.join(dist, r.url.slice(1), 'index.html')
   fs.mkdirSync(path.dirname(out), { recursive: true })
   fs.writeFileSync(out, html)
@@ -121,4 +54,4 @@ fs.writeFileSync(path.join(dist, 'sitemap.xml'), `<?xml version="1.0" encoding="
   ROUTES.filter((r) => !r.noindex).map((r) => `  <url><loc>${SITE}${r.url}</loc><lastmod>${today}</lastmod></url>`).join('\n') + '\n</urlset>\n')
 console.log('wrote robots.txt, sitemap.xml')
 
-fs.rmSync('dist-server', { recursive: true, force: true })
+// dist-server/ is kept: the runtime content server (server/index.mjs) renders with it.

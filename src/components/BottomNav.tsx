@@ -30,10 +30,10 @@ const ITEMS = [
   { id: 'home', to: '/#home', label: 'خانه', icon: <HomeIco /> },
   { id: 'steps', to: '/#steps', label: 'مسیر یادگیری', icon: <PathIco /> },
   { id: 'classes', to: '/teachers', label: 'اساتید', icon: <TeachersIco /> },
-  { id: 'blog', to: '/blog', label: 'مقالات', icon: <BlogIco /> },
+  { id: 'blog', to: '/magazine', label: 'مقالات', icon: <BlogIco /> },
   { id: 'contact', to: '/#contact', label: 'پشتیبانی', icon: <SupportIco /> },
 ]
-const PAGE_ACTIVE: Record<string, string> = { '/teachers': 'classes', '/blog': 'blog', '/placement': 'steps' }
+const PAGE_ACTIVE: Record<string, string> = { '/teachers': 'classes', '/magazine': 'blog', '/placement': 'steps' }
 
 /** App-style tab bar on phones: the top menu moves here, icon above label. */
 export default function BottomNav() {

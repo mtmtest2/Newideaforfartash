@@ -6,7 +6,7 @@ const textOf = (node: { children?: unknown[]; text?: string }): string =>
 export const headingId = (t: string, i: number) => `h-${i}-${t.trim().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '').slice(0, 48)}`
 
 /** Safe embed URL for Aparat / YouTube only (anything else is dropped). */
-function embedUrl(url: string) {
+export function embedUrl(url: string) {
   const yt = url.match(/^https:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{6,})/)
   if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}`
   const ap = url.match(/^https:\/\/(?:www\.)?aparat\.com\/v\/([\w-]+)/)
@@ -56,6 +56,15 @@ export function richTextToHtml(data: unknown, mediaUrl: (doc: Record<string, unk
       },
     }),
   })
-  return { html, toc }
+  return { html: sanitize(html), toc }
+}
+
+/** Defense in depth on top of escaping: no inline event handlers, no script/style/iframe except our embeds, no javascript: URLs. */
+export function sanitize(html: string) {
+  return html
+    .replace(/<\/?(script|style|object|embed|form|input|button|textarea|select|meta|link|base)\b[^>]*>/gi, '')
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/(href|src)\s*=\s*(["'])\s*(javascript|vbscript|data):[^"']*\2/gi, '$1=$2#$2')
+    .replace(/<iframe\b(?![^>]*src="https:\/\/(www\.youtube-nocookie\.com|www\.aparat\.com)\/)[^>]*>(.*?)<\/iframe>/gi, '')
 }
 export { defaultHTMLConverters }

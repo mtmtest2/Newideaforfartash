@@ -6,7 +6,7 @@ const axeSrc = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8')
 const base = process.argv[2] || 'http://localhost:8088'
 ;(async () => {
   const b = await chromium.launch(); let total = 0
-  for (const [w, h] of [[1440, 900], [390, 844]]) for (const theme of ['light', 'dark']) for (const path of ['/', '/teachers', '/blog', '/placement', '/login', '/panel', '/panel/courses', '/panel/schedule', '/panel/assignments', '/panel/recordings', '/panel/certificates', '/panel/payments', '/panel/support', '/panel/profile', '/panel/messages?t=g-en-b1',
+  for (const [w, h] of [[1440, 900], [390, 844]]) for (const theme of ['light', 'dark']) for (const path of ['/', '/teachers', '/magazine', '/magazine/english-speaking-skills', '/teachers/arman-kiani', '/languages/english', '/events', '/no-such-page', '/placement', '/login', '/panel', '/panel/courses', '/panel/schedule', '/panel/assignments', '/panel/recordings', '/panel/certificates', '/panel/payments', '/panel/support', '/panel/profile', '/panel/messages?t=g-en-b1',
     '/teacher', '/teacher/classes', '/teacher/classes?id=en-b1', '/teacher/schedule', '/teacher/assignments', '/teacher/assignments?task=a4', '/teacher/attendance', '/teacher/messages?t=g-en-b1', '/teacher/profile', '/reception', '/reception/classes', '/reception/classes?id=en-b1', '/reception/groups?t=g-en-b1']) {
     const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' })
     await ctx.addInitScript((t) => localStorage.setItem('fartash-theme', t), theme)
