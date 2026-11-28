@@ -46,7 +46,7 @@ export default function StaffPanel({ area }: { area: Area }) {
     let live = true
     void ensureStaff(role).then((u) => {
       if (!live) return
-      if (!u) navigate(`/staff/login?next=${encodeURIComponent(window.location.pathname)}`, { replace: true })
+      if (!u) navigate(`/staff/login/${role}?next=${encodeURIComponent(window.location.pathname)}`, { replace: true })
       else setMe(u)
     })
     return () => { live = false }
@@ -60,7 +60,7 @@ export default function StaffPanel({ area }: { area: Area }) {
       { to: `${base}/members`, label: 'زبان‌آموزان', short: 'کاربران', icon: Icon.courses },
       { to: `${base}/account`, label: 'حساب من', icon: Icon.user },
     ]
-  const logout = async () => { await logoutStaff(role); navigate('/staff/login', { replace: true }) }
+  const logout = async () => { await logoutStaff(role); navigate(`/staff/login/${role}`, { replace: true }) }
 
   return (
     <Shell nav={nav} tabs={nav.map((n) => n.to)} user={me ? { name: me.name, role: ROLE_LABEL[role] } : null} profileHref={`${base}/account`}
@@ -212,7 +212,7 @@ function CreateStaff({ roles, onDone, onClose }: { roles: StaffRole[]; onDone: (
   }
   if (created) return (
     <div className="p-form">
-      <p className="ok" role="status">حساب «{f.name}» با نام کاربری <bdi dir="ltr">{f.username}</bdi> ساخته شد. آدرس ورود: <bdi dir="ltr">/staff/login</bdi></p>
+      <p className="ok" role="status">حساب «{f.name}» با نام کاربری <bdi dir="ltr">{f.username}</bdi> ساخته شد. آدرس ورود: <bdi dir="ltr">{`/staff/login/${f.role}`}</bdi></p>
       <OneTimeSecret value={created} onDone={onClose} />
     </div>
   )

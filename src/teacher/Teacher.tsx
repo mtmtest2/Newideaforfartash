@@ -29,14 +29,14 @@ export default function TeacherPanel() {
     let live = true, id = 0
     void ensureStaff('teacher').then((u) => {
       if (!live) return
-      if (!u) { navigate(`/staff/login?next=${encodeURIComponent(pathname)}`, { replace: true }); return }
+      if (!u) { navigate(`/staff/login/teacher?next=${encodeURIComponent(pathname)}`, { replace: true }); return }
       setNow(new Date())
       id = window.setInterval(() => setNow(new Date()), 60000)
     })
     return () => { live = false; window.clearInterval(id) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  useEffect(() => { if (now && !session) navigate('/staff/login', { replace: true }) }, [session, now, navigate])
+  useEffect(() => { if (now && !session) navigate('/staff/login/teacher', { replace: true }) }, [session, now, navigate])
 
   const teacher = TEACHERS.find((t) => t.id === session?.teacherId) ?? TEACHERS[0]
   const courses = useMemo(() => coursesOfTeacher(teacher.id), [teacher.id])
@@ -73,7 +73,7 @@ export default function TeacherPanel() {
     }),
   ] : null), [ctx, db]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const logout = () => { void logoutStaff('teacher').then(() => navigate('/staff/login', { replace: true })) }
+  const logout = () => { void logoutStaff('teacher').then(() => navigate('/staff/login/teacher', { replace: true })) }
 
   return (
     <Shell nav={nav} tabs={TABS} user={session ? { name: `استاد ${session.name}`, role: teacher.title } : null}

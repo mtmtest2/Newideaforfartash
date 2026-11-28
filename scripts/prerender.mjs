@@ -17,6 +17,8 @@ const ROUTES = [
   { url: '/login', title: 'ورود | فرتاش', description: 'ورود به حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
   { url: '/register', title: 'عضویت | فرتاش', description: 'ساخت حساب کاربری در آموزشگاه آنلاین فرتاش.', noindex: true },
   { url: '/staff/login', title: 'ورود کارکنان | فرتاش', description: 'ورود اساتید و کارکنان فرتاش.', noindex: true },
+  ...[['teacher', 'ورود اساتید'], ['reception', 'ورود پذیرش'], ['supervisor', 'ورود سوپروایزر'], ['support', 'ورود پشتیبانی'], ['owner', 'ورود مالک']]
+    .map(([r, t]) => ({ url: `/staff/login/${r}`, title: `${t} | فرتاش`, description: `${t} فرتاش.`, noindex: true })),
   // Student panel: private, so noindex and not in the sitemap. Prerendered as a skeleton (data is client-only).
   ...[['', 'داشبورد'], ['/courses', 'دوره‌های من'], ['/schedule', 'برنامهٔ کلاس‌ها'], ['/assignments', 'تکالیف و آزمون‌ها'], ['/messages', 'گروه‌های کلاس'],
     ['/recordings', 'جلسات ضبط‌شده'], ['/certificates', 'گواهی‌ها'], ['/payments', 'پرداخت‌ها'], ['/support', 'پشتیبانی'], ['/profile', 'پروفایل و تنظیمات']]

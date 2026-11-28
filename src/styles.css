@@ -1463,7 +1463,12 @@ html:has(.panel) { scroll-padding-top: 96px; }
 .staff-pill { align-self: flex-start; }
 .staff-aside .la-copy { max-width: 520px; }
 .staff-roles { display: grid; gap: 10px; margin: 18px 0; }
-.staff-roles li { display: grid; gap: 2px; padding: 12px 16px; border-radius: 16px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .14); }
+.staff-roles li { border-radius: 16px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .14); transition: border-color .2s, background-color .2s; }
+.staff-roles li a { display: grid; gap: 2px; padding: 12px 16px; color: inherit; text-decoration: none; border-radius: inherit; }
+.staff-roles li a small { text-align: end; }
+.staff-roles li:hover { border-color: rgba(183, 215, 122, .6); }
+.staff-roles li.on { background: rgba(183, 215, 122, .16); border-color: #b7d77a; }
+.staff-roles li a:focus-visible { outline: 2px solid #b7d77a; outline-offset: 2px; }
 .staff-roles b { color: #f8f1e7; }
 .staff-roles small { color: rgba(248, 241, 231, .78); font-size: 13.5px; }
 .staff-note { font-size: 13px; color: rgba(248, 241, 231, .7); }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Bars, ChevronRight, Flag, Leaf, Phone, Star, User } from '../components/Icons'
 import { HERO } from '../assets'
 import { PROFS } from '../data'
@@ -261,26 +261,42 @@ export default function Login() {
             : <OtpForm aud="member" next={next} onNewMember={setWelcome} />}
           {otp === false && <p className="demo-note">ورود با کد پیامکی به‌زودی فعال می‌شود.</p>}
         </>}
+        <p className="alt-line">استاد فرتاش هستید؟ <Link to="/staff/login/teacher">ورود اساتید</Link></p>
       </>}
     </Frame>
   )
 }
 
-/** /staff/login — teachers, reception, supervisors, support and the owner. Not linked from the public site. */
+/** Each staff role has its own sign-in address (/staff/login/teacher …); /staff/login works for every role. */
+export const ROLE_LOGIN: Record<StaffRole, { path: string; area: string; title: string; who: string; text: string }> = {
+  teacher: { path: '/staff/login/teacher', area: '/teacher', title: 'ورود اساتید', who: 'استاد', text: 'با نام کاربری‌ای که مدیر آموزشگاه برایتان ساخته وارد شوید تا پنل استاد (کلاس‌ها، تکالیف، حضور و غیاب و گروه‌ها) باز شود.' },
+  reception: { path: '/staff/login/reception', area: '/reception', title: 'ورود پذیرش', who: 'پذیرش', text: 'با حساب پذیرش وارد شوید تا گروه‌های کلاس و فهرست کلاس‌ها را ببینید.' },
+  supervisor: { path: '/staff/login/supervisor', area: '/supervisor', title: 'ورود سوپروایزر', who: 'سوپروایزر', text: 'با حساب سوپروایزر وارد شوید.' },
+  support: { path: '/staff/login/support', area: '/support-desk', title: 'ورود پشتیبانی', who: 'پشتیبانی', text: 'با حساب پشتیبانی وارد شوید تا داشبورد پشتیبانی باز شود.' },
+  owner: { path: '/staff/login/owner', area: '/owner', title: 'ورود مالک', who: 'مالک', text: 'با حساب مالک وارد شوید تا داشبورد مالک باز شود.' },
+}
+
+/** /staff/login and /staff/login/:role — not linked from the public site except «ورود اساتید». */
 export function StaffLogin() {
   const [params] = useSearchParams()
+  const { role: roleParam } = useParams()
+  const role = roleParam && roleParam in ROLE_LOGIN ? (roleParam as StaffRole) : undefined
+  const R = role ? ROLE_LOGIN[role] : null
   const otp = useOtpEnabled()
   const [method, setMethod] = useState<Method>('password')
   const rawNext = params.get('next')
-  useEffect(() => { document.title = 'ورود کارکنان | فرتاش' }, [])
-  const next = rawNext && /^\/(teacher|reception|supervisor|support-desk|owner)(\/|$)/.test(rawNext) ? rawNext : ''
-  useRedirectIfSignedIn('staff', (home) => safeNext(rawNext, home), next ? AREA_ROLE[next.split('/')[1]] : undefined)
+  useEffect(() => { document.title = `${R?.title ?? 'ورود کارکنان'} | فرتاش` }, [R])
+  const asked = rawNext && /^\/(teacher|reception|supervisor|support-desk|owner)(\/|$)/.test(rawNext) ? rawNext : ''
+  const next = asked || R?.area || ''
+  useRedirectIfSignedIn('staff', (home) => safeNext(next || null, home), next ? AREA_ROLE[next.split('/')[1]] : undefined)
+  if (roleParam && !role) return <Navigate to="/staff/login" replace />
   return (
-    <Frame staff aside={<StaffAside />}>
-      <span className="pill staff-pill">بخش کارکنان</span>
+    <Frame staff aside={<StaffAside current={role} />}>
+      <span className="pill staff-pill">{R ? `بخش ${R.who}` : 'بخش کارکنان'}</span>
       <MethodTabs method={method} setMethod={setMethod} otp={otp} />
       {method === 'password'
-        ? <PasswordForm aud="staff" next={next} title="ورود کارکنان فرتاش" text="با نام کاربری‌ای که مدیر آموزشگاه برایتان ساخته وارد شوید. بعد از ورود، پنل نقش شما باز می‌شود." submit="ورود" />
+        ? <PasswordForm aud="staff" next={next} title={R ? `${R.title} فرتاش` : 'ورود کارکنان فرتاش'}
+            text={R?.text ?? 'با نام کاربری‌ای که مدیر آموزشگاه برایتان ساخته وارد شوید. بعد از ورود، پنل نقش شما باز می‌شود.'} submit={R ? `ورود به پنل ${R.who}` : 'ورود'} />
         : <OtpForm aud="staff" next={next} onNewMember={() => undefined} />}
       {otp === false && <p className="demo-note">ورود با کد پیامکی به‌زودی فعال می‌شود.</p>}
       <p className="alt-line">زبان‌آموز هستید؟ <Link to="/login">ورود زبان‌آموزان</Link></p>
@@ -288,22 +304,19 @@ export function StaffLogin() {
   )
 }
 
-const STAFF_ROLES = [
-  ['استاد', 'کلاس‌ها، تکالیف، حضور و غیاب و گروه‌های کلاس'],
-  ['پذیرش', 'ساخت گروه کلاس‌ها و نظارت بر گفت‌وگوها'],
-  ['سوپروایزر', 'نظارت آموزشی بر کلاس‌ها و اساتید'],
-  ['پشتیبانی', 'محتوای سایت، کاربران و حساب اساتید و پذیرش'],
-  ['مالک', 'همهٔ حساب‌ها، نقش‌ها و گزارش‌های امنیتی'],
-]
-function StaffAside() {
+function StaffAside({ current }: { current?: StaffRole }) {
   return (
-    <aside className="login-aside staff-aside" aria-label="نقش‌های کارکنان">
+    <aside className="login-aside staff-aside" aria-label="ورود نقش‌های کارکنان">
       <div className="la-copy">
         <span className="pill">ورود امن کارکنان</span>
         <h2>هر نقش، <span className="hl">پنل خودش</span></h2>
         <p>حساب کارکنان را فقط مالک یا پشتیبانی می‌سازد. بعد از ورود، فقط بخش‌های مربوط به نقش شما باز می‌شود.</p>
         <ul className="staff-roles">
-          {STAFF_ROLES.map(([t, d]) => <li key={t}><b>{t}</b><small>{d}</small></li>)}
+          {(['teacher', 'reception', 'supervisor', 'support', 'owner'] as StaffRole[]).map((r) => (
+            <li key={r} className={r === current ? 'on' : undefined}>
+              <Link to={ROLE_LOGIN[r].path} aria-current={r === current ? 'page' : undefined}><b>{ROLE_LOGIN[r].title}</b><small dir="ltr">{ROLE_LOGIN[r].path}</small></Link>
+            </li>
+          ))}
         </ul>
         <p className="staff-note">نشست کارکنان پس از ۸ ساعت بسته می‌شود و پنج ورود ناموفق، حساب را ۱۵ دقیقه قفل می‌کند.</p>
       </div>

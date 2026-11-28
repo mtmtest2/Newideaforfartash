@@ -234,7 +234,7 @@ export function createAuth({ SITE, CMS, SECRET, log }) {
     const area = AREAS.find((a) => a.re.test(pathname))
     if (!area) return null
     const next = encodeURIComponent(pathname + (search || ''))
-    const loginPage = area.aud === 'member' ? '/login' : '/staff/login'
+    const loginPage = area.aud === 'member' ? '/login' : `/staff/login/${area.role}`
     if (!enabled) return `${loginPage}?next=${next}`
     const user = await userFor(req, area.aud === 'member' ? 'member' : area.role)
     return user ? null : `${loginPage}?next=${next}`

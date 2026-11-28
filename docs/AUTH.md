@@ -4,14 +4,16 @@
 | Who | Sign-in page | After sign-in |
 |---|---|---|
 | Students / site users | `/login` (sign-up: `/register`) | `/panel` |
-| Teacher | `/staff/login` | `/teacher` |
-| Reception | `/staff/login` | `/reception` |
-| Supervisor | `/staff/login` | `/supervisor` |
-| Support | `/staff/login` | `/support-desk` (+ Content Hub at `CMS_PUBLIC_URL/support`) |
-| Owner | `/staff/login` | `/owner` |
+| Teacher | `/staff/login/teacher` | `/teacher` |
+| Reception | `/staff/login/reception` | `/reception` |
+| Supervisor | `/staff/login/supervisor` | `/supervisor` |
+| Support | `/staff/login/support` | `/support-desk` (+ Content Hub at `CMS_PUBLIC_URL/support`) |
+| Owner | `/staff/login/owner` | `/owner` |
 
-`/staff/login` is not linked from the public site, is `noindex` and disallowed in `robots.txt`. Its address is not a
-secret, and security doesn't depend on hiding it.
+Each staff role has its own page with its own title. `/staff/login` (all roles) also works, and a staff member who
+signs in on another role's page simply lands in their own panel. Only «ورود اساتید» is linked, from `/login`. The
+staff pages are `noindex` and disallowed in `robots.txt`. Their addresses are not secret, and security doesn't depend
+on hiding them.
 
 ## Methods
 - **Username + password**: works now for everyone.

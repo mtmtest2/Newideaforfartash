@@ -19,7 +19,7 @@ const ready = (p) => p.waitForSelector('#panel-content .p-page', { timeout: 1000
     const t = await ctx.newPage(); watch(t)
     const acc = await accounts(base)
     await t.goto(base + '/teacher/assignments'); await t.waitForURL(/\/staff\/login/, { timeout: 8000 }).catch(() => {})
-    ok(T('teacher guard -> /staff/login'), new URL(t.url()).pathname === '/staff/login')
+    ok(T('teacher guard -> /staff/login/teacher'), new URL(t.url()).pathname === '/staff/login/teacher')
     ok(T('staff login has no signup tab'), !(await t.isVisible('text=عضویت')))
     await signIn(t, acc.teacher)
     await ready(t)
@@ -121,7 +121,7 @@ const ready = (p) => p.waitForSelector('#panel-content .p-page', { timeout: 1000
     // 7. reception: guard, login, create the missing group, moderate, close, join
     const r = await ctx.newPage(); watch(r)
     await r.goto(base + '/reception/groups'); await r.waitForURL(/\/staff\/login/, { timeout: 8000 }).catch(() => {})
-    ok(T('reception guard -> /staff/login'), new URL(r.url()).pathname === '/staff/login')
+    ok(T('reception guard -> /staff/login/reception'), new URL(r.url()).pathname === '/staff/login/reception')
     await signIn(r, acc.reception)
     await ready(r)
     ok(T('reception login -> groups'), new URL(r.url()).pathname.startsWith('/reception/groups'))

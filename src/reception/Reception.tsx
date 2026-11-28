@@ -26,14 +26,14 @@ export default function ReceptionPanel() {
     let live = true, id = 0
     void ensureStaff('reception').then((u) => {
       if (!live) return
-      if (!u) { navigate(`/staff/login?next=${encodeURIComponent(pathname)}`, { replace: true }); return }
+      if (!u) { navigate(`/staff/login/reception?next=${encodeURIComponent(pathname)}`, { replace: true }); return }
       setNow(new Date())
       id = window.setInterval(() => setNow(new Date()), 60000)
     })
     return () => { live = false; window.clearInterval(id) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  useEffect(() => { if (now && !session) navigate('/staff/login', { replace: true }) }, [session, now, navigate])
+  useEffect(() => { if (now && !session) navigate('/staff/login/reception', { replace: true }) }, [session, now, navigate])
 
   const ctx = useMemo<ReceptionCtx | null>(() => (session && now ? {
     session, db, now, name: (id: string) => studentName(db, id, getSession()?.name),
@@ -56,7 +56,7 @@ export default function ReceptionPanel() {
     return { id: m.id, kind: 'message' as const, title: `گروه ${c.title} ${c.level}`, text: `${m.role === 'student' ? ctx.name(m.authorId) : authorName(db, m)}: ${m.text}`, date: new Date(m.at), href: `/reception/groups?t=${g.id}` }
   }) : null), [ctx, db])
 
-  const logout = () => { void logoutStaff('reception').then(() => navigate('/staff/login', { replace: true })) }
+  const logout = () => { void logoutStaff('reception').then(() => navigate('/staff/login/reception', { replace: true })) }
 
   return (
     <Shell nav={nav} tabs={nav.map((n) => n.to)} user={session ? { name: session.name, role: 'پذیرش فرتاش' } : null}
